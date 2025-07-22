@@ -1,0 +1,10 @@
+{
+  "extends": "expo/tsconfig.base",
+  "compilerOptions": {
+    "strict": false,
+    "jsx": "react",
+    "resolveJsonModule": true,
+    "skipLibCheck": true
+  }
+}
+

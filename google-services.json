@@ -1,0 +1,55 @@
+{
+  "project_info": {
+    "project_number": "528873498711",
+    "project_id": "newproject-e93b7",
+    "storage_bucket": "newproject-e93b7.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:528873498711:android:471036170c952f22c75b12",
+        "android_client_info": {
+          "package_name": "com.smaurya.QRCodeScannerApp"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "528873498711-d8pbe5pvsim12ksrm1662mponm3320ja.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.smaurya.QRCodeScannerApp",
+            "certificate_hash": "a664ace4549f52fadacc0b55c2f0b9d2dc54eb67"
+          }
+        },
+        {
+          "client_id": "528873498711-m25keji1insfbdd50a2bq0974fkt8l0n.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.smaurya.QRCodeScannerApp",
+            "certificate_hash": "0a8665cc24c805f44535196163474241657ceb23"
+          }
+        },
+        {
+          "client_id": "528873498711-nchsodfmf1j053rs1vgn51l2taal52ji.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAkzmCIi_pk5p6RVrooyRSFpDnkOT8Oa9w"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "528873498711-nchsodfmf1j053rs1vgn51l2taal52ji.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
