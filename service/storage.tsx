@@ -6,8 +6,8 @@ const storage = new MMKV();
 export const mmkvStorage = {
     /**
      
-     * @param {string} key - The key to store the value against
-     * @param {any} value - The value to store (handles string  , number, boolean, and objects)
+     * @param {string} key 
+     * @param {any} value 
      */
     setItem: (key: string, value: any): void => {
         if (typeof value === 'string') {
@@ -17,7 +17,7 @@ export const mmkvStorage = {
         } else if (typeof value === 'boolean') {
             storage.set(key, value);
         } else if (typeof value === 'object') {
-            storage.set(key, JSON.stringify(value)); // Convert objects to JSON strings
+            storage.set(key, JSON.stringify(value)); 
         } else {
             console.error('Unsupported data type');
         }

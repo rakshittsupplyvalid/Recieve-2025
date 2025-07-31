@@ -6,7 +6,7 @@ import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { screenWidth } from '../utils/Constants';
 import NetInfo from "@react-native-community/netinfo";
-import {useTranslation} from 'react-i18next';
+import { useTranslation } from 'react-i18next';
 import useForm from '../service/UseForm';
 import Storage from '../utils/Storage';
 
@@ -17,26 +17,27 @@ interface LoginAppProps {
 }
 
 const LoginApp: React.FC<LoginAppProps> = ({ navigation }) => {
-    const { state, updateState } = useForm();
+  const { state, updateState } = useForm();
   const [isConnected, setIsConnected] = useState(true);
 
   const [passwordVisible, setPasswordVisible] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [keyboardVisible, setKeyboardVisible] = useState(false);
-  const { t ,  i18n } = useTranslation();
+  const { t, i18n } = useTranslation();
   const isOffline = !isConnected;
 
 
-   useEffect(() => {
+  useEffect(() => {
     updateState({
       form: {
-        mobileNo: '9990665358',
+        mobileNo: '7972918850'
+        ,
         password: 'Password@123'
       }
     });
   }, []);
 
-  
+
   useEffect(() => {
     const unsubscribe = NetInfo.addEventListener(state => {
       setIsConnected(state.isConnected);
@@ -45,7 +46,7 @@ const LoginApp: React.FC<LoginAppProps> = ({ navigation }) => {
     return () => unsubscribe();
   }, []);
 
-    const handleChange = (field: string, value: string) => {
+  const handleChange = (field: string, value: string) => {
     updateState({
       form: {
         ...state.form,
@@ -75,54 +76,68 @@ const LoginApp: React.FC<LoginAppProps> = ({ navigation }) => {
       }
       const response = await apiClient.post('/api/login/user', payload);
 
+      console.log('Login response:', response.data);
+
       if (response.status !== 200) {
         throw new Error(response.data?.message || 'Login failed');
       }
 
-      const { token } = response.data;
+      const { token, role } = response.data; // Assuming your API returns the role
+
+
+
+
+
+
+
       if (!token) {
         throw new Error('Authentication token not received');
       }
 
       Storage.setString('userToken', token);
+      Storage.setString('userRole', role);
       console.log('Login successful, token:', token);
 
-    navigation.reset({
-      index: 0,
-      routes: [{ name: 'DispatchDrawernavigator' }],
-    });
+
+      if (role === 'SvUser' || role === 'VendorAdmin') {
+        navigation.reset({
+          index: 0,
+          routes: [{ name: 'DispatchDrawernavigator' }],
+        });
+      }
+
     } catch (error: any) {
-  console.error('Login error:', error);
+      console.error('Login error:', error);
 
-  // Check if it's an Axios error with a response
-  if (error.response) {
-    console.log('Error response data:', error.response.data);
-    console.log('Error response status:', error.response.status);
-    console.log('Error response headers:', error.response.headers);
+      // Check if it's an Axios error with a response
+      if (error.response) {
+        console.log('Error response data:', error.response.data);
+        console.log('Error response status:', error.response.status);
+        console.log('Error response headers:', error.response.headers);
 
-    Alert.alert(
-      'Login Failed',
-      error.response.data?.message || 'Something went wrong on the server.'
-    );
-  } else if (error.request) {
-    // The request was made but no response was received
-    console.log('No response received:', error.request);
+        Alert.alert(
+          'Login Failed',
+          error.response.data?.message || 'Something went wrong on the server.'
+        );
+      } else if (error.request) {
+        // The request was made but no response was received
+        console.log('No response received:', error.request);
 
-    Alert.alert(
-      'Network Error',
-      'No response received from server. Please check your internet connection.'
-    );
-  } else {
-    // Something happened in setting up the request
-    console.log('Error message:', error.message);
+        Alert.alert(
+          'Network Error',
+          'No response received from server. Please check your internet connection.'
+        );
+      } else {
+        // Something happened in setting up the request
+        console.log('Error message:', error.message);
 
-    Alert.alert(
-      'Error',
-      error.message || 'An unexpected error occurred.'
-    );
-  }
-}
- finally {
+        Alert.alert(
+          'Error',
+          error.message || 'An unexpected error occurred.'
+        );
+      }
+    }
+    finally {
       setIsLoading(false);
     }
   };
@@ -149,7 +164,7 @@ const LoginApp: React.FC<LoginAppProps> = ({ navigation }) => {
       <View style={styles.logoContainer}>
         <Image source={require('../assets/logo.png')} style={styles.logo} />
         <View style={styles.TextContainer}>
-    
+
 
           <Text style={styles.logoText}>{t('loginTitle')}</Text>
           <Text style={styles.logoTextinner}>{t('loginSubtitle')}</Text>
@@ -176,8 +191,8 @@ const LoginApp: React.FC<LoginAppProps> = ({ navigation }) => {
             autoCapitalize="none"
             // value={isOffline ? '' : mobileNo}
             // onChangeText={setMobileno}
-               value={state.form?.mobileNo || ''}
-              onChangeText={(text) => handleChange('mobileNo', text)}
+            value={state.form?.mobileNo || ''}
+            onChangeText={(text) => handleChange('mobileNo', text)}
             maxLength={10}
             editable={!isOffline} // Disable input when offline
           />
@@ -190,9 +205,9 @@ const LoginApp: React.FC<LoginAppProps> = ({ navigation }) => {
             secureTextEntry={!passwordVisible}
             // value={isOffline ? '' : password}
             // onChangeText={setPassword}
-               value={state.form?.password || ''}
-              onChangeText={(text) => handleChange('password', text)}
-            editable={!isOffline} 
+            value={state.form?.password || ''}
+            onChangeText={(text) => handleChange('password', text)}
+            editable={!isOffline}
           />
           <TouchableOpacity onPress={() => setPasswordVisible(!passwordVisible)}>
             <Icon name={passwordVisible ? 'eye-off' : 'eye'} size={20} color="#666" />
@@ -212,7 +227,7 @@ const LoginApp: React.FC<LoginAppProps> = ({ navigation }) => {
             <Text style={styles.footerText}>Offline Form</Text>
           </TouchableOpacity>
         </View> */}
-{/* 
+        {/* 
         <Button title="Hindi" onPress={() => i18n.changeLanguage('hi')} />
 <Button title="English" onPress={() => i18n.changeLanguage('en')} /> */}
 
@@ -222,7 +237,7 @@ const LoginApp: React.FC<LoginAppProps> = ({ navigation }) => {
 
       <View style={styles.view}>
         <TouchableOpacity style={styles.button} onPress={handleLogin} >
-        <Text style={styles.buttonText}>{isOffline ? t('offlineButton') : t('loginButton')}</Text>
+          <Text style={styles.buttonText}>{isOffline ? t('offlineButton') : t('loginButton')}</Text>
 
         </TouchableOpacity>
 
@@ -236,7 +251,7 @@ const LoginApp: React.FC<LoginAppProps> = ({ navigation }) => {
         </View>
       )}
 
-      
+
     </View>
   );
 };

@@ -20,6 +20,7 @@ import OfflineForm from '../Screenthree/OfflineForm';
 import ReportOffline from '../MainComponent/ReportOffline';
 import SubmitTruckData from '../Screenthree/SubmitTruckData';
 import LanguageSelector from '../Screenthree/Languages';
+import VendorAdminDrawernavigator from './VendorAdminDrawernavigator';
 
 
 
@@ -40,6 +41,7 @@ export default function StackNavigator() {
 
       <Stack.Screen name="LoginApp" component={LoginApp} />
       <Stack.Screen name="DispatchDrawernavigator" component={DispatchDrawernavigator} />
+      <Stack.Screen name="VendorAdminDrawernavigator" component={VendorAdminDrawernavigator} />
       <Stack.Screen name="ReportOffline" component={ReportOffline} />
       <Stack.Screen name="DispatchRecieve" component={DispatchRecieve} />
       <Stack.Screen name="Federation" component={Federation} />

@@ -11,7 +11,7 @@ const styles = StyleSheet.create({
 
   modalContainer: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.95)',
+    backgroundColor: 'rgba(0, 0, 0, 0.95)',
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -20,6 +20,23 @@ const styles = StyleSheet.create({
     top: 50,
     right: 20,
     zIndex: 1,
+  },
+
+  
+    customHeader: {
+    backgroundColor: '#F79B00',
+    paddingVertical: 15,
+    paddingHorizontal: 20,
+
+    flexDirection: 'row', // row-wise layo
+    alignItems: 'center'
+  },
+
+
+  headerTitle: {
+    color: '#fff',
+    fontSize: 18,
+    fontWeight: 'bold',
   },
   fullImage: {
     width: '90%',
