@@ -8,7 +8,7 @@ import api from '../service/api/apiInterceptors';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '../types/Type';
-import { launchCamera, launchImageLibrary, ImagePickerResponse, ImageLibraryOptions } from 'react-native-image-picker';
+import { launchCamera,  ImagePickerResponse} from 'react-native-image-picker';
 import styles from '../theme/Healthreport';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import { useTranslation } from 'react-i18next';

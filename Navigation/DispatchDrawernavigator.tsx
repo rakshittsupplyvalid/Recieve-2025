@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, Image, ActivityIndicator, Alert, TouchableOpaci
 import { createDrawerNavigator, DrawerContentScrollView, DrawerItemList } from '@react-navigation/drawer';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import api from '../service/api/apiInterceptors';
-import LotDetails from '../src/LotDetails/LotDetails';
+import LicensePlateScanner from '../src/LotDetails/LotDetails';
 import RecieveDhasboard from '../Screenthree/RecieveDhasboard';
 import GenerateHealthReport from '../Screenthree/GenerateHealthReport';
 import { NavigationContext } from '@react-navigation/native';
@@ -75,7 +75,7 @@ export default function DispatchDrawernavigator() {
     );
   }
 
-  const initialRoute = profileData?.role === 'VendorAdmin' ? 'LotDetails' : 'RecieveDhasboard'; 
+  const initialRoute = profileData?.role === 'VendorAdmin' ? 'License Plate Scanner' : 'RecieveDhasboard'; 
 
   return (
     <Drawer.Navigator
@@ -99,8 +99,8 @@ export default function DispatchDrawernavigator() {
     >
       {profileData?.role === 'VendorAdmin' ? (
         <Drawer.Screen
-          name="LotDetails"
-          component={LotDetails}
+          name="License Plate Scanner"
+          component={LicensePlateScanner}
           options={{
             title: 'Vendor Panel',
             drawerIcon: ({ color, size }) => <Icon name="person" size={size} color={color} />,

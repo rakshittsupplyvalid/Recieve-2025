@@ -20,6 +20,8 @@ import LinearGradient from 'react-native-linear-gradient';
 import { RootStackParamList } from '../../types/Type';
 
 
+
+
 interface Report {
     id: string;
     assayerName: string;
