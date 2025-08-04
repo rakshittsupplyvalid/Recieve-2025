@@ -13,7 +13,8 @@ import com.facebook.react.soloader.OpenSourceMergedSoMapping
 import com.facebook.soloader.SoLoader
 import expo.modules.ApplicationLifecycleDispatcher
 import expo.modules.ReactNativeHostWrapper
-import com.smaurya.QRCodeScannerApp.MyPackage // custom package should be AFTER the default imports
+
+import com.smaurya.QRCodeScannerApp.GeoCameraPackage // custom package should be AFTER the default imports
 
 class MainApplication : Application(), ReactApplication {
 
@@ -23,7 +24,8 @@ class MainApplication : Application(), ReactApplication {
       override fun getPackages(): List<ReactPackage> {
         val packages = PackageList(this).packages.toMutableList()
       
-        packages.add(MyPackage())
+    
+        packages.add(GeoCameraPackage())
 
         return packages
       }
