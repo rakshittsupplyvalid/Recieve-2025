@@ -5,7 +5,7 @@ import api from '../service/api/apiInterceptors';
 import moment from 'moment';
 import {useTranslation} from 'react-i18next';
 
-const PAGE_SIZE = 2; // Define the number of items per page
+const PAGE_SIZE = 2; 
 
 const Recievelist = () => {
   const [reports, setReports] = useState([]);

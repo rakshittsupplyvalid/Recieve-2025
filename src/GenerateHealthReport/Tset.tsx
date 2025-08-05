@@ -395,6 +395,8 @@ const openCamera = () => {
     }
   }, [state.form?.Trucknumber]);
 
+  
+
   const fetchHealthReport = async (trucknumber: any) => {
     try {
       const response = await apiClient.get(
@@ -411,6 +413,7 @@ const openCamera = () => {
       console.error("API Error:", error);
     }
   };
+
 
   const fetchReportDetails = async (id: any) => {
     try {
@@ -460,6 +463,7 @@ const openCamera = () => {
       console.error("Error fetching report details:", error);
     }
   };
+
 
 
 

@@ -19,6 +19,7 @@ import LanguageSelector from '../Screenthree/Languages';
 import ReimbursementList from '../Screenthree/ReimbursementList';
 import HealthReportDetails from '../src/HealthReportlist/HealthReportDeails';
 import TestForm from '../src/GenerateHealthReport/GenerateHealthReports';
+import LotDetailsApproved from '../src/LotDetails/LotDetailsApproved';
 
 const Drawer = createDrawerNavigator();
 
@@ -98,6 +99,9 @@ export default function DispatchDrawernavigator() {
       }}
     >
       {profileData?.role === 'VendorAdmin' ? (
+
+        <>
+     
         <Drawer.Screen
           name="License Plate Scanner"
           component={LicensePlateScanner}
@@ -106,6 +110,21 @@ export default function DispatchDrawernavigator() {
             drawerIcon: ({ color, size }) => <Icon name="person" size={size} color={color} />,
           }}
         />
+
+
+          <Drawer.Screen
+          name="LotDetailsApproved"
+          component={LotDetailsApproved}
+          options={{
+            title: 'Vendor Panel',
+            drawerIcon: ({ color, size }) => <Icon name="person" size={size} color={color} />,
+          }}
+        />
+
+           </>
+
+
+        
       ) : (
         <>
           <Drawer.Screen name="RecieveDhasboard" component={RecieveDhasboard} options={{ headerShown: false, title: 'Dashboard', drawerIcon: ({ color, size }) => <Icon name="dashboard" size={size} color={color} /> }} />
