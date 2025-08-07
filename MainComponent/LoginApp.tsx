@@ -30,7 +30,7 @@ const LoginApp: React.FC<LoginAppProps> = ({ navigation }) => {
   useEffect(() => {
     updateState({
       form: {
-        mobileNo: '7972918850'
+        mobileNo: '6200000002'
         ,
         password: 'Password@123'
       }
@@ -58,15 +58,15 @@ const LoginApp: React.FC<LoginAppProps> = ({ navigation }) => {
   const handleLogin = async () => {
     const { mobileNo, password } = state.form;
 
-    if (!mobileNo || !password) {
-      Alert.alert('Error', 'Please enter both mobile number and password');
-      return;
-    }
+    // if (!mobileNo || !password) {
+    //   Alert.alert('Error', 'Please enter both mobile number and password');
+    //   return;
+    // }
 
-    if (mobileNo.length !== 10) {
-      Alert.alert('Error', 'Please enter a valid 10-digit mobile number');
-      return;
-    }
+    // if (mobileNo.length !== 10) {
+    //   Alert.alert('Error', 'Please enter a valid 10-digit mobile number');
+    //   return;
+    // }
 
     setIsLoading(true);
     try {
@@ -99,7 +99,7 @@ const LoginApp: React.FC<LoginAppProps> = ({ navigation }) => {
       console.log('Login successful, token:', token);
 
 
-      if (role === 'SvUser' || role === 'VendorAdmin') {
+      if (role === 'SvUser' || role === 'StorageAdmin') {
         navigation.reset({
           index: 0,
           routes: [{ name: 'DispatchDrawernavigator' }],

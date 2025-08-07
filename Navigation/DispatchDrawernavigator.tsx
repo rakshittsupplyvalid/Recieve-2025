@@ -3,9 +3,7 @@ import { View, Text, StyleSheet, Image, ActivityIndicator, Alert, TouchableOpaci
 import { createDrawerNavigator, DrawerContentScrollView, DrawerItemList } from '@react-navigation/drawer';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import api from '../service/api/apiInterceptors';
-import LicensePlateScanner from '../src/LotDetails/LotDetails';
 import RecieveDhasboard from '../Screenthree/RecieveDhasboard';
-import GenerateHealthReport from '../Screenthree/GenerateHealthReport';
 import { NavigationContext } from '@react-navigation/native';
 import { MMKV } from 'react-native-mmkv';
 import HealthReport from '../src/HealthReportlist/HealthReportlist';
@@ -20,6 +18,10 @@ import ReimbursementList from '../Screenthree/ReimbursementList';
 import HealthReportDetails from '../src/HealthReportlist/HealthReportDeails';
 import TestForm from '../src/GenerateHealthReport/GenerateHealthReports';
 import LotDetailsApproved from '../src/LotDetails/LotDetailsApproved';
+import DirectNormal from '../src/Directandnormal/DirectNormal';
+import StockMove from '../src/StockMove/StockMove';
+import RecieveStockmove from '../src/StockMove/RecieveStockmove';
+import RejectStockmove from '../src/StockMove/RejectStockmove';
 
 const Drawer = createDrawerNavigator();
 
@@ -76,17 +78,17 @@ export default function DispatchDrawernavigator() {
     );
   }
 
-  const initialRoute = profileData?.role === 'VendorAdmin' ? 'License Plate Scanner' : 'RecieveDhasboard'; 
+  const initialRoute = profileData?.role === 'StorageAdmin' ? 'Direct and Normal' : 'RecieveDhasboard';
 
   return (
     <Drawer.Navigator
       id={undefined}
       initialRouteName={initialRoute}
       drawerContent={(props) => (
-        <CustomDrawerContent 
-          {...props} 
-          profileData={profileData} 
-          onLogoutPress={handleLogoutPress} 
+        <CustomDrawerContent
+          {...props}
+          profileData={profileData}
+          onLogoutPress={handleLogoutPress}
         />
       )}
       screenOptions={{
@@ -98,42 +100,91 @@ export default function DispatchDrawernavigator() {
         drawerLabelStyle: { fontSize: 16, fontWeight: 'bold' },
       }}
     >
-      {profileData?.role === 'VendorAdmin' ? (
+      {profileData?.role === 'StorageAdmin' ? (
 
         <>
-     
-        <Drawer.Screen
-          name="License Plate Scanner"
-          component={LicensePlateScanner}
-          options={{
-            title: 'Vendor Panel',
-            drawerIcon: ({ color, size }) => <Icon name="person" size={size} color={color} />,
-          }}
-        />
+          {/* 
+          <Drawer.Screen
+            name="License Plate Scanner"
+            component={LicensePlateScanner}
+            options={{
+              title: 'Vendor Panel',
+              drawerIcon: ({ color, size }) => <Icon name="person" size={size} color={color} />,
+            }}
+          /> */}
+
+
+
+          
+          <Drawer.Screen
+            name="Direct and Normal"
+            component={DirectNormal}
+            options={{
+              title: 'Direct and Normal',
+              drawerIcon: ({ color, size }) => <Icon name="person" size={size} color={color} />,
+            }}
+          />
+
+            <Drawer.Screen
+            name="Recieve Stockmove"
+            component={RecieveStockmove}
+            options={{
+               headerShown: false,
+              title: 'Direct and Normal',
+              drawerIcon: ({ color, size }) => <Icon name="person" size={size} color={color} />,
+                 drawerItemStyle: { display: 'none' }
+            }}
+
+          />
+
+
+           <Drawer.Screen
+            name="Reject Stockmove"
+            component={RejectStockmove}
+            options={{
+               headerShown: false,
+              title: 'Direct and Normal',
+              drawerIcon: ({ color, size }) => <Icon name="person" size={size} color={color} />,
+                 drawerItemStyle: { display: 'none' }
+            }}
+          />
 
 
           <Drawer.Screen
-          name="LotDetailsApproved"
-          component={LotDetailsApproved}
-          options={{
-            title: 'Vendor Panel',
-            drawerIcon: ({ color, size }) => <Icon name="person" size={size} color={color} />,
-          }}
-        />
+            name="LotDetailsApproved"
+            component={LotDetailsApproved}
+            options={{
+              title: 'Lot Details',
+              drawerIcon: ({ color, size }) => <Icon name="person" size={size} color={color} />,
+                drawerItemStyle: { display: 'none' }
+            }}
+          />
 
-           </>
+
+          <Drawer.Screen
+            name="StockMove"
+            component={StockMove}
+            options={{
+              title: 'StockMove',
+              drawerIcon: ({ color, size }) => <Icon name="person" size={size} color={color} />,
+              drawerItemStyle: { display: 'none' }
+            }}
+          />
 
 
-        
+        </>
+
+
+
       ) : (
         <>
           <Drawer.Screen name="RecieveDhasboard" component={RecieveDhasboard} options={{ headerShown: false, title: 'Dashboard', drawerIcon: ({ color, size }) => <Icon name="dashboard" size={size} color={color} /> }} />
-          <Drawer.Screen name="GenerateHealthReport" 
+          <Drawer.Screen name="GenerateHealthReport"
             component={TestForm}
-            options={{ 
-              headerShown: false, 
+            options={{
+              headerShown: false,
               drawerIcon: ({ color, size }) => <Icon name="health-and-safety" size={size} color={color} />
-            }} 
+            }}
           />
           <Drawer.Screen name="HealthReportlist" component={HealthReport} options={{ headerShown: false, drawerIcon: ({ color, size }) => <Icon name="medical-services" size={size} color={color} /> }} />
           <Drawer.Screen name="DispatchReportlist" component={DispatchReportlist} options={{ headerShown: false, drawerIcon: ({ color, size }) => <Icon name="assignment" size={size} color={color} /> }} />

@@ -87,7 +87,20 @@ const LotDetailsApproved = () => {
         contentContainerStyle={styles.scrollContainer}
         showsVerticalScrollIndicator={false}
       >
-       
+        <Dropdown
+          data={[
+            { label: 'Direct', value: 'Direct' },
+            { label: 'Normal', value: 'Normal' },
+        
+          ]}
+          labelField="label"
+          valueField="value"
+          placeholder="Select item"
+          search
+          searchPlaceholder="Search..."
+          mode="modal"
+          onChange={(item) => console.log('Selecteds:', item)}
+        />
 
 
 
@@ -120,7 +133,7 @@ const LotDetailsApproved = () => {
 
               <View style={styles.section}>
                 <View style={styles.sectionHeader}>
-                  <FontAwesome name="truck" size={18} color="#27ae60" />
+                  <FontAwesome name="truck" size={18} color="#2c3e50" />
                   <Text style={styles.sectionTitle}>Transport Details</Text>
                 </View>
                 <View style={styles.detailsGrid}>
@@ -202,7 +215,7 @@ const LotDetailsApproved = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: 'white',
+    backgroundColor: '#f5f5f5',
   },
   scrollContainer: {
     padding: 15,

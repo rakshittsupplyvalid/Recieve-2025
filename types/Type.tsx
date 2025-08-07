@@ -72,5 +72,9 @@ export type RootStackParamList = {
   "Receive Truck List": undefined;
   OfflineForm: undefined;
   HealthReport: HealthReportParams;
+   StockMove: undefined;
+"Recieve Stockmove": { stockMoveId: string };
+"Reject Stockmove": { stockMoveId: string };
+  
 };
   
