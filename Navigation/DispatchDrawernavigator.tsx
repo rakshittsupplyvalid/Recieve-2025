@@ -115,7 +115,7 @@ export default function DispatchDrawernavigator() {
 
 
 
-          
+
           <Drawer.Screen
             name="Direct and Normal"
             component={DirectNormal}
@@ -125,27 +125,27 @@ export default function DispatchDrawernavigator() {
             }}
           />
 
-            <Drawer.Screen
+          <Drawer.Screen
             name="Recieve Stockmove"
             component={RecieveStockmove}
             options={{
-               headerShown: false,
+              headerShown: false,
               title: 'Direct and Normal',
               drawerIcon: ({ color, size }) => <Icon name="person" size={size} color={color} />,
-                 drawerItemStyle: { display: 'none' }
+              drawerItemStyle: { display: 'none' }
             }}
 
           />
 
 
-           <Drawer.Screen
+          <Drawer.Screen
             name="Reject Stockmove"
             component={RejectStockmove}
             options={{
-               headerShown: false,
+              headerShown: false,
               title: 'Direct and Normal',
               drawerIcon: ({ color, size }) => <Icon name="person" size={size} color={color} />,
-                 drawerItemStyle: { display: 'none' }
+              drawerItemStyle: { display: 'none' }
             }}
           />
 
@@ -156,7 +156,7 @@ export default function DispatchDrawernavigator() {
             options={{
               title: 'Lot Details',
               drawerIcon: ({ color, size }) => <Icon name="person" size={size} color={color} />,
-                drawerItemStyle: { display: 'none' }
+              drawerItemStyle: { display: 'none' }
             }}
           />
 
@@ -187,9 +187,20 @@ export default function DispatchDrawernavigator() {
             }}
           />
           <Drawer.Screen name="HealthReportlist" component={HealthReport} options={{ headerShown: false, drawerIcon: ({ color, size }) => <Icon name="medical-services" size={size} color={color} /> }} />
-          <Drawer.Screen name="DispatchReportlist" component={DispatchReportlist} options={{ headerShown: false, drawerIcon: ({ color, size }) => <Icon name="assignment" size={size} color={color} /> }} />
-          <Drawer.Screen name="Dispatchlist" component={Dispatchlist} options={{ headerShown: false, drawerIcon: ({ color, size }) => <Icon name="local-shipping" size={size} color={color} /> }} />
-          <Drawer.Screen name="Recievelist" component={Recievelist} options={{ headerShown: false, drawerIcon: ({ color, size }) => <Icon name="move-to-inbox" size={size} color={color} /> }} />
+          {/* <Drawer.Screen name="DispatchReportlist"
+           component={DispatchReportlist} 
+           options={{ headerShown: false, 
+           drawerIcon: ({ color, size }) => <Icon name="assignment" size={size} color={color} /> }} /> */}
+
+          {/* <Drawer.Screen name="Dispatchlist" component={Dispatchlist}
+           options={{ headerShown: false,
+            drawerIcon: ({ color, size }) => 
+            <Icon name="local-shipping" size={size} color={color} /> }} /> */}
+
+          {/* <Drawer.Screen name="Recievelist"
+           component={Recievelist} options={{ headerShown: false, 
+           drawerIcon: ({ color, size }) => <Icon name="move-to-inbox" size={size} color={color} /> }} /> */}
+
           <Drawer.Screen name="ReimbursementForm" component={ReimbursementForm} options={{ headerShown: false, drawerIcon: ({ color, size }) => <Icon name="receipt" size={size} color={color} /> }} />
           <Drawer.Screen name="SavedReport" component={SavedReport} options={{ headerShown: false, drawerIcon: ({ color, size }) => <Icon name="save-alt" size={size} color={color} /> }} />
           <Drawer.Screen name="LanguageSelector" component={LanguageSelector} options={{ headerShown: false, drawerIcon: ({ color, size }) => <Icon name="language" size={size} color={color} /> }} />

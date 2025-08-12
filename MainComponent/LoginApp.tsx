@@ -30,7 +30,7 @@ const LoginApp: React.FC<LoginAppProps> = ({ navigation }) => {
   useEffect(() => {
     updateState({
       form: {
-        mobileNo: '6200000002'
+        mobileNo: '9990665358'
         ,
         password: 'Password@123'
       }

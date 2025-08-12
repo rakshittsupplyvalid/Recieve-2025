@@ -17,12 +17,7 @@ import { useTranslation } from 'react-i18next';
 import apiClient from '../../service/api/apiInterceptors';
 import { useRoute, useNavigation, NavigationProp } from '@react-navigation/native';
 import LinearGradient from 'react-native-linear-gradient';
-
-import { RouteProp } from '@react-navigation/native';
-import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-
-
-
+import { RootStackParamList } from '../../types/Type';
 
 interface Report {
     id: string;
@@ -54,19 +49,21 @@ interface Report {
     netWeight?: number;
 }
 
-type RootStackParamList = {
-    HealthReportlist: undefined;
-    HealthReportDetails: { reportId: string };
+interface HealthReportDetailsRouteParams {
+    reportId: string;
+}
+
+type RootStack = {
+    HealthReportDetails: HealthReportDetailsRouteParams;
 };
 
-type HealthReportDetailsRouteProp = RouteProp<RootStackParamList, 'HealthReportDetails'>;
-type HealthReportDetailsNavigationProp = NativeStackNavigationProp<RootStackParamList, 'HealthReportDetails'>;
+type RouteProp = RouteProp<RootStack, 'HealthReportDetails'>;
 
 const { width } = Dimensions.get('window');
 
 const HealthReportDetails = () => {
-     const route = useRoute<HealthReportDetailsRouteProp>();
-    const navigation = useNavigation<HealthReportDetailsNavigationProp>();
+    const route = useRoute<RouteProp>();
+    const navigation = useNavigation<NavigationProp<RootStackParamList>>();
     const { reportId } = route.params;
     const [report, setReport] = useState<Report | null>(null);
     const [loading, setLoading] = useState(true);
@@ -554,4 +551,5 @@ const styles = StyleSheet.create({
         fontFamily: 'Inter-SemiBold',
     },
 });
+
 export default HealthReportDetails;
