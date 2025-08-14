@@ -22,6 +22,7 @@ import DirectNormal from '../src/Directandnormal/DirectNormal';
 import StockMove from '../src/StockMove/StockMove';
 import RecieveStockmove from '../src/StockMove/RecieveStockmove';
 import RejectStockmove from '../src/StockMove/RejectStockmove';
+import CAhealthreport from '../src/GenerateHealthReport/CAhealthreport';
 
 const Drawer = createDrawerNavigator();
 
@@ -186,6 +187,15 @@ export default function DispatchDrawernavigator() {
               drawerIcon: ({ color, size }) => <Icon name="health-and-safety" size={size} color={color} />
             }}
           />
+
+{/* 
+           <Drawer.Screen name="CAhealthreport"
+            component={CAhealthreport}
+            options={{
+              headerShown: false,
+              drawerIcon: ({ color, size }) => <Icon name="health-and-safety" size={size} color={color} />
+            }}
+          /> */}
           <Drawer.Screen name="HealthReportlist" component={HealthReport} options={{ headerShown: false, drawerIcon: ({ color, size }) => <Icon name="medical-services" size={size} color={color} /> }} />
           {/* <Drawer.Screen name="DispatchReportlist"
            component={DispatchReportlist} 

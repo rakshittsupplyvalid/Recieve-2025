@@ -693,7 +693,9 @@ const TestForm = () => {
     apiClient.post('/api/mobile/healthreport/normal/receive', formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
-        Authorization: `Bearer ${token}`,
+        
+      
+       
       },
     })
       .then(response => {
@@ -752,7 +754,7 @@ const TestForm = () => {
             <MaterialIcons name="arrow-back" size={24} color="#fff" />
 
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>Review Form</Text>
+          <Text style={styles.headerTitle}>Normal Health Report form</Text>
         </View>
 
 

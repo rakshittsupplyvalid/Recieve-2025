@@ -128,7 +128,7 @@ export const tableStyles = StyleSheet.create({
     height: 200,
     borderRadius: 10,
     marginVertical: 10,
-    backgroundColor : "red"
+
   },
   
   closeButtonText: {
@@ -136,4 +136,16 @@ export const tableStyles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
   },
+  imagesContainer: {
+  marginTop: 15,
+  padding: 10,
+  backgroundColor: '#f5f5f5',
+  borderRadius: 5,
+},
+imagesTitle: {
+  fontSize: 16,
+  fontWeight: 'bold',
+  marginBottom: 10,
+},
+
 });

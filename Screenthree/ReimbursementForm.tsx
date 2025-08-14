@@ -6,10 +6,8 @@ import {
   StyleSheet,
   Alert,
   Image,
-  FlatList,
   TouchableOpacity,
   SafeAreaView,
-  Button,
   Pressable,
   KeyboardAvoidingView,
   Platform,
@@ -17,11 +15,10 @@ import {
 import DropDownPicker from 'react-native-dropdown-picker';
 import { launchCamera, ImagePickerResponse, launchImageLibrary } from 'react-native-image-picker';
 import { useTranslation } from 'react-i18next';
-import api from '../service/api/apiInterceptors';
+import apiClient from '../service/api/apiInterceptors';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import Modal from 'react-native-modal';
-import Icon from 'react-native-vector-icons/MaterialIcons';
 import Navbar from '../App/Navbar';
 import { ScrollView } from 'react-native-gesture-handler';
 
@@ -40,6 +37,7 @@ const ReimbursementForm = () => {
     BillType: '',
     Purpose: '',
     VehicleType: '',
+    VehicleNumber: '', // Added VehicleNumber field
   });
   const [images, setImages] = useState<ImageAsset[]>([]);
   const [billTypeOpen, setBillTypeOpen] = useState(false);
@@ -134,16 +132,20 @@ const ReimbursementForm = () => {
   };
 
   const validateForm = () => {
-    const { date, StartTripReading, EndTripReading, Amount, BillType, Purpose, VehicleType } = formData;
+    const { date, StartTripReading, EndTripReading, Amount, BillType, Purpose, VehicleType, VehicleNumber } = formData;
 
     if (!date || !BillType || !Amount || !Purpose) {
-      Alert.alert('Validation Error', 'All Field Required');
+      Alert.alert('Validation Error', 'All fields are required');
       return false;
     }
 
     if (BillType === 'Petrol') {
-      if (!VehicleType) {
-        Alert.alert('Validation Error', 'Please select a vehicle type');
+      if (!VehicleType || VehicleType === 'None') {
+        Alert.alert('Validation Error', 'Please select a valid vehicle type');
+        return false;
+      }
+      if (!VehicleNumber || VehicleNumber.trim().length < 5) {
+        Alert.alert('Validation Error', 'Please enter a valid vehicle number (e.g. MH01AB1234)');
         return false;
       }
       if (!StartTripReading || isNaN(Number(StartTripReading))) {
@@ -159,14 +161,12 @@ const ReimbursementForm = () => {
         return false;
       }
     }
+
     if (!Amount || isNaN(Number(Amount)) || Number(Amount) <= 0) {
       Alert.alert('Validation Error', 'Please enter a valid amount');
       return false;
     }
-    if (!Purpose.trim()) {
-      Alert.alert('Validation Error', 'Please provide a purpose');
-      return false;
-    }
+
     if (images.length === 0) {
       Alert.alert('Validation Error', 'Please upload at least one image');
       return false;
@@ -179,19 +179,19 @@ const ReimbursementForm = () => {
     if (!validateForm()) return;
 
     setIsSubmitting(true);
-    console.log('Submitting reimbursement form...');
 
     const data = new FormData();
-    data.append('date', formData.date);
+    data.append('Date', formData.date);
     data.append('StartTripReading', formData.StartTripReading);
     data.append('EndTripReading', formData.EndTripReading);
     data.append('Amount', formData.Amount);
     data.append('BillType', formData.BillType);
     data.append('Purpose', formData.Purpose);
     data.append('VehicleType', formData.VehicleType);
+    data.append('VehicleNumber', formData.VehicleNumber); // Added VehicleNumber to form data
 
     images.forEach((image) => {
-      data.append('images', {
+      data.append('Images', {
         uri: image.uri,
         name: image.fileName,
         type: image.type,
@@ -199,7 +199,7 @@ const ReimbursementForm = () => {
     });
 
     try {
-      const response = await api.post('api/mobile/Reimbursment', data, {
+      const response = await apiClient.post('api/mobile/Reimbursment', data, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
@@ -214,16 +214,14 @@ const ReimbursementForm = () => {
           BillType: '',
           Purpose: '',
           VehicleType: '',
+          VehicleNumber: '',
         });
         setImages([]);
         setSelectedDate(new Date());
         Alert.alert('Success', response.data.message || 'Reimbursement added successfully');
-      } else {
-        console.log('Response:', response.data);
-        Alert.alert('Error', response.data.message || 'Failed to add expense');
       }
     } catch (error) {
-      console.error('Error submitting form:', error);
+      console.error('Error submitting form:', error.response.data);
       Alert.alert('Error', 'Something went wrong while submitting the form');
     } finally {
       setIsSubmitting(false);
@@ -238,188 +236,182 @@ const ReimbursementForm = () => {
     handleInputChange('date', formattedDate);
   };
 
-  const handlePress = () => {
-    Alert.alert('Image Pressed');
-  };
-
   return (
     <ScrollView style={styles.container}>
       <Navbar />
-      <FlatList
-        data={[{ key: 'form' }]}
-        keyExtractor={(item) => item.key}
-        renderItem={() => (
-          <View style={styles.formContent}>
-            <Text style={styles.label}>{t('Date')}</Text>
-            <View style={styles.inputWrapper}>
-              <TouchableOpacity onPress={() => setShowDatePicker(true)}>
-                <TextInput
-                  style={styles.input}
-                  placeholder={t('selecteddate')}
-                  value={formData.date}
-                  onChangeText={(text) => handleInputChange('date', text)}
-                  editable={false}
-                />
-              </TouchableOpacity>
-            </View>
+      <View style={styles.formContent}>
+        {/* Date Picker */}
+        <Text style={styles.label}>{t('Date')}</Text>
+        <View style={styles.inputWrapper}>
+          <TouchableOpacity onPress={() => setShowDatePicker(true)}>
+            <TextInput
+              style={styles.input}
+              placeholder={t('selecteddate')}
+              value={formData.date}
+              onChangeText={(text) => handleInputChange('date', text)}
+              editable={false}
+            />
+          </TouchableOpacity>
+        </View>
 
-            {showDatePicker && (
-              <DateTimePicker
-                value={selectedDate}
-                mode="date"
-                display="default"
-                onChange={handleDateChange}
-                minimumDate={threeMonthsAgo}
-                maximumDate={today}
-              />
-            )}
+        {showDatePicker && (
+          <DateTimePicker
+            value={selectedDate}
+            mode="date"
+            display="default"
+            onChange={handleDateChange}
+            minimumDate={threeMonthsAgo}
+            maximumDate={today}
+          />
+        )}
 
-            <Text style={styles.label}>{t("Billtype")}</Text>
+        {/* Bill Type Dropdown */}
+        <Text style={styles.label}>{t("Billtype")}</Text>
+        <DropDownPicker
+          open={billTypeOpen}
+          value={formData.BillType}
+          items={billTypeItems}
+          setOpen={setBillTypeOpen}
+          setValue={(callback) =>
+            setFormData((prevState) => {
+              const selectedType = callback(prevState.BillType);
+              return {
+                ...prevState,
+                BillType: selectedType,
+                StartTripReading: '',
+                EndTripReading: '',
+                VehicleType: selectedType === 'Petrol' ? prevState.VehicleType : '',
+                VehicleNumber: selectedType === 'Petrol' ? prevState.VehicleNumber : '',
+              };
+            })
+          }
+          setItems={setBillTypeItems}
+          placeholder={t('selectBilltype')}
+          style={styles.dropdown}
+        />
+
+        {/* Petrol-Specific Fields */}
+        {formData.BillType === 'Petrol' && (
+          <>
+            <Text style={styles.label}>{t("Vehicle Type")}</Text>
             <DropDownPicker
-              open={billTypeOpen}
-              value={formData.BillType}
-              items={billTypeItems}
-              setOpen={setBillTypeOpen}
+              open={vehicleTypeOpen}
+              value={formData.VehicleType}
+              items={vehicleTypeItems}
+              setOpen={setVehicleTypeOpen}
               setValue={(callback) =>
-                setFormData((prevState) => {
-                  const selectedType = callback(prevState.BillType);
-                  return {
-                    ...prevState,
-                    BillType: selectedType,
-                    StartTripReading: '',
-                    EndTripReading: '',
-                    VehicleType: selectedType === 'Petrol' ? prevState.VehicleType : ''
-                  };
-                })
+                setFormData((prevState) => ({
+                  ...prevState,
+                  VehicleType: callback(prevState.VehicleType)
+                }))
               }
-              setItems={setBillTypeItems}
-              placeholder={t('selectBilltype')}
+              setItems={setVehicleTypeItems}
+              placeholder="Select Vehicle Type"
               style={styles.dropdown}
             />
 
-            {formData.BillType === 'Petrol' && (
-              <>
-                <Text style={styles.label}>{t("Vehicle Type")}</Text>
-                <DropDownPicker
-                  open={vehicleTypeOpen}
-                  value={formData.VehicleType}
-                  items={vehicleTypeItems}
-                  setOpen={setVehicleTypeOpen}
-                  setValue={(callback) =>
-                    setFormData((prevState) => ({
-                      ...prevState,
-                      VehicleType: callback(prevState.VehicleType)
-                    }))
-                  }
-                  setItems={setVehicleTypeItems}
-                  placeholder="Select Vehicle Type"
-                  style={styles.dropdown}
-                />
-
-                <Text style={styles.label}>{t("StartTripReading")}</Text>
-                <TextInput
-                  style={styles.input}
-                  placeholder={t("StartTripReading")}
-                  keyboardType="numeric"
-                  value={formData.StartTripReading}
-                  onChangeText={(text) => handleInputChange('StartTripReading', text)}
-                />
-
-                <Text style={styles.label}>{t("EndTripReading")}</Text>
-                <TextInput
-                  style={styles.input}
-                  placeholder={t("EndTripReading")}
-                  keyboardType="numeric"
-                  value={formData.EndTripReading}
-                  onChangeText={(text) => handleInputChange('EndTripReading', text)}
-                />
-              </>
-            )}
-
-            <Text style={styles.label}>{t("Amount")}</Text>
+            <Text style={styles.label}>{t("Vehicle Number")}</Text>
             <TextInput
               style={styles.input}
-              placeholder={t("Amount")}
+              placeholder="e.g. MH01AB1234"
+              value={formData.VehicleNumber}
+              onChangeText={(text) => handleInputChange('VehicleNumber', text)}
+              autoCapitalize="characters"
+            />
+
+            <Text style={styles.label}>{t("StartTripReading")}</Text>
+            <TextInput
+              style={styles.input}
+              placeholder={t("StartTripReading")}
               keyboardType="numeric"
-              value={formData.Amount}
-              onChangeText={(text) => handleInputChange('Amount', text)}
+              value={formData.StartTripReading}
+              onChangeText={(text) => handleInputChange('StartTripReading', text)}
             />
 
-            <Text style={styles.label}>{t("purpose")}</Text>
+            <Text style={styles.label}>{t("EndTripReading")}</Text>
             <TextInput
               style={styles.input}
-              placeholder={t("purpose")}
-              value={formData.Purpose}
-              onChangeText={(text) => handleInputChange('Purpose', text)}
+              placeholder={t("EndTripReading")}
+              keyboardType="numeric"
+              value={formData.EndTripReading}
+              onChangeText={(text) => handleInputChange('EndTripReading', text)}
             />
+          </>
+        )}
 
-            <View>
-              <Pressable style={styles.button} onPress={toggleModal}>
-                <Text style={styles.buttonText}>{t("CaptureImage")}</Text>
+        {/* Common Fields */}
+        <Text style={styles.label}>{t("Amount")}</Text>
+        <TextInput
+          style={styles.input}
+          placeholder={t("Amount")}
+          keyboardType="numeric"
+          value={formData.Amount}
+          onChangeText={(text) => handleInputChange('Amount', text)}
+        />
+
+        <Text style={styles.label}>{t("purpose")}</Text>
+        <TextInput
+          style={styles.input}
+          placeholder={t("purpose")}
+          value={formData.Purpose}
+          onChangeText={(text) => handleInputChange('Purpose', text)}
+        />
+
+        {/* Image Upload Section */}
+        <View>
+          <Pressable style={styles.button} onPress={toggleModal}>
+            <Text style={styles.buttonText}>{t("CaptureImage")}</Text>
+          </Pressable>
+
+          <Modal isVisible={isModalVisible} onBackdropPress={toggleModal}>
+            <View style={styles.modalContainer}>
+              <Pressable onPress={handleTakePhoto} style={styles.pressable}>
+                <Text style={styles.buttonText}>{t("Camera")}</Text>
+                <MaterialIcons name="camera" size={30} color="#fff" />
               </Pressable>
-              
-              <Modal isVisible={isModalVisible} onBackdropPress={toggleModal}>
-                <View style={{
-                  width: '100%', 
-                  height: '50%', 
-                  backgroundColor: 'rgba(0, 0, 0, 0.5)', 
-                  justifyContent: 'center', 
-                  alignItems: 'center',
-                }}>
-                  <Pressable onPress={handleTakePhoto} style={styles.pressable}>
-                    <Text style={styles.buttonText}>{t("Camera")}</Text>
-                    <MaterialIcons name="camera" size={30} color="#fff" />
-                  </Pressable>
 
-                  <Pressable onPress={handlePickImage} style={styles.pressable}>
-                    <Text style={styles.buttonText}>{t("Gallery")}</Text>
-                    <MaterialIcons name="photo-library" size={30} color="#fff" />
-                  </Pressable>
+              <Pressable onPress={handlePickImage} style={styles.pressable}>
+                <Text style={styles.buttonText}>{t("Gallery")}</Text>
+                <MaterialIcons name="photo-library" size={30} color="#fff" />
+              </Pressable>
 
-                  <Pressable style={styles.closeButton} onPress={toggleModal}>
-                    <MaterialIcons name="close" size={20} color="#fff" />
-                  </Pressable>
-                </View>
-              </Modal>
+              <Pressable style={styles.closeButton} onPress={toggleModal}>
+                <MaterialIcons name="close" size={20} color="#fff" />
+              </Pressable>
             </View>
+          </Modal>
+        </View>
 
-            {images.length > 0 && (
-              <FlatList
-                data={images}
-                horizontal
-                keyExtractor={(item, index) => `${item.uri}-${index}`}
-                renderItem={({ item, index }) => (
-                  <View style={styles.imageContainer}>
-                    <TouchableOpacity
-                      onPress={() => handleDeleteImage(index)}
-                      style={styles.deleteButton}
-                    >
-                      <MaterialIcons name="close" size={20} color="#fff" />
-                    </TouchableOpacity>
-                    <TouchableOpacity onPress={handlePress}>
-                      <Image source={{ uri: item.uri }} style={styles.image} />
-                    </TouchableOpacity>
-                  </View>
-                )}
-              />
-            )}
-
-            <TouchableOpacity 
-              onPress={handleSubmit} 
-              style={[styles.button, isSubmitting && styles.buttonDisabled]} 
-              disabled={isSubmitting}
-            >
-              <Text style={styles.buttonText}>{isSubmitting ? 'Submitting...' : 'Submit'}</Text>
-            </TouchableOpacity>
+        {/* Image Preview */}
+        {images.length > 0 && (
+          <View>
+            {images.map((item, index) => (
+              <View key={`${item.uri}-${index}`} style={styles.imageContainer}>
+                <TouchableOpacity
+                  onPress={() => handleDeleteImage(index)}
+                  style={styles.deleteButton}
+                >
+                  <MaterialIcons name="close" size={20} color="#fff" />
+                </TouchableOpacity>
+                <Image source={{ uri: item.uri }} style={styles.image} />
+              </View>
+            ))}
           </View>
         )}
-        keyboardShouldPersistTaps="handled"
-        scrollEnabled={false}
-      />
+        {/* Submit Button */}
+        <TouchableOpacity
+          onPress={handleSubmit}
+          style={[styles.button, isSubmitting && styles.buttonDisabled]}
+          disabled={isSubmitting}
+        >
+          <Text style={styles.buttonText}>{isSubmitting ? 'Submitting...' : 'Submit'}</Text>
+        </TouchableOpacity>
+      </View>
     </ScrollView>
   );
 };
 
+// Styles remain the same as in your original code
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -487,10 +479,10 @@ const styles = StyleSheet.create({
     position: 'relative',
     marginRight: 10,
     padding: 10
-  }, 
+  },
   image: {
     width: 100,
-    height: 100, 
+    height: 100,
     borderRadius: 10,
     marginRight: 10,
     marginBottom: 10,
@@ -510,8 +502,8 @@ const styles = StyleSheet.create({
     backgroundColor: '#9c9c9c',
   },
   closeButton: {
-    position: 'absolute', 
-    top: 10, 
+    position: 'absolute',
+    top: 10,
     right: 10,
     padding: 10,
     backgroundColor: '#ff5c5c',
@@ -533,6 +525,13 @@ const styles = StyleSheet.create({
     marginTop: 30,
     width: 180,
     justifyContent: 'center'
+  },
+  modalContainer: {
+    width: '100%',
+    height: '50%',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
   }
 });
 

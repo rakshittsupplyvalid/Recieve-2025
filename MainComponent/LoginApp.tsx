@@ -30,7 +30,7 @@ const LoginApp: React.FC<LoginAppProps> = ({ navigation }) => {
   useEffect(() => {
     updateState({
       form: {
-        mobileNo: '9990665358'
+        mobileNo: '9999999902'
         ,
         password: 'Password@123'
       }
@@ -99,7 +99,7 @@ const LoginApp: React.FC<LoginAppProps> = ({ navigation }) => {
       console.log('Login successful, token:', token);
 
 
-      if (role === 'SvUser' || role === 'StorageAdmin') {
+      if (role === 'GradeUser' || role === 'StorageAdmin') {
         navigation.reset({
           index: 0,
           routes: [{ name: 'DispatchDrawernavigator' }],

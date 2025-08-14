@@ -231,160 +231,189 @@ const GenerateHealthReport = () => {
 
 
 
-  const handleNext = (nextStep: number) => {
+const handleNext = (nextStep: number) => {
+  // Step 1 Validation
+  if (currentStep === 1) {
+    if (!selectedCompany) {
+      Alert.alert(t('ValidationError'), t('CompanyRequired'));
+      return;
+    }
+    if (!selectedbranchs) {
+      Alert.alert(t('ValidationError'), t('BranchRequired'));
+      return;
+    }
+    if (!selectedDistrictValue) {
+      Alert.alert(t('ValidationError'), t('DistrictRequired'));
+      return;
+    }
+  }
 
+  // Truck Number Validation
+  const validateTruckNumber = (truckNumber: string) => {
+    truckNumber = truckNumber.trim().toUpperCase();
 
-
-    const validateTruckNumber = (truckNumber: string) => {
-      truckNumber = truckNumber.trim().toUpperCase();
-
-
-      if (truckNumber.length < 8 || truckNumber.length > 12) {
-        return false;
-      }
-
-      // Check for only alphabets and numbers (no special characters)
-      if (!/^[A-Za-z0-9]+$/.test(truckNumber)) {
-        return false;
-      }
-
-      return true;
-    };
-
-
-    if (currentStep === 1) {
-      if (!selectedCompany) {
-        Alert.alert("Validation Error", "Company is required");
-        return;
-      }
-      if (!selectedbranchs) {
-        Alert.alert("Validation Error", "Branch is required");
-        return;
-      }
-      if (!selectedDistrictValue) {
-        Alert.alert("Validation Error", "District is required");
-        return;
-      }
+    // Check length
+    if (truckNumber.length < 8 || truckNumber.length > 12) {
+      return false;
     }
 
-
-    if (currentStep === 2) {
-      if (!truckNumber || !grossWeight || !tareWeight || !date || !bagCount || !size)
-         {
-        Alert.alert("Validation Error", "All fields are required!");
-        return;
-        }
-
-      const netWeight = parseFloat(grossWeight) - parseFloat(tareWeight);
-
-
-
-      if (netWeight < 0)
-         {
-        Alert.alert("Validation Error", "Net Weight cannot be negative!");
-        return;
-        }
-
-      if (parseFloat(grossWeight) <= 0 || parseFloat(tareWeight) <= 0) {
-        Alert.alert("Validation Error", "Gross and Tare Weight must be greater than zero!");
-        return;
-      }
-
-
-      if (!validateTruckNumber(truckNumber)) {
-        Alert.alert("Validation Error", "Enter a Valid Truck Number!");
-        return;
-      }
-
-
+    // Check for only alphabets and numbers (no special characters)
+    if (!/^[A-Za-z0-9]+$/.test(truckNumber)) {
+      return false;
     }
 
-
-
-    if (currentStep === 3) {
-      const validations = [
-        { key: 'Staining Colour', value: stainingColour, percent: stainingColourPercent },
-        { key: 'Black Smut Onion', value: blackSmutOnion, percent: BlackSmutPercent },
-        { key: 'Sprouted Onion', value: sproutedOnion, percent: sproutedPercent },
-        { key: 'Spoiled Onion', value: spoiledOnion, percent: spoiledPercent },
-      ];
-
-      for (const item of validations) {
-        if (item.value) {
-          if (!item.percent.trim()) {
-            Alert.alert("Validation error", `${item.key} Percent is required!`);
-            return;
-          }
-
-          const percent = parseFloat(item.percent.trim());
-          if (isNaN(percent) || percent < 1 || percent > 100) {
-            Alert.alert("Validation error", `${item.key} Percent must be between 1 and 100!`);
-            return;
-          }
-        }
-      }
-
-      // Onion Skin
-      if (onionSkin === 'SINGLE') {
-        if (!onionSkinPercent.trim()) {
-          Alert.alert("Validation error", `Onion Skin Percent is required!`);
-          return;
-        }
-        const percent = parseFloat(onionSkinPercent.trim());
-        if (isNaN(percent) || percent < 1 || percent > 100) {
-          Alert.alert("Validation error", `Onion Skin Percent must be between 1 and 100!`);
-          return;
-        }
-      }
-
-      // Moisture
-      if (moisture === 'WET') {
-        if (!moisturePercent.trim()) {
-          Alert.alert("Validation error", `Moisture Percent is required!`);
-          return;
-        }
-        const percent = parseFloat(moisturePercent.trim());
-        if (isNaN(percent) || percent < 1 || percent > 100) {
-          Alert.alert("Validation error", `Moisture Percent must be between 1 and 100!`);
-          return;
-        }
-      }
-
-      // Spoiled Percent field (manual one)
-      if (isSpoiledPercentVisible) {
-        // Spoiled Percent validation
-        if (!SpoliedPercent.trim()) {
-          Alert.alert("Validation error", `Spoiled Percent is required!`);
-          return;
-        }
-
-        const percent = parseFloat(SpoliedPercent.trim());
-        if (isNaN(percent) || percent < 1 || percent > 100) {
-          Alert.alert("Validation error", `Spoiled Percent must be between 1 and 100!`);
-          return;
-        }
-
-        // Spoiled Comment validation
-        if (!SpoliedComment.trim()) {
-          Alert.alert("Validation error", "Spoiled Comment is required!");
-          return;
-        }
-
-        // Branch Person Name validation
-        if (!SpoliedBranch.trim()) {
-          Alert.alert("Validation error", "Branch Person name is required!");
-          return;
-        }
-      }
-
-    }
-
-
-    setPreviousSteps([...previousSteps, currentStep]); // Store current step in history
-    setCurrentStep(nextStep);
-
-
+    return true;
   };
+
+  // Step 2 Validation
+  if (currentStep === 2) {
+    // Check empty fields
+    if (!truckNumber || !grossWeight || !tareWeight || !date || !bagCount || !size) {
+      Alert.alert(t('ValidationError'), t('AllFieldsRequired'));
+      return;
+    }
+
+    // Numeric field validation
+    const numericFields = [
+      { name: t('Grossweight'), value: grossWeight },
+      { name: t('Tareweight'), value: tareWeight },
+      { name: t('Bagcount'), value: bagCount },
+      { name: t('size'), value: size }
+    ];
+
+    for (const field of numericFields) {
+      if (isNaN(parseFloat(field.value))) {
+        Alert.alert(t('ValidationError'), `${field.name} ${t('MustBeNumber')}`);
+        return;
+      }
+    }
+
+    // Weight calculations and validation
+    const netWeight = parseFloat(grossWeight) - parseFloat(tareWeight);
+
+    if (netWeight < 0) {
+      Alert.alert(t('ValidationError'), t('NetWeightNegative'));
+      return;
+    }
+
+    if (parseFloat(grossWeight) <= 0 || parseFloat(tareWeight) <= 0) {
+      Alert.alert(t('ValidationError'), t('WeightMustBePositive'));
+      return;
+    }
+
+    // Truck number validation
+    if (!validateTruckNumber(truckNumber)) {
+      Alert.alert(t('ValidationError'), t('InvalidTruckNumber'));
+      return;
+    }
+
+    // Bag count validation
+    if (parseInt(bagCount) <= 0) {
+      Alert.alert(t('ValidationError'), t('BagCountPositive'));
+      return;
+    }
+
+    // Size validation
+    if (parseFloat(size) <= 0) {
+      Alert.alert(t('ValidationError'), t('SizeMustBePositive'));
+      return;
+    }
+
+    // Date validation
+    if (!date || isNaN(new Date(date).getTime())) {
+      Alert.alert(t('ValidationError'), t('InvalidDate'));
+      return;
+    }
+  }
+
+  // Step 3 Validation
+  if (currentStep === 3) {
+    const validations = [
+      { key: t('StainingColour'), value: stainingColour, percent: stainingColourPercent },
+      { key: t('BlackSmutOnion'), value: blackSmutOnion, percent: BlackSmutPercent },
+      { key: t('SproutedOnion'), value: sproutedOnion, percent: sproutedPercent },
+      { key: t('SpoiledOnion'), value: spoiledOnion, percent: spoiledPercent },
+    ];
+
+    // Validate quality switches and percentages
+    for (const item of validations) {
+      if (item.value) {
+        if (!item.percent.trim()) {
+          Alert.alert(t('ValidationError'), `${item.key} ${t('PercentRequired')}`);
+          return;
+        }
+
+        const percent = parseFloat(item.percent.trim());
+        if (isNaN(percent) || percent < 1 || percent > 100) {
+          Alert.alert(t('ValidationError'), `${item.key} ${t('PercentRange')}`);
+          return;
+        }
+      }
+    }
+
+    // Onion Skin validation
+    if (onionSkin === 'SINGLE') {
+      if (!onionSkinPercent.trim()) {
+        Alert.alert(t('ValidationError'), t('OnionSkinPercentRequired'));
+        return;
+      }
+      const percent = parseFloat(onionSkinPercent.trim());
+      if (isNaN(percent) || percent < 1 || percent > 100) {
+        Alert.alert(t('ValidationError'), t('OnionSkinPercentRange'));
+        return;
+      }
+    }
+
+    // Moisture validation
+    if (moisture === 'WET') {
+      if (!moisturePercent.trim()) {
+        Alert.alert(t('ValidationError'), t('MoisturePercentRequired'));
+        return;
+      }
+      const percent = parseFloat(moisturePercent.trim());
+      if (isNaN(percent) || percent < 1 || percent > 100) {
+        Alert.alert(t('ValidationError'), t('MoisturePercentRange'));
+        return;
+      }
+    }
+
+    // Spoiled Percent validation (manual one)
+    if (isSpoiledPercentVisible) {
+      if (!SpoliedPercent.trim()) {
+        Alert.alert(t('ValidationError'), t('SpoiledPercentRequired'));
+        return;
+      }
+
+      const percent = parseFloat(SpoliedPercent.trim());
+      if (isNaN(percent) || percent < 1 || percent > 100) {
+        Alert.alert(t('ValidationError'), t('SpoiledPercentRange'));
+        return;
+      }
+
+      if (!SpoliedComment.trim()) {
+        Alert.alert(t('ValidationError'), t('SpoiledCommentRequired'));
+        return;
+      }
+
+      if (!SpoliedBranch.trim()) {
+        Alert.alert(t('ValidationError'), t('BranchPersonRequired'));
+        return;
+      }
+    }
+  }
+
+  // Step 4 Validation (image capture)
+  if (currentStep === 4 && nextStep > 4) {
+    if (imageUri.length === 0) {
+      Alert.alert(t('ValidationError'), t('AtLeastOneImageRequired'));
+      return;
+    }
+  }
+
+  // All validations passed, proceed to next step
+  setPreviousSteps([...previousSteps, currentStep]);
+  setCurrentStep(nextStep);
+};
 
   const handlePrevious = (
 

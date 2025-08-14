@@ -4,7 +4,7 @@ import { MMKV } from 'react-native-mmkv';
 
 import en from './en';
 import hi from './hi';
-import mr from './mr';
+
 
 // 🔐 Create MMKV instance
 export const storage = new MMKV();
@@ -13,7 +13,7 @@ const savedLang = storage.getString('user-language') || 'en';
 const resources = {
   en: { translation: en },
   hi: { translation: hi },
-  mr : { translation: mr },
+
 };
 
 i18n
