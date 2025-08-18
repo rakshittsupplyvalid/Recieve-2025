@@ -172,7 +172,7 @@ const HealthReportDetails = () => {
                 <Text style={styles.headerText}>{t('HealthReportDetails')}</Text>
                 <View style={styles.statusBadge}>
                     <Text style={[styles.statusText, { color: getStatusColor(report.approvalStatus) }]}>
-                        {report.approvalStatus}
+                   {report.approvalStatus}
                     </Text>
                 </View>
             </LinearGradient>
@@ -405,7 +405,7 @@ const styles = StyleSheet.create({
     },
     statusBadge: {
         alignSelf: 'center',
-        backgroundColor: 'rgba(255, 255, 255, 0.2)',
+        backgroundColor: '#fff',
         paddingHorizontal: 12,
         paddingVertical: 4,
         borderRadius: 20,
@@ -414,6 +414,7 @@ const styles = StyleSheet.create({
     statusText: {
         fontSize: 14,
         fontFamily: 'Inter-SemiBold',
+        color : '#fff',
     },
     contentContainer: {
         flex: 1,

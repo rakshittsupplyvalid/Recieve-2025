@@ -86,7 +86,7 @@ android {
     buildToolsVersion rootProject.ext.buildToolsVersion
     compileSdk rootProject.ext.compileSdkVersion
 
-    namespace "com.qrcodescannerapp"
+    namespace 'com.smaurya.QRCodeScannerApp'
     defaultConfig {
         applicationId 'com.smaurya.QRCodeScannerApp'
         minSdkVersion rootProject.ext.minSdkVersion

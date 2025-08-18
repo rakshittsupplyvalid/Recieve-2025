@@ -47,21 +47,8 @@ type Chawl = {
 
 
 
-const qualityOptions = [
-    { label: 'Select Quality', value: '' },
-    { label: 'Excellent', value: 'excellent' },
-    { label: 'Good', value: 'good' },
-    { label: 'Average', value: 'average' },
-    { label: 'Poor', value: 'poor' },
-];
 
-const staffBehaviorOptions = [
-    { label: 'Select Behavior Rating', value: '' },
-    { label: 'Excellent', value: 'excellent' },
-    { label: 'Good', value: 'good' },
-    { label: 'Satisfactory', value: 'satisfactory' },
-    { label: 'Poor', value: 'poor' },
-];
+
 
 const CAhealthreport = () => {
     const { t } = useTranslation();
@@ -87,22 +74,19 @@ const CAhealthreport = () => {
 
     const reportTypeOptions = [
         { label: 'Select Report Type', value: '' },
-        { label: 'DISPATCH', value: 'DISPATCH' },
         { label: 'RECEIVE', value: 'RECEIVE' },
-        { label: 'MOVE', value: 'MOVE' },
+
     ];
 
     const healthReportDispatchTypeOptions = [
         { label: 'Select Dispatch Type', value: '' },
-        { label: 'NONE', value: 'NONE' },
-        { label: 'NORMAL', value: 'NORMAL' },
         { label: 'CA', value: 'CA' },
     ];
 
 
 
 
-    const totalSteps = 6;
+
 
     useEffect(() => {
         handleSomeAction();
@@ -112,6 +96,23 @@ const CAhealthreport = () => {
 
 
         if (state.form.clientdata) {
+            updateState({
+                form: {
+                    ...state.form,
+                    opition1: '',
+                    option2: '',
+
+
+
+                },
+                fielddata: {
+                    ...state.fielddata,
+                    Company: null,
+                    Branchdata: null,
+
+
+                }
+            });
             CompanyDropdown(state.form.clientdata);
 
         }
@@ -149,7 +150,7 @@ const CAhealthreport = () => {
 
     useEffect(() => {
         if (state.form.option2) {
-            console.log("branch id", state.form.option2);
+
             updateState({
                 form: {
                     ...state.form,
@@ -165,37 +166,46 @@ const CAhealthreport = () => {
                     storageLocation: null
                 }
             });
+            CaADmin(state.form.option2);
         }
     }, [state.form.option2]);
 
 
-    useEffect(() => {
 
-        CaADmin();
-
-
-    }, []);
 
 
     useEffect(() => {
 
-        Storagelocation();
+        if (state.form.Caadmindata) {
+            updateState({
+                form: {
+                    ...state.form,
+                    Storagedata: ''
+                },
+                fielddata: {
+                    ...state.fielddata,
+                    storageLocation: null
+                }
+            });
+        }
 
-    }, []);
+        Storagelocation(state.form.Caadmindata);
+
+    }, [state.form.Caadmindata]);
 
     const handleSomeAction = async () => {
         try {
-       
+
             const clientResponse = await apiClient.get('/api/mobile/group?GroupType=CLIENT');
-        
+
 
             if (clientResponse.data && clientResponse.data.length > 0) {
-            
+
                 setGroups(clientResponse.data);
 
                 // Set first client as default and update form state
                 const firstClientId = clientResponse.data[0].id;
-             
+
                 setClientId(firstClientId);
 
                 updateState({
@@ -222,7 +232,7 @@ const CAhealthreport = () => {
 
         apiClient.get(apiUrl)
             .then((res) => {
-           
+
                 if (res?.data) {
                     updateState({
                         fielddata: {
@@ -262,8 +272,8 @@ const CAhealthreport = () => {
     };
 
 
-    const CaADmin = () => {
-        const url = `/api/group?grouptype=CAStorage&parentid=GRP2025052607091468995747`;
+    const CaADmin = (branchId: string) => {
+        const url = `/api/group?grouptype=CAStorage&parentid=${branchId}`;
         console.log('Ca admin:', url); // URL bhi console pe dekh lo
         apiClient.get(url)
             .then((res) => {
@@ -283,12 +293,12 @@ const CAhealthreport = () => {
     };
 
 
-    const Storagelocation = () => {
-        const url = `/api/storagelocation?StorageType=CA&LocationType=STORAGELOCATION&ApprovalStatus=PENDING&ApprovalStatus=APPROVED&parentid=GRP2025071710132758143087103`;
-      
+    const Storagelocation = (CaAdmin: string) => {
+        const url = `/api/storagelocation?StorageType=CA&LocationType=STORAGELOCATION&ApprovalStatus=PENDING&ApprovalStatus=APPROVED&parentid=${CaAdmin}`;
+
         apiClient.get(url)
             .then((res) => {
-            
+
                 if (res?.data) {
                     updateState({
                         fielddata: {
@@ -511,11 +521,11 @@ const CAhealthreport = () => {
     const handleSubmit = () => {
         // Create a new object with only the required fields
         const payload = {
-           ReportType: state.form.reportType,
-           HealthReportDispatchType : state.form.healthReportDispatchType,
-           CAStorageId : state.form.Caadmindata,
-           StorageId : state.form.StorageData,
- 
+            ReportType: state.form.reportType,
+            HealthReportDispatchType: state.form.healthReportDispatchType,
+            CAStorageId: state.form.Caadmindata,
+            StorageId: state.form.StorageData,
+
 
 
             TruckNumber: state.form?.Trucknumber || '',
@@ -557,7 +567,7 @@ const CAhealthreport = () => {
         apiClient.post('/api/healthreport/normal/dispatch', formData, {
             headers: {
                 'Content-Type': 'multipart/form-data',
-                    'Authorization': `Bearer ${token}`
+                'Authorization': `Bearer ${token}`
 
 
             },
@@ -633,7 +643,6 @@ const CAhealthreport = () => {
 
                     {currentStep === 0 && (
                         <View style={styles.onecontainers}>
-
                             <View style={styles.content}>
                                 <View style={styles.pickerContainer}>
                                     <Picker
@@ -645,8 +654,16 @@ const CAhealthreport = () => {
                                                 healthReportDispatchType: '',
                                                 clientdata: '',
                                                 option1: '',
-
-
+                                                option2: '',
+                                                Caadmindata: '',
+                                                Storagedata: ''
+                                            },
+                                            fielddata: {
+                                                ...state.fielddata,
+                                                Company: null,
+                                                Branchdata: null,
+                                                CaAdmin: null,
+                                                storageLocation: null
                                             }
                                         })}
                                     >
@@ -665,7 +682,18 @@ const CAhealthreport = () => {
                                             form: {
                                                 ...state.form,
                                                 healthReportDispatchType: value,
-                                                clientdata: ''
+                                                clientdata: '',
+                                                option1: '',
+                                                option2: '',
+                                                Caadmindata: '',
+                                                Storagedata: ''
+                                            },
+                                            fielddata: {
+                                                ...state.fielddata,
+                                                Company: null,
+                                                Branchdata: null,
+                                                CaAdmin: null,
+                                                storageLocation: null
                                             }
                                         })}
                                     >
@@ -676,28 +704,36 @@ const CAhealthreport = () => {
                                 </View>
                             </View>
 
-
                             <View style={styles.content}>
                                 <View style={styles.pickerContainer}>
                                     <Picker
                                         selectedValue={state.form.clientdata}
                                         onValueChange={(value) => {
-
                                             updateState({
                                                 form: {
                                                     ...state.form,
                                                     clientdata: value,
+                                                    option1: '',
+                                                    option2: '',
+                                                    Caadmindata: '',
+                                                    Storagedata: ''
                                                 },
+                                                fielddata: {
+                                                    ...state.fielddata,
+                                                    Company: null,
+                                                    Branchdata: null,
+                                                    CaAdmin: null,
+                                                    storageLocation: null
+                                                }
                                             });
+                                            if (value) {
+                                                CompanyDropdown(value);
+                                            }
                                         }}
                                     >
                                         <Picker.Item label="Select Client" value="" />
-
                                         {groups.map((item) => {
-
-
-                                            const parentId = item?.parentList?.[0]?.id || "";
-
+                                            const parentId = item?.parentList?.[0]?.id || item.id;
                                             return (
                                                 <Picker.Item
                                                     key={item.id}
@@ -710,30 +746,28 @@ const CAhealthreport = () => {
                                 </View>
                             </View>
 
-
-
-
-
                             <View style={styles.content}>
                                 <View style={styles.pickerContainer}>
-                                    // In your CompanyDropdown Picker component:
                                     <Picker
                                         selectedValue={state.form.option1}
                                         onValueChange={(value) => {
                                             updateState({
                                                 form: {
                                                     ...state.form,
-                                                    option1: value, // This should be the company ID
+                                                    option1: value,
                                                     option2: '',
-                                                    federationType: '',
-                                                    option3: '',
-                                                    fpofpcdata: '',
+                                                    Caadmindata: '',
                                                     Storagedata: ''
                                                 },
+                                                fielddata: {
+                                                    ...state.fielddata,
+                                                    Branchdata: null,
+                                                    CaAdmin: null,
+                                                    storageLocation: null
+                                                }
                                             });
-                                            setSelectedStorageId(''); // Clear storage ID
                                             if (value) {
-                                                BranchDropdown(value); // Pass the company ID directly
+                                                BranchDropdown(value);
                                             }
                                         }}
                                     >
@@ -742,113 +776,102 @@ const CAhealthreport = () => {
                                             <Picker.Item
                                                 key={item.id}
                                                 label={item.name}
-                                                value={item.id} // Use item.id as the value
+                                                value={item.id}
                                             />
                                         ))}
                                     </Picker>
-
                                 </View>
                             </View>
 
                             <View style={styles.content}>
                                 <View style={styles.pickerContainer}>
-
-
                                     <Picker
-                                        selectedValue={state.form.option2 || ''}
+                                        selectedValue={state.form.option2}
                                         onValueChange={(value) => {
                                             updateState({
                                                 form: {
                                                     ...state.form,
                                                     option2: value,
-                                                    federationType: '',
-                                                    option3: '',
-                                                    fpofpcdata: '',
+                                                    Caadmindata: '',
                                                     Storagedata: ''
                                                 },
+                                                fielddata: {
+                                                    ...state.fielddata,
+                                                    CaAdmin: null,
+                                                    storageLocation: null
+                                                }
                                             });
+                                            if (value) {
+                                                CaADmin(value);
+                                            }
                                         }}
                                     >
                                         <Picker.Item label="Select Branch Name" value="" />
-                                        {state.fielddata.Branchdata?.map((item: { name: string; id: string }) => (
+                                        {state.fielddata.Branchdata?.map((item) => (
                                             <Picker.Item key={item.id} label={item.name} value={item.id} />
                                         ))}
                                     </Picker>
                                 </View>
                             </View>
 
-
-
-                
-
-
                             <View style={styles.content}>
                                 <View style={styles.pickerContainer}>
-
                                     <Picker
-                                        selectedValue={state.form.Caadmindata || ''}
+                                        selectedValue={state.form.Caadmindata}
                                         onValueChange={(value) => {
                                             updateState({
                                                 form: {
                                                     ...state.form,
                                                     Caadmindata: value,
+                                                    Storagedata: ''
                                                 },
+                                                fielddata: {
+                                                    ...state.fielddata,
+                                                    storageLocation: null
+                                                }
                                             });
-
-
+                                            if (value) {
+                                                Storagelocation(value);
+                                            }
                                         }}
                                     >
                                         <Picker.Item label="Select CA Admin" value="" />
-                                        {state.fielddata.CaAdmin?.map((item: { name: string; id: string }) => (
+                                        {state.fielddata.CaAdmin?.map((item) => (
                                             <Picker.Item key={item.id} label={item.name} value={item.id} />
                                         ))}
                                     </Picker>
                                 </View>
-
                             </View>
-
 
                             <View style={styles.content}>
                                 <View style={styles.pickerContainer}>
-
                                     <Picker
-                                        selectedValue={state.form.Storagedata || ''}
+                                        selectedValue={state.form.Storagedata}
                                         onValueChange={(value) => {
                                             updateState({
                                                 form: {
                                                     ...state.form,
-                                                    Storagedata: value,
-                                                },
+                                                    Storagedata: value
+                                                }
                                             });
-
-                                            if (value) {
-                                                setSelectedStorageId(value);
-
-                                            } else {
-
-                                            }
+                                            setSelectedStorageId(value || '');
                                         }}
                                     >
                                         <Picker.Item label="Select storage" value="" />
-                                        {state.fielddata.storageLocation?.map((item: { name: string; id: string }) => (
+                                        {state.fielddata.storageLocation?.map((item) => (
                                             <Picker.Item key={item.id} label={item.name} value={item.id} />
                                         ))}
                                     </Picker>
                                 </View>
-
                             </View>
-
-
 
                             <View style={styles.buttoncontent}>
                                 <TouchableOpacity style={styles.button} onPress={() => handleNext(1)}>
                                     <Text style={styles.buttonText}>{t('Next')}</Text>
                                 </TouchableOpacity>
                             </View>
-
-
-
                         </View>
+
                     )}
 
                     {/* Step 2 - Basic Information */}

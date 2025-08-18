@@ -203,22 +203,7 @@ const HealthReportlist = () => {
       />
 
       <View style={HealthreportStyle.dateFilterContainer}>
-        <TouchableOpacity 
-          style={HealthreportStyle.dateButton} 
-          onPress={() => setShowStartPicker(true)}
-        >
-          <Text style={HealthreportStyle.buttonText}>
-            {startDate ? startDate.toDateString() : t('StartDate')}
-          </Text>
-        </TouchableOpacity>
-        <TouchableOpacity 
-          style={HealthreportStyle.dateButton} 
-          onPress={() => setShowEndPicker(true)}
-        >
-          <Text style={HealthreportStyle.buttonText}>
-            {endDate ? endDate.toDateString() : t('EndDate')}
-          </Text>
-        </TouchableOpacity>
+     
       </View>
 
       <FlatList
