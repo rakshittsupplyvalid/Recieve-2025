@@ -27,14 +27,14 @@ const LoginApp: React.FC<LoginAppProps> = ({ navigation }) => {
   const isOffline = !isConnected;
 
 
-  useEffect(() => {
-    updateState({
-      form: {
-        mobileNo: '9999999902',
-        password: 'Password@123'
-      }
-    });
-  }, []);
+  // useEffect(() => {
+  //   updateState({
+  //     form: {
+  //       mobileNo: '9999999902',
+  //       password: 'Password@123'
+  //     }
+  //   });
+  // }, []);
 
 
   useEffect(() => {

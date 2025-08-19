@@ -147,6 +147,17 @@ const styles = StyleSheet.create({
     marginHorizontal: 5,
     borderRadius: 50,
   },
+   warningText: {
+    color: '#d32f2f',
+    fontSize: 14,
+    marginTop: 8,
+    fontWeight: '500',
+    padding: 4,
+    backgroundColor: '#ffebee',
+    borderRadius: 4,
+    borderLeftWidth: 3,
+    borderLeftColor: '#d32f2f'
+  },
   buttonText: {
     color: '#fff',
     fontSize: 16,

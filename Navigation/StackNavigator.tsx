@@ -30,9 +30,9 @@ export default function StackNavigator() {
 
     >
 
-      <Stack.Screen name="LoginApp" component={LoginApp} />
+    <Stack.Screen name="LoginApp" component={LoginApp} />
       <Stack.Screen name="DispatchDrawernavigator" component={DispatchDrawernavigator} />
- 
+
       <Stack.Screen name="ReportOffline" component={ReportOffline} />
       <Stack.Screen name="DispatchRecieve" component={DispatchRecieve} />
       <Stack.Screen name="Federation" component={Federation} />
@@ -40,11 +40,11 @@ export default function StackNavigator() {
       <Stack.Screen name="ForgetPassword" component={ForgetPassword} />
       <Stack.Screen name="HealthReport" component={HealthReport} />
       <Stack.Screen name="ReimbursementList" component={ReimbursementList} />
-      <Stack.Screen name = "OfflineForm" component={OfflineForm} />
-      <Stack.Screen name = "SubmitTruckData" component={SubmitTruckData} />
-      <Stack.Screen name = "LanguageSelector" component={LanguageSelector} />
-    
-    
+      <Stack.Screen name="OfflineForm" component={OfflineForm} />
+      <Stack.Screen name="SubmitTruckData" component={SubmitTruckData} />
+      <Stack.Screen name="LanguageSelector" component={LanguageSelector} />
+
+
     </Stack.Navigator>
 
   );

@@ -415,7 +415,151 @@ const CAhealthreport = () => {
     const handleNext = (nextStep: number) => {
         let result: any = { isValid: true }; // Initialize with default valid state
 
-        // // Step 0 validation (health report type selection)
+        // Step 0 validation (company/branch/federation selection)
+        if (currentStep === 0) {
+            if (!state.form.reportType) {
+                alert('Please select a report type');
+                return;
+            }
+            if (!state.form.healthReportDispatchType) {
+                alert('Please select a health report dispatch type');
+                return;
+            }
+            if (!state.form.clientdata) {
+                alert('Please select a client');
+                return;
+            }
+            if (!state.form.option1) {
+                alert('Please select a company');
+                return;
+            }
+            if (!state.form.option2) {
+                alert('Please select a branch');
+                return;
+            }
+            if (!state.form.Caadmindata) {
+                alert('Please select a CA Admin');
+                return;
+            }
+            if (!state.form.Storagedata) {
+                alert('Please select a storage location');
+                return;
+            }
+        }
+        // Step 1 validation (basic information)
+        else if (currentStep === 1) {
+            if (!state.form.Trucknumber || state.form.Trucknumber.trim() === '') {
+                alert('Please enter truck number');
+                return;
+            }
+            if (!state.form.grossWeight || isNaN(parseFloat(state.form.grossWeight))) {
+                alert('Please enter a valid gross weight');
+                return;
+            }
+            if (!state.form.tareWeight || isNaN(parseFloat(state.form.tareWeight))) {
+                alert('Please enter a valid tare weight');
+                return;
+            }
+            if (!state.form.date) {
+                alert('Please select a date');
+                return;
+            }
+            if (!state.form.bagCount || isNaN(parseInt(state.form.bagCount))) {
+                alert('Please enter a valid bag count');
+                return;
+            }
+            if (!state.form.size || isNaN(parseFloat(state.form.size))) {
+                alert('Please enter a valid size');
+                return;
+            }
+        }
+        // Step 2 validation (quality parameters)
+        else if (currentStep === 2) {
+            // Validate percentages if switches are on
+            if (state.form.stainingColour) {
+                if (!state.form.stainingColourPercent || isNaN(parseFloat(state.form.stainingColourPercent))) {
+                    alert('Please enter staining color percentage');
+                    return;
+                }
+                if (parseFloat(state.form.stainingColourPercent) > 100) {
+                    alert('Staining color percentage cannot exceed 100%');
+                    return;
+                }
+            }
+
+            if (state.form.blackSmutOnion) {
+                if (!state.form.blackSmutPercent || isNaN(parseFloat(state.form.blackSmutPercent))) {
+                    alert('Please enter black smut percentage');
+                    return;
+                }
+                if (parseFloat(state.form.blackSmutPercent) > 100) {
+                    alert('Black smut percentage cannot exceed 100%');
+                    return;
+                }
+            }
+
+            if (state.form.sproutedOnion) {
+                if (!state.form.sproutedPercent || isNaN(parseFloat(state.form.sproutedPercent))) {
+                    alert('Please enter sprouted percentage');
+                    return;
+                }
+                if (parseFloat(state.form.sproutedPercent) > 100) {
+                    alert('Sprouted percentage cannot exceed 100%');
+                    return;
+                }
+            }
+
+            if (state.form.spoiledOnion) {
+                if (!state.form.spoiledPercent || isNaN(parseFloat(state.form.spoiledPercent))) {
+                    alert('Please enter spoiled percentage');
+                    return;
+                }
+                if (parseFloat(state.form.spoiledPercent) > 100) {
+                    alert('Spoiled percentage cannot exceed 100%');
+                    return;
+                }
+            }
+
+            if (state.form.onionSkin === "SINGLE") {
+                if (!state.form.onionSkinPercent || isNaN(parseFloat(state.form.onionSkinPercent))) {
+                    alert('Please enter onion skin percentage');
+                    return;
+                }
+                if (parseFloat(state.form.onionSkinPercent) > 100) {
+                    alert('Onion skin percentage cannot exceed 100%');
+                    return;
+                }
+            }
+
+            if (state.form.moisture === "WET") {
+                if (!state.form.moisturePercent || isNaN(parseFloat(state.form.moisturePercent))) {
+                    alert('Please enter moisture percentage');
+                    return;
+                }
+                if (parseFloat(state.form.moisturePercent) > 100) {
+                    alert('Moisture percentage cannot exceed 100%');
+                    return;
+                }
+            }
+
+            if (state.form.isSpoiledPercentVisible) {
+                if (!state.form.SpoliedPercent || isNaN(parseFloat(state.form.SpoliedPercent))) {
+                    alert('Please enter spoiled percentage');
+                    return;
+                }
+                if (parseFloat(state.form.SpoliedPercent) > 100) {
+                    alert('Spoiled percentage cannot exceed 100%');
+                    return;
+                }
+            }
+
+            if (!state.form.SpoliedBranch || state.form.SpoliedBranch.trim() === '') {
+                alert('Please enter branch person name');
+                return;
+            }
+        }
+
+
         // if (currentStep === 0) {
         //     if (!selectedHelthReport) {
         //         alert('Please select a health report type');
@@ -523,11 +667,8 @@ const CAhealthreport = () => {
         const payload = {
             ReportType: state.form.reportType,
             HealthReportDispatchType: state.form.healthReportDispatchType,
-            CAStorageId: state.form.Caadmindata,
-            StorageId: state.form.StorageData,
 
-
-
+            CAStorageId: state.form.StorageData,
             TruckNumber: state.form?.Trucknumber || '',
             GrossWeight: parseFloat(state.form?.grossWeight) || 0,
             NetWeight: parseFloat(state.form?.netWeight) || 0,
@@ -564,7 +705,7 @@ const CAhealthreport = () => {
 
         const token = Storage.getString('userToken');
         console.log('Submitting form with token:', token);
-        apiClient.post('/api/healthreport/normal/dispatch', formData, {
+        apiClient.post('/api/mobile/healthreport/ca/move/dispatch', formData, {
             headers: {
                 'Content-Type': 'multipart/form-data',
                 'Authorization': `Bearer ${token}`
@@ -848,6 +989,7 @@ const CAhealthreport = () => {
                                     <Picker
                                         selectedValue={state.form.Storagedata}
                                         onValueChange={(value) => {
+                                            console.log('Selected Storage ID:', value);
                                             updateState({
                                                 form: {
                                                     ...state.form,
@@ -1337,12 +1479,17 @@ const CAhealthreport = () => {
                                 </TouchableOpacity>
                             </View>
 
-                            {/* Image Upload Error Message */}
                             {(state.form?.Files || []).length < 3 && (state.form?.Files || []).length > 0 && (
-                                <Text >{t('Youneedtouploadatleast3images')}</Text>
+                                <Text style={styles.warningText}>
+
+                                    You need to upload atleast three images
+
+                                </Text>
                             )}
                             {(state.form?.Files || []).length > 9 && (
-                                <Text>{t('Youcanuploadamaximumof9mages')}</Text>
+                                <Text style={styles.warningText}>
+                                    You need to upload atleast Nine images
+                                </Text>
                             )}
 
                             {/* Previous and Submit Buttons */}

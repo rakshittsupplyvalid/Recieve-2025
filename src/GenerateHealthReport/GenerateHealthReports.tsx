@@ -504,36 +504,146 @@ const TestForm = () => {
   };
 
   const handleNext = (nextStep: number) => {
-    let result: any = { isValid: true }; // Initialize with default valid state
+    let validationResult: { isValid: boolean; message?: string } | null = null;
 
-    // // Step 0 validation (health report type selection)
-    // if (currentStep === 0) {
-    //     if (!selectedHelthReport) {
-    //         alert('Please select a health report type');
-    //         return;
-    //     }
-    //     // No other validation needed for step 0
-    // } 
-    // // Step 1 validation
-    // else if (currentStep === 1) {
-    //     result = validateStepOne(state.form);
-    // } 
-    // // Step 2 validation
-    // else if (currentStep === 2) {
-    //     result = validateStepTwo(state.form);
-    // }
-    // // Step 3 validation
-    // else if (currentStep === 3) {
-    //     result = validateStepThree(state.form);
-    // }
+    // Step 0 validation (company/branch/federation selection)
+    if (currentStep === 0) {
+      if (!state.form.option1) {
+        alert('Please select a company');
+        return;
+      }
+      if (!state.form.option2) {
+        alert('Please select a branch');
+        return;
+      }
+      if (!state.form.federationType) {
+        alert('Please select a federation type');
+        return;
+      }
+      if (!state.form.option3) {
+        alert('Please select an organization');
+        return;
+      }
+      if (!state.form.Storagedata) {
+        alert('Please select a storage location');
+        return;
+      }
+    }
+    // Step 1 validation (basic information)
+    else if (currentStep === 1) {
+      if (!state.form.Trucknumber || state.form.Trucknumber.trim() === '') {
+        alert('Please enter truck number');
+        return;
+      }
+      if (!state.form.grossWeight || isNaN(parseFloat(state.form.grossWeight))) {
+        alert('Please enter a valid gross weight');
+        return;
+      }
+      if (!state.form.tareWeight || isNaN(parseFloat(state.form.tareWeight))) {
+        alert('Please enter a valid tare weight');
+        return;
+      }
+      if (!state.form.date) {
+        alert('Please select a date');
+        return;
+      }
+      if (!state.form.bagCount || isNaN(parseInt(state.form.bagCount))) {
+        alert('Please enter a valid bag count');
+        return;
+      }
+      if (!state.form.size || isNaN(parseFloat(state.form.size))) {
+        alert('Please enter a valid size');
+        return;
+      }
+    }
+    // Step 2 validation (quality parameters)
+    else if (currentStep === 2) {
+      // Validate percentages if switches are on
+      if (state.form.stainingColour) {
+        if (!state.form.stainingColourPercent || isNaN(parseFloat(state.form.stainingColourPercent))) {
+          alert('Please enter staining color percentage');
+          return;
+        }
+        if (parseFloat(state.form.stainingColourPercent) > 100) {
+          alert('Staining color percentage cannot exceed 100%');
+          return;
+        }
+      }
 
-    // // Check validation result (only if we did validation)
-    // if (currentStep !== 0 && !result?.isValid) {
-    //     alert(result.message);
-    //     return;
-    // }
+      if (state.form.blackSmutOnion) {
+        if (!state.form.blackSmutPercent || isNaN(parseFloat(state.form.blackSmutPercent))) {
+          alert('Please enter black smut percentage');
+          return;
+        }
+        if (parseFloat(state.form.blackSmutPercent) > 100) {
+          alert('Black smut percentage cannot exceed 100%');
+          return;
+        }
+      }
 
-    // Proceed to next step
+      if (state.form.sproutedOnion) {
+        if (!state.form.sproutedPercent || isNaN(parseFloat(state.form.sproutedPercent))) {
+          alert('Please enter sprouted percentage');
+          return;
+        }
+        if (parseFloat(state.form.sproutedPercent) > 100) {
+          alert('Sprouted percentage cannot exceed 100%');
+          return;
+        }
+      }
+
+      if (state.form.spoiledOnion) {
+        if (!state.form.spoiledPercent || isNaN(parseFloat(state.form.spoiledPercent))) {
+          alert('Please enter spoiled percentage');
+          return;
+        }
+        if (parseFloat(state.form.spoiledPercent) > 100) {
+          alert('Spoiled percentage cannot exceed 100%');
+          return;
+        }
+      }
+
+      if (state.form.onionSkin === "SINGLE") {
+        if (!state.form.onionSkinPercent || isNaN(parseFloat(state.form.onionSkinPercent))) {
+          alert('Please enter onion skin percentage');
+          return;
+        }
+        if (parseFloat(state.form.onionSkinPercent) > 100) {
+          alert('Onion skin percentage cannot exceed 100%');
+          return;
+        }
+      }
+
+      if (state.form.moisture === "WET") {
+        if (!state.form.moisturePercent || isNaN(parseFloat(state.form.moisturePercent))) {
+          alert('Please enter moisture percentage');
+          return;
+        }
+        if (parseFloat(state.form.moisturePercent) > 100) {
+          alert('Moisture percentage cannot exceed 100%');
+          return;
+        }
+      }
+
+      if (state.form.isSpoiledPercentVisible) {
+        if (!state.form.SpoliedPercent || isNaN(parseFloat(state.form.SpoliedPercent))) {
+          alert('Please enter spoiled percentage');
+          return;
+        }
+        if (parseFloat(state.form.SpoliedPercent) > 100) {
+          alert('Spoiled percentage cannot exceed 100%');
+          return;
+        }
+      }
+
+      if (!state.form.SpoliedBranch || state.form.SpoliedBranch.trim() === '') {
+        alert('Please enter branch person name');
+        return;
+      }
+    }
+    // Step 3 validation is already handled in the submit button's disabled prop
+
+    // Proceed to next step if validation passes
     updateState({
       ...state,
       hidden: {
@@ -693,9 +803,9 @@ const TestForm = () => {
     apiClient.post('/api/mobile/healthreport/normal/receive', formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
-        
-      
-       
+
+
+
       },
     })
       .then(response => {
@@ -1177,11 +1287,7 @@ const TestForm = () => {
                     }
                     keyboardType="numeric"
                   />
-                  {parseFloat(state.form?.stainingColourPercent) > 100 && (
-                    <Text >
-                      {t('StainingcolorWaringText')}
-                    </Text>
-                  )}
+
                 </>
               )}
 
@@ -1221,11 +1327,7 @@ const TestForm = () => {
                     }
                     keyboardType="numeric"
                   />
-                  {parseFloat(state.form?.blackSmutPercent) > 100 && (
-                    <Text>
-                      {t('BlacksmutText')}
-                    </Text>
-                  )}
+
                 </>
               )}
 
@@ -1264,11 +1366,7 @@ const TestForm = () => {
                     }
                     keyboardType="numeric"
                   />
-                  {parseFloat(state.form?.sproutedPercent) > 100 && (
-                    <Text >
-                      {t('SproutedText')}
-                    </Text>
-                  )}
+
 
                 </>
               )}
@@ -1309,11 +1407,7 @@ const TestForm = () => {
                     keyboardType="numeric"
                   />
 
-                  {parseFloat(state.form?.spoiledPercent) > 100 && (
-                    <Text>
-                      {t('SpoiledText')}
-                    </Text>
-                  )}
+
 
                 </>
               )}
@@ -1355,11 +1449,7 @@ const TestForm = () => {
                     }
                     keyboardType="numeric"
                   />
-                  {parseFloat(state.form?.onionSkinPercent) > 100 && (
-                    <Text>
-                      {t('OnionSkinSingle')}
-                    </Text>
-                  )}
+
 
                 </>
               )}
@@ -1403,11 +1493,7 @@ const TestForm = () => {
                     keyboardType="numeric"
                   />
 
-                  {parseFloat(state.form?.moisturePercent) > 100 && (
-                    <Text >
-                      {t('MoistureWet')}
-                    </Text>
-                  )}
+
 
                 </>
               )}
@@ -1497,10 +1583,16 @@ const TestForm = () => {
 
               {/* Image Upload Error Message */}
               {(state.form?.Files || []).length < 3 && (state.form?.Files || []).length > 0 && (
-                <Text >{t('Youneedtouploadatleast3images')}</Text>
+                <Text style={styles.warningText}>
+
+                  You need to upload atleast three images
+
+                </Text>
               )}
               {(state.form?.Files || []).length > 9 && (
-                <Text>{t('Youcanuploadamaximumof9mages')}</Text>
+                <Text style={styles.warningText}>
+                  You need to upload atleast Nine images
+                </Text>
               )}
 
               {/* Previous and Submit Buttons */}
