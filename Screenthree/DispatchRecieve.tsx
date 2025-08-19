@@ -19,7 +19,7 @@ const DispatchRecieve = () => {
   // Use RouteProp to define the type for the route
   const route = useRoute<RouteProp<RootStackParamList, 'DispatchRecieve'>>();
 
-  const { quantitymt } = route.params || {}; // Get quantitymt from params
+  const { quantitymt } = route.params || {}; 
 
   // Function to open the camera
   const openCamera = () => {

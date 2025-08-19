@@ -36,7 +36,8 @@ const LanguageSelector = () => {
       >
         <Picker.Item label="English" value="en" />
         <Picker.Item label="हिंदी" value="hi" />
-        <Picker.Item label="मराठी" value="mr" />
+     
+     
       </Picker>
     </View>
     </View>

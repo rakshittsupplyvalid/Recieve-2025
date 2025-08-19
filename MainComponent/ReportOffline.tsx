@@ -65,7 +65,7 @@ const ReportOffline = () => {
                 <Text style={styles.text}> Onion Skin Percent: {item.onionSkinPercent}</Text>
                 <Text style={styles.text}> Moisture Percent: {item.moisturePercent}</Text>
                 <Text style={styles.text}> Spolied Percent: {item.SpoliedPercent}</Text>
-                            <Text style={styles.text}> Spolied Comment: {item.SpoliedComment}</Text>
+             <Text style={styles.text}> Spolied Comment: {item.SpoliedComment}</Text>
 
                 <TouchableOpacity style={styles.deleteButton} onPress={() => deleteForm(index)}>
                   <Text style={styles.deleteText}>🗑 Delete</Text>
