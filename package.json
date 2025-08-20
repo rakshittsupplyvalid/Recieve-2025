@@ -61,7 +61,8 @@
     "react-native-sim-data": "^3.0.0",
     "react-native-sms-retriever": "^1.1.1",
     "react-native-vector-icons": "^10.2.0",
-    "react-native-vision-camera": "^4.6.3"
+    "react-native-vision-camera": "^4.6.3",
+    "expo-splash-screen": "~0.29.24"
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",

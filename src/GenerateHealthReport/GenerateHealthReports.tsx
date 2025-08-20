@@ -47,21 +47,8 @@ type Chawl = {
 
 
 
-const qualityOptions = [
-  { label: 'Select Quality', value: '' },
-  { label: 'Excellent', value: 'excellent' },
-  { label: 'Good', value: 'good' },
-  { label: 'Average', value: 'average' },
-  { label: 'Poor', value: 'poor' },
-];
 
-const staffBehaviorOptions = [
-  { label: 'Select Behavior Rating', value: '' },
-  { label: 'Excellent', value: 'excellent' },
-  { label: 'Good', value: 'good' },
-  { label: 'Satisfactory', value: 'satisfactory' },
-  { label: 'Poor', value: 'poor' },
-];
+
 
 const TestForm = () => {
   const { t } = useTranslation();
@@ -74,13 +61,7 @@ const TestForm = () => {
   const [selectedImage, setSelectedImage] = useState(null);
   const [isPressed, setIsPressed] = useState(false);
 
-  const [formattedAddress, setFormattedAddress] = useState('');
-  const [chawlList, setChawlList] = useState<Chawl[]>([]);
-  const [binList, setBinList] = useState<Chawl[]>([{ isCopiedFromFirst: false, length: '', breadth: '', height: '' }]);
-  const [imageUri, setImageUri] = useState<ImageAsset[]>([]);
-  const [screenshots, setScreenshots] = useState<ImageAsset[]>([]);
-  const [showInspectionButton, setShowInspectionButton] = useState(false);
-  const [selectedStorageId, setSelectedStorageId] = useState('');
+ 
 
   const today = new Date();
   const threeMonthsAgo = new Date();
@@ -90,7 +71,7 @@ const TestForm = () => {
 
   const totalSteps = 6;
 
-  // useFocusEffect(
+ 
   //   useCallback(() => {
   //     const onBackPress = () => {
   //       navigation.reset({
@@ -149,7 +130,7 @@ const TestForm = () => {
 
   useEffect(() => {
     CompanyDropdown();
-    FederationType();
+   
   }, []);
 
   useEffect(() => {
@@ -158,16 +139,11 @@ const TestForm = () => {
         form: {
           ...state.form,
           option2: '',
-          federationType: '',
-          option3: '',
-          fpofpcdata: '',
           Storagedata: ''
         },
         fielddata: {
           ...state.fielddata,
           Branchdata: null,
-          federation: null,
-          fpofpc: null,
           storageLocation: null
         }
       });
@@ -181,64 +157,25 @@ const TestForm = () => {
       updateState({
         form: {
           ...state.form,
-          federationType: '',
-          option3: '',
-          fpofpcdata: '',
+          
           Storagedata: ''
         },
         fielddata: {
           ...state.fielddata,
-          federation: null,
-          fpofpc: null,
+      
           storageLocation: null
         }
       });
     }
   }, [state.form.option2]);
 
+ 
   useEffect(() => {
-    if (state.form.option2 && state.form.federationType) {
-      updateState({
-        form: {
-          ...state.form,
-          option3: '',
-          fpofpcdata: '',
-          Storagedata: ''
-        },
-        fielddata: {
-          ...state.fielddata,
-          federation: null,
-          fpofpc: null,
-          storageLocation: null
-        }
-      });
-
-      if (state.form.federationType === 'FEDERATION') {
-        Federation(state.form.option2);
-      } else if (state.form.federationType === 'SOCIETY') {
-        Society(state.form.option2);
-      } else if (state.form.federationType === 'PACCS') {
-        Paccs(state.form.option2);
-      }
+    if (state.form.option2) {
+      Storagelocation(state.form.option2);
+ 
     }
-  }, [state.form.federationType, state.form.option2]);
-
-  useEffect(() => {
-    if (state.form.option3) {
-      if (state.form.federationType === 'FEDERATION') {
-        FpoandFpc(state.form.option3);
-      } else if (state.form.federationType === 'SOCIETY' || state.form.federationType === 'PACCS') {
-        Storagelocation(state.form.option3);
-      }
-    }
-  }, [state.form.option3]);
-
-  useEffect(() => {
-    if (state.form.fpofpcdata) {
-      Storagelocation(state.form.fpofpcdata);
-      console.log('id', state.form.fpofpcdata);
-    }
-  }, [state.form.fpofpcdata]);
+  }, [state.form.option2 ]);
 
 
 
@@ -263,7 +200,7 @@ const TestForm = () => {
   };
 
   const BranchDropdown = (companyId: string) => {
-    const url = `/api/group?CompanyId=${companyId}&GroupType=Branch&BranchType=PROCURING&BranchType=BOTH&ApprovalStatus=APPROVED&IsActive=true`;
+    const url = `/api/group?BranchType=RECEIVING&BranchType=BOTH&ApprovalStatus=APPROVED&IsActive=true&CompanyId=${companyId}`;
     apiClient.get(url)
       .then((res) => {
         if (res?.data) {
@@ -278,88 +215,9 @@ const TestForm = () => {
       .catch(console.error);
   };
 
-  const FederationType = () => {
-    apiClient.get('/api/enum/FederationType')
-      .then((res) => {
-        if (res?.data) {
-          updateState({
-            fielddata: {
-              ...state.fielddata,
-              federationType: res.data,
-            }
-          });
-        }
-      })
-      .catch(console.error);
-  };
-
-
-  const Society = (BranchId: string) => {
-    const url = `/api/group?BranchId=${BranchId}&GroupType=Vendor&VendorType=SOCIETY&ApprovalStatus=APPROVED&IsActive=true`;
-    apiClient.get(url)
-      .then((res) => {
-        if (res?.data) {
-          updateState({
-            fielddata: {
-              ...state.fielddata,
-              federation: res.data,
-            }
-          });
-        }
-      })
-      .catch(console.error);
-  };
-
-  const Paccs = (BranchId: string) => {
-    const url = `/api/group?BranchId=${BranchId}&GroupType=Vendor&VendorType=PACCS&ApprovalStatus=APPROVED&IsActive=true`;
-    apiClient.get(url)
-      .then((res) => {
-        if (res?.data) {
-          updateState({
-            fielddata: {
-              ...state.fielddata,
-              federation: res.data,
-            }
-          });
-        }
-      })
-      .catch(console.error);
-  };
-
-  const Federation = (BranchId: string) => {
-    const url = `/api/group?FederationType=FEDERATION&GroupBy=FEDERATION&ApprovalStatus=APPROVED&BranchId=${BranchId}`;
-    apiClient.get(url)
-      .then((res) => {
-        if (res?.data) {
-          updateState({
-            fielddata: {
-              ...state.fielddata,
-              federation: res.data,
-            }
-          });
-        }
-      })
-      .catch(console.error);
-  };
-
-  const FpoandFpc = (federationId: string) => {
-    const url = `/api/group?VendorType=FPC&VendorType=FPO&FederationId=${federationId}`;
-    apiClient.get(url)
-      .then((res) => {
-        if (res?.data) {
-          updateState({
-            fielddata: {
-              ...state.fielddata,
-              fpofpc: res.data,
-            }
-          });
-        }
-      })
-      .catch(console.error);
-  };
-
+ 
   const Storagelocation = (groupId: string) => {
-    const url = `/api/storagelocation?GroupId=${groupId}&StorageType=NORMAL&LocationType=STORAGELOCATION&ApprovalStatus=PENDING&ApprovalStatus=APPROVED&IsActive=true&CompanyId=`;
+    const url = `/api/dropdown/group/${groupId}/location?locationType=GROUPLOCATION`;
     console.log('API URL:', url); // URL bhi console pe dekh lo
     apiClient.get(url)
       .then((res) => {
@@ -379,35 +237,7 @@ const TestForm = () => {
   };
 
 
-  useEffect(() => {
-    if (selectedStorageId) {
-      StorageById(selectedStorageId);
-      console.log(' use effect stoarge id', selectedStorageId);
-    }
-  }, [selectedStorageId]);
-
-
-
-  const StorageById = (storageId: string) => {
-    const url = `/api/storagelocation/${storageId}`;
-    apiClient.get(url)
-      .then((res) => {
-        if (res?.data) {
-          console.log('API totalStockMT:', res.data.totalStockMT);
-          updateState({
-            fielddata: {
-              ...state.fielddata,
-              Storagebyid: res.data
-            },
-            form: {
-              ...state.form,
-              quanityfoundsystem: res.data.totalStockMT?.toString()
-            }
-          });
-        }
-      })
-      .catch(console.error);
-  };
+ 
 
 
 
@@ -516,14 +346,7 @@ const TestForm = () => {
         alert('Please select a branch');
         return;
       }
-      if (!state.form.federationType) {
-        alert('Please select a federation type');
-        return;
-      }
-      if (!state.form.option3) {
-        alert('Please select an organization');
-        return;
-      }
+     
       if (!state.form.Storagedata) {
         alert('Please select a storage location');
         return;
@@ -716,49 +539,75 @@ const TestForm = () => {
   };
 
 
+  useEffect(() => {
+  const truckNumber = state.form?.Trucknumber || "";
+  if (truckNumber.length >= 6) {
+    fetchHealthReport(truckNumber);
+  }
+}, [state.form?.Trucknumber]);
 
-  // const handleSubmit = () => {
-  //   let form = { ...state.form };
+  const fetchHealthReport = async (trucknumber: any) => {
+    try {
+      const response = await apiClient.get(
+        `/api/healthreport/list?ReportType=DISPATCH&ReportDispatchType=NORMAL&TruckNumber=${trucknumber}`
+      );
 
-  //   // Ensure all required fields are present
-  //   if (!form.date) {
-  //     alert('Please select a date');
-  //     return;
-  //   }
+      console.log("API Response:", response.data);
 
-  //   const cform = createFormData(form);
-
-  //   // Determine the API endpoint
-  //   const endpoint = '/api/mobile/healthreport/normal/receive';
-
-  //   setIsPressed(true); // Show loading indicator
-
-  //   apiClient.post(endpoint, cform, {
-  //     headers: {
-  //       'Content-Type': 'multipart/form-data',
-  //     },
-  //   })
-  //     .then(response => {
-  //       console.log('Submission successful:', response.data);
-  //       alert('Form submitted successfully!');
-  //       updateState({
-  //         ...state,
-  //         form: null,
-  //         hidden: { ...state.hidden, currentStep: 0 },
-  //       });
-  //     })
-  //     .catch(error => {
-  //       console.error('Submission failed:', error);
-  //       alert('Submission failed. Please check console for details.');
-  //     })
-  //     .finally(() => {
-  //       setIsPressed(false); // Hide loading indicator
-  //     });
-  // };
+      // Assuming response.data contains an array of reports
+      if (response.data && response.data.length > 0) {
+        const reportId = response.data[0].id; // Pehla report ka ID le rahe hain
+        fetchReportDetails(reportId); // ID pass karke details fetch kar rahe hain
+      }
+    } catch (error) {
+      console.error("API Error:", error);
+    }
+  };
 
 
+   const fetchReportDetails = async (id: any) => {
+    try {
+      const response = await apiClient.get(`/api/healthreport/${id}`);
+      
+      console.log("Report details:", response.data);
+      updateState({
+        form: {
+          ...state.form,
+          Trucknumber: response.data.truckNumber || '',
+          grossWeight: response.data.grossWeight?.toString() || '',
+          tareWeight: response.data.tareWeight?.toString() || '',
+          netWeight: response.data.netWeight?.toString() || '',
+          date: response.data.date ? new Date(response.data.date).toISOString().split('.')[0] + 'Z' : '',
+          stainingColour: response.data.stainingColour || false,
+          stainingColourPercent: response.data.stainingColourPercent?.toString() || '',
+          bagCount: response.data.bagCount?.toString() || '',
+          size: response.data.size?.toString() || '',
+          blackSmutOnion: response.data.blackSmutOnion || false,
+          blackSmutPercent: response.data.blackSmutPercent?.toString() || '',
+          sproutedOnion: response.data.sproutedOnion || false,
+          sproutedPercent: response.data.sproutedPercent?.toString() || '',
+          onionSkin: response.data.onionSkin || 'DOUBLE',
+          onionSkinPercent: response.data.onionSkinPercent?.toString() || '',
+          moisture: response.data.moisture || 'DRY',
+          moisturePercent: response.data.moisturePercent?.toString() || '',
+          spoiledOnion: response.data.spoiledOnion || false,
+          spoiledPercent: response.data.spoiledPercent?.toString() || '',
+          SpoliedBranch: response.data.fpcPersonName || '',
+          SpoliedComment: response.data.comment || ''
+        }
+      });
 
-  // Update the handleSubmit function to include only required fields
+    } catch (error) {
+      console.error("Error fetching report details:", error);
+    }
+  };
+
+
+
+
+
+
+  
   const handleSubmit = () => {
     // Create a new object with only the required fields
     const payload = {
@@ -803,6 +652,7 @@ const TestForm = () => {
     apiClient.post('/api/mobile/healthreport/normal/receive', formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
+        Authorization: `Bearer ${token}`,
 
 
 
@@ -886,19 +736,16 @@ const TestForm = () => {
                   <Picker
                     selectedValue={state.form.option1}
                     onValueChange={(value) => {
+                      console.log("Selected Company:", value);
                       updateState({
                         form: {
                           ...state.form,
                           option1: value,
                           option2: '',
-                          federationType: '',
-                          option3: '',
-                          fpofpcdata: '',
                           Storagedata: ''
                         },
                       });
-                      setSelectedStorageId(''); // Clear storage ID
-                      setShowInspectionButton(false); // Hide inspection button
+                   
                     }}
                   >
                     <Picker.Item label="Select Company Name" value="" />
@@ -920,9 +767,6 @@ const TestForm = () => {
                         form: {
                           ...state.form,
                           option2: value,
-                          federationType: '',
-                          option3: '',
-                          fpofpcdata: '',
                           Storagedata: ''
                         },
                       });
@@ -935,176 +779,14 @@ const TestForm = () => {
                   </Picker>
                 </View>
               </View>
-
-
-              <View style={styles.content}>
-                <View style={styles.pickerContainer}>
-                  <Picker
-                    selectedValue={state.form.federationType}
-                    onValueChange={(value) => {
-                      updateState({
-                        form: {
-                          ...state.form,
-                          federationType: value,
-                          option3: '',
-                          fpofpcdata: '',
-                          Storagedata: ''
-                        },
-                        fielddata: {
-                          ...state.fielddata,
-                          federation: null,
-                          fpofpc: null,
-                          storageLocation: null
-                        }
-                      });
-                    }}
-                  >
-                    <Picker.Item label="Select Federation Type" value="" />
-                    {state.fielddata.federationType?.map((item: { text: string; value: string }) => (
-                      <Picker.Item key={item.value} label={item.text} value={item.value} />
-                    ))}
-                  </Picker>
-                </View>
-              </View>
-
-
-              {state.form.federationType === 'FEDERATION' && (
-                <>
-                  {state.fielddata.federation && (
-
-                    <View style={styles.content}>
-                      <View style={styles.pickerContainer}>
-
-
-                        <Picker
-                          selectedValue={state.form.option3 || ''}
-                          onValueChange={(value) => {
-                            updateState({
-                              form: {
-                                ...state.form,
-                                option3: value,
-                                fpofpcdata: '',
-                                Storagedata: ''
-                              },
-                            });
-                          }}
-                        >
-                          <Picker.Item label="Select Federation" value="" />
-                          {state.fielddata.federation?.map((item: { name: string; id: string }) => (
-                            <Picker.Item key={item.id} label={item.name} value={item.id} />
-                          ))}
-                        </Picker>
-                      </View>
-                    </View>
-                  )}
-
-                  {state.form.option3 && state.fielddata.fpofpc && (
-                    <View style={styles.content}>
-                      <View style={styles.pickerContainer}>
-
-                        <Picker
-                          selectedValue={state.form.fpofpcdata || ''}
-                          onValueChange={(value) => {
-                            updateState({
-                              form: {
-                                ...state.form,
-                                fpofpcdata: value,
-                                Storagedata: ''
-                              },
-                            });
-                          }}
-                        >
-                          <Picker.Item label="Select FPO/FPC" value="" />
-                          {state.fielddata.fpofpc?.map((item: { name: string; id: string }) => (
-                            <Picker.Item key={item.id} label={item.name} value={item.id} />
-                          ))}
-                        </Picker>
-                      </View>
-                    </View>
-                  )}
-                </>
-              )}
-
-
-
-
-              {state.form.federationType === 'SOCIETY' && (
-                <>
-                  {state.fielddata.federation && (
-                    <View style={styles.content}>
-                      <View style={styles.pickerContainer}>
-
-
-                        <Picker
-                          selectedValue={state.form.option3 || ''}
-                          onValueChange={(value) => {
-                            updateState({
-                              form: {
-                                ...state.form,
-                                option3: value,
-                                Storagedata: ''
-                              },
-                            });
-                          }}
-                        >
-                          <Picker.Item label="Select Society" value="" />
-                          {state.fielddata.federation?.map((item: { name: string; id: string }) => (
-                            <Picker.Item key={item.id} label={item.name} value={item.id} />
-                          ))}
-                        </Picker>
-                      </View>
-                    </View>
-                  )}
-                </>
-              )}
-
-
-
-
-              {state.form.federationType === 'PACCS' && (
-                <>
-                  {state.fielddata.federation && (
-                    <View style={styles.content}>
-                      <View style={styles.pickerContainer}>
-
-
-                        <Picker
-                          selectedValue={state.form.option3 || ''}
-                          onValueChange={(value) => {
-                            updateState({
-                              form: {
-                                ...state.form,
-                                option3: value,
-                                Storagedata: ''
-                              },
-                            });
-                          }}
-                        >
-                          <Picker.Item label="Select PACCS" value="" />
-                          {state.fielddata.federation?.map((item: { name: string; id: string }) => (
-                            <Picker.Item key={item.id} label={item.name} value={item.id} />
-                          ))}
-                        </Picker>
-
-                      </View>
-
-                    </View>
-
-
-                  )}
-                </>
-              )}
-
-
-
-
-              {state.form.option3 && state.fielddata.storageLocation && (
+             
                 <View style={styles.content}>
                   <View style={styles.pickerContainer}>
 
                     <Picker
                       selectedValue={state.form.Storagedata || ''}
                       onValueChange={(value) => {
+                        console.log("Selected Storage Location:", value);
                         updateState({
                           form: {
                             ...state.form,
@@ -1112,23 +794,18 @@ const TestForm = () => {
                           },
                         });
 
-                        if (value) {
-                          setSelectedStorageId(value);
-                          setShowInspectionButton(true);
-                        } else {
-                          setShowInspectionButton(false);
-                        }
+                     
                       }}
                     >
                       <Picker.Item label="Select storage" value="" />
-                      {state.fielddata.storageLocation?.map((item: { name: string; id: string }) => (
-                        <Picker.Item key={item.id} label={item.name} value={item.id} />
+                      {state.fielddata.storageLocation?.map((item: { text: string; value: string }) => (
+                        <Picker.Item key={item.value} label={item.text} value={item.value} />
                       ))}
                     </Picker>
                   </View>
 
                 </View>
-              )}
+              
 
 
               <View style={styles.buttoncontent}>
