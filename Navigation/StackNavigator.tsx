@@ -32,7 +32,6 @@ export default function StackNavigator() {
 
     <Stack.Screen name="LoginApp" component={LoginApp} />
       <Stack.Screen name="DispatchDrawernavigator" component={DispatchDrawernavigator} />
-
       <Stack.Screen name="ReportOffline" component={ReportOffline} />
       <Stack.Screen name="DispatchRecieve" component={DispatchRecieve} />
       <Stack.Screen name="Federation" component={Federation} />

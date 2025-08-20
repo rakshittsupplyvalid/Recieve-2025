@@ -23,7 +23,7 @@ const OfflineDashboard = () => {
           return () => clearInterval(interval);
         }, []);
 
-      const fetchOfflineData = () => {
+      const fetchOfflineData = () => { 
         let existingData = storage.getString("offlineForms");
         let parsedData = existingData ? JSON.parse(existingData) : [];
         setOfflineForms(parsedData);
@@ -55,16 +55,16 @@ const OfflineDashboard = () => {
 
 const styles = StyleSheet.create({
   container: {
-    
-   
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: '#ffffff',
   },
+
   mainContainer: {
     flex: 1,
     backgroundColor: '#ffffff',
   },
+
   card: {
     
     padding: 25,
