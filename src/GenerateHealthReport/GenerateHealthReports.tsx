@@ -603,11 +603,6 @@ const TestForm = () => {
   };
 
 
-
-
-
-
-  
   const handleSubmit = () => {
     // Create a new object with only the required fields
     const payload = {

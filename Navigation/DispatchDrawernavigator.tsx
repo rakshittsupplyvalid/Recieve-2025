@@ -189,13 +189,14 @@ export default function DispatchDrawernavigator() {
           />
 
 
-           <Drawer.Screen name="CAhealthreport"
+          {/*<Drawer.Screen name="CAhealthreport"
             component={CAhealthreport}
             options={{
               headerShown: false,
               drawerIcon: ({ color, size }) => <Icon name="health-and-safety" size={size} color={color} />
             }}
-          /> 
+          /> */}
+
           <Drawer.Screen name="HealthReportlist" component={HealthReport} options={{ headerShown: false, drawerIcon: ({ color, size }) => <Icon name="medical-services" size={size} color={color} /> }} />
           {/* <Drawer.Screen name="DispatchReportlist"
            component={DispatchReportlist} 
