@@ -94,7 +94,7 @@ const RecieveDhasboard = () => {
                   loading={loading}
                   error={error}
                   iconName="local-shipping"
-                  onPress={() => navigation.navigate("DispatchReportlist")}
+                  onPress={() => navigation.navigate("Dispatch Report list")}
                 />
               </View>
               <View style={styles.cardWrapper}>

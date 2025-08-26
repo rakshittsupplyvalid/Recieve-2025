@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -12,8 +12,9 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
-import DropDownPicker from 'react-native-dropdown-picker';
+import { Picker } from '@react-native-picker/picker';
 import { launchCamera, ImagePickerResponse, launchImageLibrary } from 'react-native-image-picker';
+import { PermissionsAndroid} from 'react-native';
 import { useTranslation } from 'react-i18next';
 import apiClient from '../service/api/apiInterceptors';
 import DateTimePicker from '@react-native-community/datetimepicker';
@@ -22,10 +23,23 @@ import Modal from 'react-native-modal';
 import Navbar from '../App/Navbar';
 import { ScrollView } from 'react-native-gesture-handler';
 
+
 type ImageAsset = {
   uri: string;
   fileName: string;
   type: string;
+};
+
+type ValidationErrors = {
+  date?: string;
+  StartTripReading?: string;
+  EndTripReading?: string;
+  Amount?: string;
+  BillType?: string;
+  Purpose?: string;
+  VehicleType?: string;
+  VehicleNumber?: string;
+  images?: string;
 };
 
 const ReimbursementForm = () => {
@@ -37,7 +51,7 @@ const ReimbursementForm = () => {
     BillType: '',
     Purpose: '',
     VehicleType: '',
-    VehicleNumber: '', // Added VehicleNumber field
+    VehicleNumber: '',
   });
   const [images, setImages] = useState<ImageAsset[]>([]);
   const [billTypeOpen, setBillTypeOpen] = useState(false);
@@ -56,11 +70,18 @@ const ReimbursementForm = () => {
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isModalVisible, setModalVisible] = useState(false);
+  const [errors, setErrors] = useState<ValidationErrors>({});
+  const [touched, setTouched] = useState<Record<string, boolean>>({});
   const { t, i18n } = useTranslation();
 
   const today = new Date();
   const threeMonthsAgo = new Date();
   threeMonthsAgo.setMonth(today.getMonth() - 3);
+
+  useEffect(() => {
+    // Validate fields as they change
+    validateField();
+  }, [formData, images]);
 
   const toggleModal = () => {
     setModalVisible(!isModalVisible);
@@ -68,36 +89,226 @@ const ReimbursementForm = () => {
 
   const handleInputChange = (key: string, value: string) => {
     setFormData({ ...formData, [key]: value });
+    setTouched({ ...touched, [key]: true });
   };
 
-  const handleTakePhoto = () => {
+  const handleBlur = (field: string) => {
+    setTouched({ ...touched, [field]: true });
+    validateField(field);
+  };
+
+  const validateField = (field?: string) => {
+    const { date, StartTripReading, EndTripReading, Amount, BillType, Purpose, VehicleType, VehicleNumber } = formData;
+    const newErrors: ValidationErrors = { ...errors };
+
+    // Clear specific field error when validating all or a specific field
+    if (!field || field === 'date') {
+      if (!date) {
+        newErrors.date = 'Date is required';
+      } else {
+        delete newErrors.date;
+      }
+    }
+
+    if (!field || field === 'BillType') {
+      if (!BillType) {
+        newErrors.BillType = 'Bill type is required';
+      } else {
+        delete newErrors.BillType;
+      }
+    }
+
+    if (!field || field === 'Amount') {
+      if (!Amount) {
+        newErrors.Amount = 'Amount is required';
+      } else if (isNaN(Number(Amount)) || Number(Amount) <= 0) {
+        newErrors.Amount = 'Please enter a valid amount';
+      } else {
+        delete newErrors.Amount;
+      }
+    }
+
+    if (!field || field === 'Purpose') {
+      if (!Purpose) {
+        newErrors.Purpose = 'Purpose is required';
+      } else {
+        delete newErrors.Purpose;
+      }
+    }
+
+    if (BillType === 'Petrol') {
+      if (!field || field === 'VehicleType') {
+        if (!VehicleType || VehicleType === 'None') {
+          newErrors.VehicleType = 'Please select a valid vehicle type';
+        } else {
+          delete newErrors.VehicleType;
+        }
+      }
+
+      if (!field || field === 'VehicleNumber') {
+        const truckRegex = /^[A-Z0-9 ]{1,12}$/;
+        if (!VehicleNumber) {
+          newErrors.VehicleNumber = 'Vehicle number is required';
+        } else if (!truckRegex.test(VehicleNumber.trim())) {
+          newErrors.VehicleNumber = 'Please enter a valid Vehicle Number (only capital letters & numbers, max 12 chars)';
+        } else {
+          delete newErrors.VehicleNumber;
+        }
+      }
+
+      if (!field || field === 'StartTripReading') {
+        if (!StartTripReading) {
+          newErrors.StartTripReading = 'Start trip reading is required';
+        } else if (!/^\d{7}$/.test(StartTripReading)) {
+          newErrors.StartTripReading = 'Start Trip Reading must be a 7 digit number';
+        } else {
+          delete newErrors.StartTripReading;
+        }
+      }
+
+      if (!field || field === 'EndTripReading') {
+        if (!EndTripReading) {
+          newErrors.EndTripReading = 'End trip reading is required';
+        } else if (!/^\d{7}$/.test(EndTripReading)) {
+          newErrors.EndTripReading = 'End Trip Reading must be a 7 digit number';
+        } else if (Number(EndTripReading) <= Number(StartTripReading)) {
+          newErrors.EndTripReading = 'End Trip Reading must be greater than Start Trip Reading';
+        } else {
+          delete newErrors.EndTripReading;
+        }
+      }
+    } else {
+      // Clear petrol-specific errors if bill type is not petrol
+      delete newErrors.VehicleType;
+      delete newErrors.VehicleNumber;
+      delete newErrors.StartTripReading;
+      delete newErrors.EndTripReading;
+    }
+
+    if (!field || field === 'images') {
+      if (images.length === 0) {
+        newErrors.images = 'Please upload at least one image';
+      } else {
+        delete newErrors.images;
+      }
+    }
+
+    setErrors(newErrors);
+  };
+
+  const validateForm = () => {
+    const { date, StartTripReading, EndTripReading, Amount, BillType, Purpose, VehicleType, VehicleNumber } = formData;
+
+    if (!date) {
+      Alert.alert('Validation Error', 'Date is required');
+      return false;
+    }
+    if (!BillType) {
+      Alert.alert('Validation Error', 'Bill type is required');
+      return false;
+    }
+    if (!Amount || isNaN(Number(Amount)) || Number(Amount) <= 0) {
+      Alert.alert('Validation Error', 'Please enter a valid amount');
+      return false;
+    }
+    if (!Purpose) {
+      Alert.alert('Validation Error', 'Purpose is required');
+      return false;
+    }
+
+    if (BillType === 'Petrol') {
+      if (!VehicleType || VehicleType === 'None') {
+        Alert.alert('Validation Error', 'Please select a valid vehicle type');
+        return false;
+      }
+      const truckRegex = /^[A-Z0-9 ]{1,12}$/;
+      if (!VehicleNumber) {
+        Alert.alert('Validation Error', 'Vehicle number is required');
+        return false;
+      } else if (!truckRegex.test(VehicleNumber.trim())) {
+        Alert.alert(
+          'Validation Error',
+          'Please enter a valid Vehicle Number (only capital letters & numbers, max 12 chars)'
+        );
+        return false;
+      }
+
+
+      if (Number(EndTripReading) <= Number(StartTripReading)) {
+        Alert.alert('Validation Error', 'End Trip Reading must be greater than Start Trip Reading');
+        return false;
+      }
+    }
+
+    if (images.length < 3) {
+      Alert.alert('Validation Error', 'Please upload at least 3 images');
+      return false;
+    }
+    if (images.length > 9) {
+      Alert.alert('Validation Error', 'You can upload a maximum of 9 images');
+      return false;
+    }
+
+
+    return true;
+  };
+
+
+  const requestCameraPermission = async () => {
+    if (Platform.OS === 'android') {
+      try {
+        const granted = await PermissionsAndroid.request(
+          PermissionsAndroid.PERMISSIONS.CAMERA
+        );
+        if (granted === PermissionsAndroid.RESULTS.GRANTED) {
+          console.log('Camera permission granted');
+          openCamera();
+        } else {
+          console.log('Camera permission denied');
+        }
+      } catch (err) {
+        console.warn(err);
+      }
+    } else {
+      openCamera(); // iOS me direct open
+    }
+  };
+
+
+
+  const openCamera = () => {
     launchCamera(
       {
         mediaType: 'photo',
         includeBase64: false,
         cameraType: 'back',
+        saveToPhotos: true,
         quality: 0.4,
         maxWidth: 700,
         maxHeight: 700,
       },
-      (response: ImagePickerResponse) => {
+      async (response) => {
         if (response.didCancel) {
           console.log('User cancelled image picker');
-        } else if (response.errorCode) {
+        } else if (response.errorMessage) {
           console.log('ImagePicker Error: ', response.errorMessage);
-        } else if (response.assets) {
+        } else if (response.assets && response.assets.length > 0) {
           const capturedImage = response.assets[0];
           const image = {
             uri: capturedImage.uri ?? '',
             fileName: capturedImage.fileName || `image_${capturedImage.id}.jpg`,
             type: capturedImage.type || 'image/jpeg',
           };
+
+          // ✅ Fix: state me add karo
           setImages((prevImages) => [...prevImages, image]);
+          setTouched((prev) => ({ ...prev, images: true }));
+          toggleModal(); // modal band karne ke liye
         }
       }
     );
-    toggleModal();
   };
+
 
   const handlePickImage = () => {
     launchImageLibrary(
@@ -121,6 +332,7 @@ const ReimbursementForm = () => {
             type: pickedImage.type || 'image/jpeg',
           };
           setImages((prevImages) => [...prevImages, image]);
+          setTouched({ ...touched, images: true });
         }
       }
     );
@@ -129,65 +341,14 @@ const ReimbursementForm = () => {
 
   const handleDeleteImage = (index: number) => {
     setImages((prevImages) => prevImages.filter((_, i) => i !== index));
+    setTouched({ ...touched, images: true });
   };
 
-     const validateForm = () => {
-  const { date, StartTripReading, EndTripReading, Amount, BillType, Purpose, VehicleType, VehicleNumber } = formData;
-
-  if (!date || !BillType || !Amount || !Purpose) {
-    Alert.alert('Validation Error', 'All fields are required');
-    return false;
-  }
-
-  if (BillType === 'Petrol') {
-    if (!VehicleType || VehicleType === 'None') {
-      Alert.alert('Validation Error', 'Please select a valid vehicle type');
-      return false;
-    }
-
-    // ✅ Truck number validation (max 12, only A-Z 0-9 and space)
-    const truckRegex = /^[A-Z0-9 ]{1,12}$/;
-    if (!VehicleNumber || !truckRegex.test(VehicleNumber.trim())) {
-      Alert.alert('Validation Error', 'Please enter a valid Vehicle Number (only capital letters & numbers, max 12 chars)');
-      return false;
-    }
-
-    // ✅ StartTripReading 7 digit validation
-    if (!StartTripReading || !/^\d{7}$/.test(StartTripReading)) {
-      Alert.alert('Validation Error', 'Start Trip Reading must be a 7 digit number');
-      return false;
-    }
-
-    // ✅ EndTripReading 7 digit validation
-    if (!EndTripReading || !/^\d{7}$/.test(EndTripReading)) {
-      Alert.alert('Validation Error', 'End Trip Reading must be a 7 digit number');
-      return false;
-    }
-
-    // ✅ EndTrip > StartTrip
-    if (Number(EndTripReading) <= Number(StartTripReading)) {
-      Alert.alert('Validation Error', 'End Trip Reading must be greater than Start Trip Reading');
-      return false;
-    }
-  }
-
-  if (!Amount || isNaN(Number(Amount)) || Number(Amount) <= 0) {
-    Alert.alert('Validation Error', 'Please enter a valid amount');
-    return false;
-  }
-
-  if (images.length === 0) {
-    Alert.alert('Validation Error', 'Please upload at least one image');
-    return false;
-  }
-
-  return true;
-};
-
-
-
   const handleSubmit = async () => {
-    if (!validateForm()) return;
+    if (!validateForm()) {
+      Alert.alert('Validation Error', 'Please fix the errors in the form');
+      return;
+    }
 
     setIsSubmitting(true);
 
@@ -199,7 +360,7 @@ const ReimbursementForm = () => {
     data.append('BillType', formData.BillType);
     data.append('Purpose', formData.Purpose);
     data.append('VehicleType', formData.VehicleType);
-    data.append('VehicleNumber', formData.VehicleNumber); // Added VehicleNumber to form data
+    data.append('VehicleNumber', formData.VehicleNumber);
 
     images.forEach((image) => {
       data.append('Images', {
@@ -229,10 +390,12 @@ const ReimbursementForm = () => {
         });
         setImages([]);
         setSelectedDate(new Date());
+        setErrors({});
+        setTouched({});
         Alert.alert('Success', response.data.message || 'Reimbursement added successfully');
       }
     } catch (error) {
-      console.error('Error submitting form:', error.response.data);
+      console.error('Error submitting form:', error);
       Alert.alert('Error', 'Something went wrong while submitting the form');
     } finally {
       setIsSubmitting(false);
@@ -248,21 +411,27 @@ const ReimbursementForm = () => {
   };
 
   return (
-    <ScrollView style={styles.container}>
+    <KeyboardAvoidingView
+      style={styles.container}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
+    >
       <Navbar />
-      <View style={styles.formContent}>
+      <ScrollView style={styles.scrollView} contentContainerStyle={styles.formContent}>
         {/* Date Picker */}
         <Text style={styles.label}>{t('Date')}</Text>
         <View style={styles.inputWrapper}>
           <TouchableOpacity onPress={() => setShowDatePicker(true)}>
             <TextInput
-              style={styles.input}
+              style={[styles.input, touched.date && errors.date ? styles.inputError : null]}
               placeholder={t('selecteddate')}
               value={formData.date}
               onChangeText={(text) => handleInputChange('date', text)}
+              onBlur={() => handleBlur('date')}
               editable={false}
             />
           </TouchableOpacity>
+
         </View>
 
         {showDatePicker && (
@@ -278,95 +447,111 @@ const ReimbursementForm = () => {
 
         {/* Bill Type Dropdown */}
         <Text style={styles.label}>{t("Billtype")}</Text>
-        <DropDownPicker
-          open={billTypeOpen}
-          value={formData.BillType}
-          items={billTypeItems}
-          setOpen={setBillTypeOpen}
-          setValue={(callback) =>
-            setFormData((prevState) => {
-              const selectedType = callback(prevState.BillType);
-              return {
-                ...prevState,
-                BillType: selectedType,
-                StartTripReading: '',
-                EndTripReading: '',
-                VehicleType: selectedType === 'Petrol' ? prevState.VehicleType : '',
-                VehicleNumber: selectedType === 'Petrol' ? prevState.VehicleNumber : '',
-              };
-            })
-          }
-          setItems={setBillTypeItems}
-          placeholder={t('selectBilltype')}
-          style={styles.dropdown}
-        />
+        <View style={[styles.dropdowntwo]}>
+          <Picker
+            selectedValue={formData.BillType}
+            onValueChange={(itemValue) => {
+              setFormData((prevState) => {
+                return {
+                  ...prevState,
+                  BillType: itemValue,
+                  StartTripReading: '',
+                  EndTripReading: '',
+                  VehicleType: itemValue === 'Petrol' ? prevState.VehicleType : '',
+                  VehicleNumber: itemValue === 'Petrol' ? prevState.VehicleNumber : '',
+                };
+              });
+              setTouched({ ...touched, BillType: true });
+            }}
+          >
+            <Picker.Item label={t('selectBilltype')} value="" />
+            {billTypeItems.map((item) => (
+              <Picker.Item key={item.value} label={item.label} value={item.value} />
+            ))}
+          </Picker>
+        </View>
+
 
         {/* Petrol-Specific Fields */}
         {formData.BillType === 'Petrol' && (
           <>
             <Text style={styles.label}>{t("Vehicle Type")}</Text>
-            <DropDownPicker
-              open={vehicleTypeOpen}
-              value={formData.VehicleType}
-              items={vehicleTypeItems}
-              setOpen={setVehicleTypeOpen}
-              setValue={(callback) =>
-                setFormData((prevState) => ({
-                  ...prevState,
-                  VehicleType: callback(prevState.VehicleType)
-                }))
-              }
-              setItems={setVehicleTypeItems}
-              placeholder="Select Vehicle Type"
-              style={styles.dropdown}
-            />
+            <View style={[styles.dropdowntwo]}>
+              <Picker
+                selectedValue={formData.VehicleType}
+                onValueChange={(itemValue) => {
+                  setFormData((prevState) => ({
+                    ...prevState,
+                    VehicleType: itemValue,
+                  }));
+                  setTouched({ ...touched, VehicleType: true });
+                }}
+              >
+                <Picker.Item label="Select Vehicle Type" value="" />
+                {vehicleTypeItems.map((item) => (
+                  <Picker.Item key={item.value} label={item.label} value={item.value} />
+                ))}
+              </Picker>
+            </View>
+
 
             <Text style={styles.label}>{t("Vehicle Number")}</Text>
             <TextInput
-              style={styles.input}
+              style={[styles.input]}
               placeholder="e.g. MH01AB1234"
               value={formData.VehicleNumber}
               onChangeText={(text) => handleInputChange('VehicleNumber', text)}
+              onBlur={() => handleBlur('VehicleNumber')}
               autoCapitalize="characters"
             />
 
             <Text style={styles.label}>{t("StartTripReading")}</Text>
             <TextInput
-              style={styles.input}
+              style={[styles.input]}
               placeholder={t("StartTripReading")}
               keyboardType="numeric"
               value={formData.StartTripReading}
               onChangeText={(text) => handleInputChange('StartTripReading', text)}
+              onBlur={() => handleBlur('StartTripReading')}
+              maxLength={7}
             />
+
 
             <Text style={styles.label}>{t("EndTripReading")}</Text>
             <TextInput
-              style={styles.input}
+              style={[styles.input]}
               placeholder={t("EndTripReading")}
               keyboardType="numeric"
               value={formData.EndTripReading}
               onChangeText={(text) => handleInputChange('EndTripReading', text)}
+              onBlur={() => handleBlur('EndTripReading')}
+              maxLength={7}
             />
+
           </>
         )}
 
         {/* Common Fields */}
         <Text style={styles.label}>{t("Amount")}</Text>
         <TextInput
-          style={styles.input}
+          style={[styles.input, touched.Amount && errors.Amount ? styles.inputError : null]}
           placeholder={t("Amount")}
           keyboardType="numeric"
           value={formData.Amount}
           onChangeText={(text) => handleInputChange('Amount', text)}
+          onBlur={() => handleBlur('Amount')}
         />
+
 
         <Text style={styles.label}>{t("purpose")}</Text>
         <TextInput
-          style={styles.input}
+          style={[styles.input]}
           placeholder={t("purpose")}
           value={formData.Purpose}
           onChangeText={(text) => handleInputChange('Purpose', text)}
+          onBlur={() => handleBlur('Purpose')}
         />
+
 
         {/* Image Upload Section */}
         <View>
@@ -374,9 +559,10 @@ const ReimbursementForm = () => {
             <Text style={styles.buttonText}>{t("CaptureImage")}</Text>
           </Pressable>
 
+
           <Modal isVisible={isModalVisible} onBackdropPress={toggleModal}>
             <View style={styles.modalContainer}>
-              <Pressable onPress={handleTakePhoto} style={styles.pressable}>
+              <Pressable onPress={requestCameraPermission} style={styles.pressable}>
                 <Text style={styles.buttonText}>{t("Camera")}</Text>
                 <MaterialIcons name="camera" size={30} color="#fff" />
               </Pressable>
@@ -395,122 +581,147 @@ const ReimbursementForm = () => {
 
         {/* Image Preview */}
         {images.length > 0 && (
-          <View>
-            {images.map((item, index) => (
-              <View key={`${item.uri}-${index}`} style={styles.imageContainer}>
-                <TouchableOpacity
-                  onPress={() => handleDeleteImage(index)}
-                  style={styles.deleteButton}
-                >
-                  <MaterialIcons name="close" size={20} color="#fff" />
-                </TouchableOpacity>
-                <Image source={{ uri: item.uri }} style={styles.image} />
-              </View>
-            ))}
+          <View style={styles.imagesContainer}>
+            <Text style={styles.imageLabel}>Uploaded Images:</Text>
+            <View style={styles.imagesList}>
+              {images.map((item, index) => (
+                <View key={`${item.uri}-${index}`} style={styles.imageContainer}>
+                  <TouchableOpacity
+                    onPress={() => handleDeleteImage(index)}
+                    style={styles.deleteButton}
+                  >
+                    <MaterialIcons name="close" size={20} color="#fff" />
+                  </TouchableOpacity>
+                  <Image source={{ uri: item.uri }} style={styles.image} />
+                </View>
+              ))}
+            </View>
           </View>
         )}
+
         {/* Submit Button */}
         <TouchableOpacity
           onPress={handleSubmit}
-          style={[styles.button, isSubmitting && styles.buttonDisabled]}
+          style={[styles.submitButton, isSubmitting && styles.buttonDisabled]}
           disabled={isSubmitting}
         >
           <Text style={styles.buttonText}>{isSubmitting ? 'Submitting...' : 'Submit'}</Text>
         </TouchableOpacity>
-      </View>
-    </ScrollView>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 };
 
-// Styles remain the same as in your original code
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#ffffff',
   },
+  scrollView: {
+    flex: 1,
+  },
   formContent: {
     padding: 20,
     backgroundColor: '#ffffff',
-    marginBottom: 20,
+    paddingBottom: 40,
   },
   label: {
-    fontSize: 20,
+    fontSize: 16,
     marginTop: 20,
-    fontWeight: '700',
-    color: '#F79B00',
+    fontWeight: '600',
+    color: '#333',
+    marginBottom: 5,
+  },
+  imageLabel: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#333',
+    marginTop: 15,
     marginBottom: 10,
-    letterSpacing: 1,
-    textTransform: 'uppercase',
-    fontFamily: 'Arial-BoldMT',
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: '#F79B00',
+    borderRadius: 40,
+    paddingVertical: 12,
+    paddingHorizontal: 15,
+    fontSize: 16,
+    backgroundColor: '#fff',
+  },
+  inputError: {
+    borderColor: '#ff4d4d',
+  },
+  errorText: {
+    color: '#ff4d4d',
+    fontSize: 14,
+    marginTop: 5,
+  },
+  inputWrapper: {
+    flexDirection: 'column',
+  },
+  dropdowntwo: {
+    borderWidth: 1,
+    borderColor: '#F79B00',
+    borderRadius: 40,
+    backgroundColor: '#fff',
+    overflow: 'hidden',
+  },
+  button: {
+    backgroundColor: '#F79B00',
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 8,
+    marginTop: 20,
+    alignItems: 'center',
+  },
+  submitButton: {
+    backgroundColor: '#F79B00',
+    paddingVertical: 15,
+    paddingHorizontal: 30,
+    borderRadius: 8,
+    marginTop: 30,
+    alignItems: 'center',
+    elevation: 3,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
   },
-  input: {
-    borderWidth: 1,
-    borderColor: '#F79B00',
-    borderRadius: 50,
-    paddingVertical: 12,
-    paddingHorizontal: 15,
-    marginTop: 8,
-    fontSize: 16,
-  },
-  inputWrapper: {
-    flexDirection: 'column',
-  },
-  dropdown: {
-    borderWidth: 1,
-    borderColor: '#F79B00',
-    borderRadius: 50,
-    marginTop: 8,
-    backgroundColor: '#fff',
-    paddingLeft: 12,
-    paddingVertical: 10,
-  },
-  button: {
-    backgroundColor: '#F79B00',
-    paddingVertical: 12,
-    paddingHorizontal: 30,
-    borderRadius: 50,
-    marginTop: 20,
-    alignItems: 'center',
-    elevation: 5,
-    shadowColor: '#6b7b8f',
-    shadowOffset: { width: 0, height: 5 },
-    shadowOpacity: 0.2,
-    shadowRadius: 5,
-  },
   buttonText: {
     color: '#ffffff',
     fontSize: 16,
-    fontWeight: 'bold',
+    fontWeight: '600',
+  },
+  imagesContainer: {
+    marginTop: 15,
+  },
+  imagesList: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
   },
   imageContainer: {
     position: 'relative',
     marginRight: 10,
-    padding: 10
+    marginBottom: 10,
   },
   image: {
     width: 100,
     height: 100,
-    borderRadius: 10,
-    marginRight: 10,
-    marginBottom: 10,
-    borderWidth: 2,
+    borderRadius: 8,
+    borderWidth: 1,
     borderColor: '#ddd',
   },
   deleteButton: {
     position: 'absolute',
-    top: 2,
-    right: 2,
+    top: -5,
+    right: -5,
     backgroundColor: '#ff4d4d',
     padding: 5,
-    borderRadius: 50,
+    borderRadius: 15,
     zIndex: 1
   },
   buttonDisabled: {
-    backgroundColor: '#9c9c9c',
+    backgroundColor: '#ccc',
   },
   closeButton: {
     position: 'absolute',
@@ -523,26 +734,20 @@ const styles = StyleSheet.create({
   pressable: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'grey',
-    paddingVertical: 10,
-    paddingHorizontal: 15,
-    borderRadius: 5,
-    marginHorizontal: 10,
-    elevation: 3,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 5,
-    marginTop: 30,
-    width: 180,
-    justifyContent: 'center'
+    backgroundColor: '#F79B00',
+    paddingVertical: 15,
+    paddingHorizontal: 20,
+    borderRadius: 8,
+    marginVertical: 10,
+    justifyContent: 'center',
+    width: '80%',
   },
   modalContainer: {
-    width: '100%',
-    height: '50%',
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'center',
+    backgroundColor: 'white',
+    padding: 20,
+    borderRadius: 10,
     alignItems: 'center',
+    justifyContent: 'center',
   }
 });
 

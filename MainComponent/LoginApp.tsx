@@ -31,7 +31,7 @@ interface LoginForm {
 }
 
 const LoginApp: React.FC<LoginAppProps> = ({ navigation }) => {
-  // Simple state management using useState
+
   const [form, setForm] = useState<LoginForm>({
     mobileNo: '',
     password: ''

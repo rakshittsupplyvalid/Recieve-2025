@@ -9,8 +9,6 @@ import { MMKV } from 'react-native-mmkv';
 import HealthReport from '../src/HealthReportlist/HealthReportlist';
 import DispatchReportlist from '../Screenthree/DispatchReportlist';
 import ReimbursementForm from '../Screenthree/ReimbursementForm';
-
-import SavedReport from '../Screenthree/SavedReport';
 import SubmitTruckData from '../Screenthree/SubmitTruckData';
 import LanguageSelector from '../Screenthree/Languages';
 import ReimbursementList from '../Screenthree/ReimbursementList';
@@ -214,6 +212,7 @@ export default function DispatchDrawernavigator() {
           <Drawer.Screen name="Dispatch Report list"
             component={DispatchReportlist}
             options={{
+              title: "Health Report list",
               headerShown: false,
               drawerIcon: ({ color, size }) => <Icon name="assignment" size={size} color={color} />
             }} />
@@ -227,7 +226,7 @@ export default function DispatchDrawernavigator() {
            component={Recievelist} options={{ headerShown: false, 
            drawerIcon: ({ color, size }) => <Icon name="move-to-inbox" size={size} color={color} /> }} /> */}
 
-          <Drawer.Screen name="ReimbursementForm" component={ReimbursementForm} options={{  headerShown: false, drawerIcon: ({ color, size }) => <Icon name="receipt" size={size} color={color} /> }} />
+          <Drawer.Screen name="ReimbursementForm" component={ReimbursementForm} options={{   title: "Reimbursement Form", headerShown: false, drawerIcon: ({ color, size }) => <Icon name="receipt" size={size} color={color} /> }} />
           {/* <Drawer.Screen name="SavedReport" component={SavedReport} options={{ headerShown: false, drawerIcon: ({ color, size }) => <Icon name="save-alt" size={size} color={color} /> }} /> */}
           <Drawer.Screen name="Language Selector" component={LanguageSelector} options={{ headerShown: false, drawerIcon: ({ color, size }) => <Icon name="language" size={size} color={color} /> }} />
           {/* Hidden Screens */}
