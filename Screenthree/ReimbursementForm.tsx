@@ -131,49 +131,60 @@ const ReimbursementForm = () => {
     setImages((prevImages) => prevImages.filter((_, i) => i !== index));
   };
 
-  const validateForm = () => {
-    const { date, StartTripReading, EndTripReading, Amount, BillType, Purpose, VehicleType, VehicleNumber } = formData;
+     const validateForm = () => {
+  const { date, StartTripReading, EndTripReading, Amount, BillType, Purpose, VehicleType, VehicleNumber } = formData;
 
-    if (!date || !BillType || !Amount || !Purpose) {
-      Alert.alert('Validation Error', 'All fields are required');
+  if (!date || !BillType || !Amount || !Purpose) {
+    Alert.alert('Validation Error', 'All fields are required');
+    return false;
+  }
+
+  if (BillType === 'Petrol') {
+    if (!VehicleType || VehicleType === 'None') {
+      Alert.alert('Validation Error', 'Please select a valid vehicle type');
       return false;
     }
 
-    if (BillType === 'Petrol') {
-      if (!VehicleType || VehicleType === 'None') {
-        Alert.alert('Validation Error', 'Please select a valid vehicle type');
-        return false;
-      }
-      if (!VehicleNumber || VehicleNumber.trim().length < 5) {
-        Alert.alert('Validation Error', 'Please enter a valid vehicle number (e.g. MH01AB1234)');
-        return false;
-      }
-      if (!StartTripReading || isNaN(Number(StartTripReading))) {
-        Alert.alert('Validation Error', 'Please enter a valid Start Trip Reading');
-        return false;
-      }
-      if (!EndTripReading || isNaN(Number(EndTripReading))) {
-        Alert.alert('Validation Error', 'Please enter a valid End Trip Reading');
-        return false;
-      }
-      if (Number(EndTripReading) <= Number(StartTripReading)) {
-        Alert.alert('Validation Error', 'End Trip Reading must be greater than Start Trip Reading');
-        return false;
-      }
-    }
-
-    if (!Amount || isNaN(Number(Amount)) || Number(Amount) <= 0) {
-      Alert.alert('Validation Error', 'Please enter a valid amount');
+    // ✅ Truck number validation (max 12, only A-Z 0-9 and space)
+    const truckRegex = /^[A-Z0-9 ]{1,12}$/;
+    if (!VehicleNumber || !truckRegex.test(VehicleNumber.trim())) {
+      Alert.alert('Validation Error', 'Please enter a valid Vehicle Number (only capital letters & numbers, max 12 chars)');
       return false;
     }
 
-    if (images.length === 0) {
-      Alert.alert('Validation Error', 'Please upload at least one image');
+    // ✅ StartTripReading 7 digit validation
+    if (!StartTripReading || !/^\d{7}$/.test(StartTripReading)) {
+      Alert.alert('Validation Error', 'Start Trip Reading must be a 7 digit number');
       return false;
     }
 
-    return true;
-  };
+    // ✅ EndTripReading 7 digit validation
+    if (!EndTripReading || !/^\d{7}$/.test(EndTripReading)) {
+      Alert.alert('Validation Error', 'End Trip Reading must be a 7 digit number');
+      return false;
+    }
+
+    // ✅ EndTrip > StartTrip
+    if (Number(EndTripReading) <= Number(StartTripReading)) {
+      Alert.alert('Validation Error', 'End Trip Reading must be greater than Start Trip Reading');
+      return false;
+    }
+  }
+
+  if (!Amount || isNaN(Number(Amount)) || Number(Amount) <= 0) {
+    Alert.alert('Validation Error', 'Please enter a valid amount');
+    return false;
+  }
+
+  if (images.length === 0) {
+    Alert.alert('Validation Error', 'Please upload at least one image');
+    return false;
+  }
+
+  return true;
+};
+
+
 
   const handleSubmit = async () => {
     if (!validateForm()) return;

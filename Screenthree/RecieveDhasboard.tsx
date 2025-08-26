@@ -41,11 +41,11 @@ const RecieveDhasboard = () => {
   const fetchCounts = async () => {
     setLoading(true);
     try {
-      const dispatchResponse = await apiClient.get('/api/dispatch/truckcount/total?DispatchStatus=DISPATCHED');
+      const dispatchResponse = await apiClient.get('/api/mobile/count/total?ReportType=DISPATCH&ReportDispatchType=NORMAL&ApprovalStatus=PENDING&ApprovalStatus=APPROVED&ApprovalStatus=REJECTED');
       setDispatchCount(dispatchResponse.data);
             console.log('count 1' , dispatchResponse.data);
 
-      const recieveResponse = await apiClient.get('/api/dispatch/truckcount/total?DispatchStatus=RECEIVED');
+      const recieveResponse = await apiClient.get('/api/mobile/count/total?ReportType=RECEIVE&ReportDispatchType=NORMAL&ApprovalStatus=PENDING&ApprovalStatus=APPROVED&ApprovalStatus=REJECTED');
       setRecieveCount(recieveResponse.data);
         console.log('count 2' , recieveResponse.data);
 
@@ -94,7 +94,7 @@ const RecieveDhasboard = () => {
                   loading={loading}
                   error={error}
                   iconName="local-shipping"
-                  onPress={() => navigation.navigate("Dispatch Truck List")}
+                  onPress={() => navigation.navigate("DispatchReportlist")}
                 />
               </View>
               <View style={styles.cardWrapper}>
@@ -104,7 +104,7 @@ const RecieveDhasboard = () => {
                   loading={loading}
                   error={error}
                   iconName="directions-bus"
-                  onPress={() => navigation.navigate("Receive Truck List")}
+                  onPress={() => navigation.navigate("HealthReportlist")}
                 />
               </View>
               <View style={styles.cardWrapper}>
@@ -158,7 +158,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     alignItems: 'center',
-    padding: 10,
+   paddingVertical : 30
   },
   scrollView: {
     flexGrow: 1,

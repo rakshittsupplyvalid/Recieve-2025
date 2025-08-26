@@ -91,7 +91,7 @@ const LoginApp: React.FC<LoginAppProps> = ({ navigation }) => {
     } catch (err) {
       console.log("Error: ", err);
       setError("Phone number selection failed");
-      Alert.alert('Error', 'Could not retrieve phone number');
+      // Alert.alert('Error', 'Could not retrieve phone number');
     } finally {
       setIsLoading(false);
       setIsFetching(false);

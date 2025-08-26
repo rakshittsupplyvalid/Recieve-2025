@@ -53,9 +53,9 @@ const Navbar: React.FC = () => {
         <TouchableOpacity onPress={handleMenuPress} style={styles.leftComponent}>
           <MaterialIcons name="menu" size={30} color="#fff" />
         </TouchableOpacity>
-        <View style={styles.centerComponent}>
+          <View style={styles.centerComponent}>
           <Text style={styles.headerTitle}>{localizedRouteName}</Text>
-        </View>
+        </View> 
          
          {/* <TouchableOpacity  onPress={() => navigation.navigate("LanguageSelector")}  style={styles.rightComponent}>
           <MaterialIcons name="language" size={20} color="#fff" />
@@ -73,12 +73,12 @@ const Navbar: React.FC = () => {
 
       <View style={styles.container}>
 
-        <View style={styles.containertwo}>
+        {/* <View style={styles.containertwo}>
 
 
           <Text style={styles.navbarText}>{currentRouteName}</Text>
 
-        </View>
+        </View> */}
 
         <View style={styles.circleBackground} />
       </View>

@@ -55,6 +55,7 @@ export type RootStackParamList = {
   DispatchDrawernavigator: undefined;
   RecieveDrawernavigator: undefined;
    HealthReportList: undefined;
+   DispatchReportlist : undefined;
   HealthReportselect: undefined;
   ReimbursementForm: undefined;
   HealthReportlist: undefined;
@@ -67,7 +68,7 @@ export type RootStackParamList = {
   ReportOffline: undefined;
   "Generate Health Report": undefined;
   "Health Report List": undefined;
-  "Dispatch Report List": undefined;
+
   "Dispatch Truck List": undefined;
   "Receive Truck List": undefined;
   OfflineForm: undefined;

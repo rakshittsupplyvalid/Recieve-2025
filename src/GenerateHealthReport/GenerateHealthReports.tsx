@@ -1,7 +1,7 @@
-import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { View, Text, StyleSheet, TextInput, ScrollView, TouchableOpacity, KeyboardAvoidingView, Switch, Modal, Platform, Image, ActivityIndicator, FlatList, Button, Linking, Alert, BackHandler } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text , TextInput, ScrollView, TouchableOpacity, KeyboardAvoidingView, Switch, Modal, Platform, Image, ActivityIndicator, FlatList, Button, Linking, Alert, BackHandler } from 'react-native';
 import Navbar from '../../App/Navbar';
-import useForm from '../../App/Common/Lib/useForm'// Assuming you have a utility function to create form data
+import useForm from '../../App/Common/Lib/useForm'
 import { Picker } from '@react-native-picker/picker';
 import { launchCamera } from 'react-native-image-picker';
 import styles from '../../theme/Healthreport';
@@ -61,7 +61,7 @@ const TestForm = () => {
   const [selectedImage, setSelectedImage] = useState(null);
   const [isPressed, setIsPressed] = useState(false);
 
- 
+
 
   const today = new Date();
   const threeMonthsAgo = new Date();
@@ -71,7 +71,7 @@ const TestForm = () => {
 
   const totalSteps = 6;
 
- 
+
   //   useCallback(() => {
   //     const onBackPress = () => {
   //       navigation.reset({
@@ -130,7 +130,7 @@ const TestForm = () => {
 
   useEffect(() => {
     CompanyDropdown();
-   
+
   }, []);
 
   useEffect(() => {
@@ -157,25 +157,25 @@ const TestForm = () => {
       updateState({
         form: {
           ...state.form,
-          
+
           Storagedata: ''
         },
         fielddata: {
           ...state.fielddata,
-      
+
           storageLocation: null
         }
       });
     }
   }, [state.form.option2]);
 
- 
+
   useEffect(() => {
     if (state.form.option2) {
       Storagelocation(state.form.option2);
- 
+
     }
-  }, [state.form.option2 ]);
+  }, [state.form.option2]);
 
 
 
@@ -215,7 +215,7 @@ const TestForm = () => {
       .catch(console.error);
   };
 
- 
+
   const Storagelocation = (groupId: string) => {
     const url = `/api/dropdown/group/${groupId}/location?locationType=GROUPLOCATION`;
     console.log('API URL:', url); // URL bhi console pe dekh lo
@@ -237,7 +237,7 @@ const TestForm = () => {
   };
 
 
- 
+
 
 
 
@@ -346,7 +346,7 @@ const TestForm = () => {
         alert('Please select a branch');
         return;
       }
-     
+
       if (!state.form.Storagedata) {
         alert('Please select a storage location');
         return;
@@ -358,6 +358,14 @@ const TestForm = () => {
         alert('Please enter truck number');
         return;
       }
+
+     
+      const truckRegex = /^[A-Z]{2}\d{2}[A-Z]{1,2}\d{4}$/;
+      if (!truckRegex.test(state.form.Trucknumber)) {
+        alert('Invalid Truck Number (Format: XX00XX0000)');
+        return;
+      }
+
       if (!state.form.grossWeight || isNaN(parseFloat(state.form.grossWeight))) {
         alert('Please enter a valid gross weight');
         return;
@@ -379,8 +387,10 @@ const TestForm = () => {
         return;
       }
     }
+
     // Step 2 validation (quality parameters)
     else if (currentStep === 2) {
+
       // Validate percentages if switches are on
       if (state.form.stainingColour) {
         if (!state.form.stainingColourPercent || isNaN(parseFloat(state.form.stainingColourPercent))) {
@@ -540,11 +550,11 @@ const TestForm = () => {
 
 
   useEffect(() => {
-  const truckNumber = state.form?.Trucknumber || "";
-  if (truckNumber.length >= 6) {
-    fetchHealthReport(truckNumber);
-  }
-}, [state.form?.Trucknumber]);
+    const truckNumber = state.form?.Trucknumber || "";
+    if (truckNumber.length >= 6) {
+      fetchHealthReport(truckNumber);
+    }
+  }, [state.form?.Trucknumber]);
 
   const fetchHealthReport = async (trucknumber: any) => {
     try {
@@ -565,10 +575,10 @@ const TestForm = () => {
   };
 
 
-   const fetchReportDetails = async (id: any) => {
+  const fetchReportDetails = async (id: any) => {
     try {
       const response = await apiClient.get(`/api/healthreport/${id}`);
-      
+
       console.log("Report details:", response.data);
       updateState({
         form: {
@@ -740,7 +750,7 @@ const TestForm = () => {
                           Storagedata: ''
                         },
                       });
-                   
+
                     }}
                   >
                     <Picker.Item label="Select Company Name" value="" />
@@ -774,33 +784,33 @@ const TestForm = () => {
                   </Picker>
                 </View>
               </View>
-             
-                <View style={styles.content}>
-                  <View style={styles.pickerContainer}>
 
-                    <Picker
-                      selectedValue={state.form.Storagedata || ''}
-                      onValueChange={(value) => {
-                        console.log("Selected Storage Location:", value);
-                        updateState({
-                          form: {
-                            ...state.form,
-                            Storagedata: value,
-                          },
-                        });
+              <View style={styles.content}>
+                <View style={styles.pickerContainer}>
 
-                     
-                      }}
-                    >
-                      <Picker.Item label="Select storage" value="" />
-                      {state.fielddata.storageLocation?.map((item: { text: string; value: string }) => (
-                        <Picker.Item key={item.value} label={item.text} value={item.value} />
-                      ))}
-                    </Picker>
-                  </View>
+                  <Picker
+                    selectedValue={state.form.Storagedata || ''}
+                    onValueChange={(value) => {
+                      console.log("Selected Storage Location:", value);
+                      updateState({
+                        form: {
+                          ...state.form,
+                          Storagedata: value,
+                        },
+                      });
 
+
+                    }}
+                  >
+                    <Picker.Item label="Select storage" value="" />
+                    {state.fielddata.storageLocation?.map((item: { text: string; value: string }) => (
+                      <Picker.Item key={item.value} label={item.text} value={item.value} />
+                    ))}
+                  </Picker>
                 </View>
-              
+
+              </View>
+
 
 
               <View style={styles.buttoncontent}>

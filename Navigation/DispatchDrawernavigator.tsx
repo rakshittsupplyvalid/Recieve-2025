@@ -8,9 +8,8 @@ import { NavigationContext } from '@react-navigation/native';
 import { MMKV } from 'react-native-mmkv';
 import HealthReport from '../src/HealthReportlist/HealthReportlist';
 import DispatchReportlist from '../Screenthree/DispatchReportlist';
-import Dispatchlist from '../Screenthree/Dispatchlist';
-import Recievelist from '../Screenthree/Recievelist';
 import ReimbursementForm from '../Screenthree/ReimbursementForm';
+
 import SavedReport from '../Screenthree/SavedReport';
 import SubmitTruckData from '../Screenthree/SubmitTruckData';
 import LanguageSelector from '../Screenthree/Languages';
@@ -23,6 +22,8 @@ import StockMove from '../src/StockMove/StockMove';
 import RecieveStockmove from '../src/StockMove/RecieveStockmove';
 import RejectStockmove from '../src/StockMove/RejectStockmove';
 import CAhealthreport from '../src/GenerateHealthReport/CAhealthreport';
+
+
 
 const Drawer = createDrawerNavigator();
 
@@ -180,7 +181,7 @@ export default function DispatchDrawernavigator() {
       ) : (
         <>
           <Drawer.Screen name="RecieveDhasboard" component={RecieveDhasboard} options={{ headerShown: false, title: 'Dashboard', drawerIcon: ({ color, size }) => <Icon name="dashboard" size={size} color={color} /> }} />
-          <Drawer.Screen name="GenerateHealthReport"
+          <Drawer.Screen name="Normal Health Report"
             component={TestForm}
             options={{
               headerShown: false,
@@ -189,19 +190,33 @@ export default function DispatchDrawernavigator() {
           />
 
 
-          {/*<Drawer.Screen name="CAhealthreport"
+          <Drawer.Screen name="CA Health Report"
             component={CAhealthreport}
             options={{
               headerShown: false,
               drawerIcon: ({ color, size }) => <Icon name="health-and-safety" size={size} color={color} />
             }}
-          /> */}
+          />
 
-          <Drawer.Screen name="HealthReportlist" component={HealthReport} options={{ headerShown: false, drawerIcon: ({ color, size }) => <Icon name="medical-services" size={size} color={color} /> }} />
-          {/* <Drawer.Screen name="DispatchReportlist"
-           component={DispatchReportlist} 
-           options={{ headerShown: false, 
-           drawerIcon: ({ color, size }) => <Icon name="assignment" size={size} color={color} /> }} /> */}
+
+          <Drawer.Screen
+            name="HealthReportlist"
+            component={HealthReport}
+            options={{
+              title: "Health Report list", // Drawer me space wala title show hoga
+              headerShown: false,
+              drawerIcon: ({ color, size }) => (
+                <Icon name="medical-services" size={size} color={color} />
+              )
+            }}
+          />
+
+          <Drawer.Screen name="Dispatch Report list"
+            component={DispatchReportlist}
+            options={{
+              headerShown: false,
+              drawerIcon: ({ color, size }) => <Icon name="assignment" size={size} color={color} />
+            }} />
 
           {/* <Drawer.Screen name="Dispatchlist" component={Dispatchlist}
            options={{ headerShown: false,
@@ -212,9 +227,9 @@ export default function DispatchDrawernavigator() {
            component={Recievelist} options={{ headerShown: false, 
            drawerIcon: ({ color, size }) => <Icon name="move-to-inbox" size={size} color={color} /> }} /> */}
 
-          <Drawer.Screen name="ReimbursementForm" component={ReimbursementForm} options={{ headerShown: false, drawerIcon: ({ color, size }) => <Icon name="receipt" size={size} color={color} /> }} />
-          <Drawer.Screen name="SavedReport" component={SavedReport} options={{ headerShown: false, drawerIcon: ({ color, size }) => <Icon name="save-alt" size={size} color={color} /> }} />
-          <Drawer.Screen name="LanguageSelector" component={LanguageSelector} options={{ headerShown: false, drawerIcon: ({ color, size }) => <Icon name="language" size={size} color={color} /> }} />
+          <Drawer.Screen name="ReimbursementForm" component={ReimbursementForm} options={{  headerShown: false, drawerIcon: ({ color, size }) => <Icon name="receipt" size={size} color={color} /> }} />
+          {/* <Drawer.Screen name="SavedReport" component={SavedReport} options={{ headerShown: false, drawerIcon: ({ color, size }) => <Icon name="save-alt" size={size} color={color} /> }} /> */}
+          <Drawer.Screen name="Language Selector" component={LanguageSelector} options={{ headerShown: false, drawerIcon: ({ color, size }) => <Icon name="language" size={size} color={color} /> }} />
           {/* Hidden Screens */}
           <Drawer.Screen name="SubmitTruckData" component={SubmitTruckData} options={{ headerShown: false, drawerItemStyle: { display: 'none' } }} />
           <Drawer.Screen name="ReimbursementList" component={ReimbursementList} options={{ headerShown: false, drawerItemStyle: { display: 'none' } }} />

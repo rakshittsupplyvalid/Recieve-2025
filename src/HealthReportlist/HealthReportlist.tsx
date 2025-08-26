@@ -214,13 +214,7 @@ const HealthReportlist = () => {
         onEndReachedThreshold={0.5}
        
        
-        ListEmptyComponent={
-          !loading && (
-            <View>
-              <Text>{t('NoReportsFound')}</Text>
-            </View>
-          )
-        }
+      
       />
 
       {showStartPicker && (

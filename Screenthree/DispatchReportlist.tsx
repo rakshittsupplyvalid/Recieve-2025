@@ -28,7 +28,7 @@ const DispatchReportList = () => {
     if (!hasMoreData || loading) return;
     setLoading(true);
     try {
-      const url = `/api/healthreport?ReportType=DISPATCH&PageNumber=${pageNumber}&PageSize=${pageSize}`;
+      const url = `/api/mobile/healthreport/list?ReportType=DISPATCH&ReportDispatchType=NORMAL&ApprovalStatus=PENDING&ApprovalStatus=APPROVED&ApprovalStatus=REJECTED`;
       const response = await api.get(url);
       const newReports = response.data || [];
       const updatedReports = pageNumber === 1 ? newReports : [...reports, ...newReports];
@@ -94,7 +94,7 @@ const DispatchReportList = () => {
               <View style={styles.bottomLeftCorner} />
               <View style={styles.row}>
                 <Text style={styles.label}>{t('assyarerName')}</Text>
-                <Text style={styles.value}>{item.assayername}</Text>
+                <Text style={styles.value}>{item.assayerName}</Text>
               </View>
               <View style={styles.row}>
                 <Text style={styles.label}>{t('Date')}</Text>
@@ -102,7 +102,7 @@ const DispatchReportList = () => {
               </View>
               <View style={styles.row}>
                 <Text style={styles.label}>{t('TruckNumber')}</Text>
-                <Text style={styles.value}>{item.trucknumber}</Text>
+                <Text style={styles.value}>{item.truckNumber}</Text>
               </View>
             </View>
           </View>

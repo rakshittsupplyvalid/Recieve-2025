@@ -20,6 +20,7 @@ import LinearGradient from 'react-native-linear-gradient';
 
 import { RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import HealthReport from '../../Screenthree/HealthReport';
 
 
 
@@ -134,9 +135,13 @@ const HealthReportDetails = () => {
         }
     };
 
-    const formatDate = (dateString: string) => {
-        const date = new Date(dateString);
-        return date.toLocaleDateString() + ' ' + date.toLocaleTimeString();
+    const formatDate = (dateStr: string) => {
+        const date = new Date(dateStr);
+        return date.toLocaleDateString(undefined, {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+        });
     };
 
     if (loading) {
@@ -169,7 +174,7 @@ const HealthReportDetails = () => {
                 >
                     <MaterialIcons name="arrow-back" size={24} color="#fff" />
                 </TouchableOpacity>
-                <Text style={styles.headerText}>{t('HealthReportDetails')}</Text>
+                <Text style={styles.headerText}>Health Report Details</Text>
                 <View style={styles.statusBadge}>
                     <Text style={[styles.statusText, { color: getStatusColor(report.approvalStatus) }]}>
                    {report.approvalStatus}
@@ -188,10 +193,7 @@ const HealthReportDetails = () => {
                         <Text style={styles.cardTitle}>{t('BasicInformation')}</Text>
                     </View>
 
-                    <View style={styles.detailRow}>
-                        <Text style={styles.detailLabel}>Report ID</Text>
-                        <Text style={styles.detailValue}>{report.id}</Text>
-                    </View>
+                 
 
                     <View style={styles.detailRow}>
                         <Text style={styles.detailLabel}>Assayer Name</Text>
