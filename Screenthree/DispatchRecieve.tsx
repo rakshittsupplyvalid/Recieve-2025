@@ -16,7 +16,8 @@ const DispatchRecieve = () => {
   const [inputValue, setInputValue] = useState('');
   const [selectedValue, setSelectedValue] = useState('');
 
-  // Use RouteProp to define the type for the route
+  // Accessing route parameters
+  
   const route = useRoute<RouteProp<RootStackParamList, 'DispatchRecieve'>>();
 
   const { quantitymt } = route.params || {}; 

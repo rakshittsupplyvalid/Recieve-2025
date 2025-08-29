@@ -254,6 +254,8 @@ const TestForm = () => {
 
 
 
+
+
   const requestCameraPermission = async () => {
     if (Platform.OS === 'android') {
       try {
@@ -273,6 +275,8 @@ const TestForm = () => {
       openCamera(); // iOS me direct open
     }
   };
+
+
 
 
 
@@ -331,6 +335,8 @@ const TestForm = () => {
       }
     );
   };
+
+
 
   const handleNext = (nextStep: number) => {
     let validationResult: { isValid: boolean; message?: string } | null = null;
@@ -646,6 +652,8 @@ const TestForm = () => {
       alert('Please select a date');
       return;
     }
+
+    
 
     const formData = createFormData(payload);
 

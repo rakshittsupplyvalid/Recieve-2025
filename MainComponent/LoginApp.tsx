@@ -233,10 +233,21 @@ const LoginApp: React.FC<LoginAppProps> = ({ navigation }) => {
             onChangeText={(text) => handleChange('password', text)}
             editable={!isOffline}
           />
+
+              
           <TouchableOpacity onPress={() => setPasswordVisible(!passwordVisible)}>
             <Icon name={passwordVisible ? 'eye-off' : 'eye'} size={20} color="#666" />
           </TouchableOpacity>
+          
         </View>
+
+
+           <View style={styles.containerone}>
+      {/* Forget Password left aligned with navigation */}
+      <TouchableOpacity onPress={() => navigation.navigate('ForgetPassword')}>
+        <Text style={styles.linkText}>Forget Password</Text>
+      </TouchableOpacity>
+    </View>
       </ImageBackground>
 
       <View style={styles.view}>
@@ -322,6 +333,17 @@ const styles = StyleSheet.create({
     width: '100%',
     backgroundColor: '#ffffff',
     elevation: 14,
+  },
+   containerone: {
+    padding: 20,
+    alignItems: 'flex-end',
+    width: '100%',
+
+  },
+    linkText: {
+    color: 'red',
+    fontSize: 16,
+  
   },
   input: {
     flex: 1,

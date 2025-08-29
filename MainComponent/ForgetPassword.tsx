@@ -40,8 +40,8 @@ const ForgetPassword: React.FC<ForgetPasswordProps> = ({ navigation, route }) =>
 
   const requestOtp = async (): Promise<void> => {
     try {
-      const response = await api.get('/api/user/forgotpassword/otp', {
-        params: { mobile: mobileno },
+      const response = await api.get('/api/mobile/user/forgotpassword/otp', {
+        params: { mobile : mobileno },
       });
       if (response.data) {
         Alert.alert('OTP Sent', 'Please check your mobile for the OTP.');
@@ -64,7 +64,7 @@ const ForgetPassword: React.FC<ForgetPasswordProps> = ({ navigation, route }) =>
 
     try 
     {
-      const response = await api.put('/api/user/forgotpassword/reset',{
+      const response = await api.put('/api/mobile/user/forgotpassword/reset',{
         mobile: mobileno,
         otp,
         newpassword: newPassword,
