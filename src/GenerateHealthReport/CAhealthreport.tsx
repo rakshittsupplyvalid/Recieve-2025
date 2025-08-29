@@ -475,83 +475,7 @@ const CAhealthreport = () => {
         }
         // Step 2 validation (quality parameters)
         else if (currentStep === 2) {
-            // Validate percentages if switches are on
-            if (state.form.stainingColour) {
-                if (!state.form.stainingColourPercent || isNaN(parseFloat(state.form.stainingColourPercent))) {
-                    alert('Please enter staining color percentage');
-                    return;
-                }
-                if (parseFloat(state.form.stainingColourPercent) > 100) {
-                    alert('Staining color percentage cannot exceed 100%');
-                    return;
-                }
-            }
-
-            if (state.form.blackSmutOnion) {
-                if (!state.form.blackSmutPercent || isNaN(parseFloat(state.form.blackSmutPercent))) {
-                    alert('Please enter black smut percentage');
-                    return;
-                }
-                if (parseFloat(state.form.blackSmutPercent) > 100) {
-                    alert('Black smut percentage cannot exceed 100%');
-                    return;
-                }
-            }
-
-            if (state.form.sproutedOnion) {
-                if (!state.form.sproutedPercent || isNaN(parseFloat(state.form.sproutedPercent))) {
-                    alert('Please enter sprouted percentage');
-                    return;
-                }
-                if (parseFloat(state.form.sproutedPercent) > 100) {
-                    alert('Sprouted percentage cannot exceed 100%');
-                    return;
-                }
-            }
-
-            if (state.form.spoiledOnion) {
-                if (!state.form.spoiledPercent || isNaN(parseFloat(state.form.spoiledPercent))) {
-                    alert('Please enter spoiled percentage');
-                    return;
-                }
-                if (parseFloat(state.form.spoiledPercent) > 100) {
-                    alert('Spoiled percentage cannot exceed 100%');
-                    return;
-                }
-            }
-
-            if (state.form.onionSkin === "SINGLE") {
-                if (!state.form.onionSkinPercent || isNaN(parseFloat(state.form.onionSkinPercent))) {
-                    alert('Please enter onion skin percentage');
-                    return;
-                }
-                if (parseFloat(state.form.onionSkinPercent) > 100) {
-                    alert('Onion skin percentage cannot exceed 100%');
-                    return;
-                }
-            }
-
-            if (state.form.moisture === "WET") {
-                if (!state.form.moisturePercent || isNaN(parseFloat(state.form.moisturePercent))) {
-                    alert('Please enter moisture percentage');
-                    return;
-                }
-                if (parseFloat(state.form.moisturePercent) > 100) {
-                    alert('Moisture percentage cannot exceed 100%');
-                    return;
-                }
-            }
-
-            if (state.form.isSpoiledPercentVisible) {
-                if (!state.form.SpoliedPercent || isNaN(parseFloat(state.form.SpoliedPercent))) {
-                    alert('Please enter spoiled percentage');
-                    return;
-                }
-                if (parseFloat(state.form.SpoliedPercent) > 100) {
-                    alert('Spoiled percentage cannot exceed 100%');
-                    return;
-                }
-            }
+           
 
             if (!state.form.SpoliedBranch || state.form.SpoliedBranch.trim() === '') {
                 alert('Please enter branch person name');
@@ -674,20 +598,20 @@ const CAhealthreport = () => {
             NetWeight: parseFloat(state.form?.netWeight) || 0,
             TareWeight: parseFloat(state.form?.tareWeight) || 0,
             Date: state.form?.date || new Date().toISOString(),
-            StainingColour: state.form?.stainingColour || false,
-            StainingColourPercent: parseFloat(state.form?.stainingColourPercent) || 0,
+            StainingColour:  false,
+            StainingColourPercent: 0,
             BagCount: parseInt(state.form?.bagCount) || 0,
             Size: parseInt(state.form?.size) || 0,
-            BlackSmutOnion: state.form?.blackSmutOnion || false,
-            BlackSmutPercent: parseFloat(state.form?.blackSmutPercent) || 0,
-            SproutedOnion: state.form?.sproutedOnion || false,
-            SproutedPercent: parseFloat(state.form?.sproutedPercent) || 0,
-            OnionSkin: state.form?.onionSkin || 'DOUBLE',
-            OnionSkinPercent: parseFloat(state.form?.onionSkinPercent) || 0,
-            Moisture: state.form?.moisture || 'DRY',
-            MoisturePercent: parseFloat(state.form?.moisturePercent) || 0,
-            SpoiledOnion: state.form?.spoiledOnion || false,
-            SpoiledPercent: parseFloat(state.form?.spoiledPercent) || 0,
+            BlackSmutOnion: false,
+            BlackSmutPercent: 0,
+            SproutedOnion: false,
+            SproutedPercent: 0,
+            OnionSkin: 'DOUBLE',
+            OnionSkinPercent:  0,
+            Moisture:  'DRY',
+            MoisturePercent:  0,
+            SpoiledOnion: false,
+            SpoiledPercent:  0,
             FPCPersonName: state.form?.SpoliedBranch || '',
             Files: state.form?.Files || [],
             Comment: state.form?.SpoliedComment || ''
@@ -1128,7 +1052,7 @@ const CAhealthreport = () => {
                         <View style={styles.thirdcontainers}>
 
                             {/* Staining Colour */}
-                            <View style={styles.switchContainer}>
+                            {/* <View style={styles.switchContainer}>
                                 <Text style={styles.text}>{t("stainingColor")}</Text>
                                 <Switch
                                     value={state.form?.stainingColour || false}
@@ -1145,9 +1069,9 @@ const CAhealthreport = () => {
                                     trackColor={{ false: '#F6A00191', true: '#FF9500' }}
                                     thumbColor={state.form?.stainingColour ? 'white' : '#f4f3f4'}
                                 />
-                            </View>
+                            </View> */}
 
-                            {state.form?.stainingColour && (
+                            {/* {state.form?.stainingColour && (
                                 <>
                                     <TextInput
                                         style={styles.input}
@@ -1167,11 +1091,11 @@ const CAhealthreport = () => {
                                         </Text>
                                     )}
                                 </>
-                            )}
+                            )} */}
 
 
                             {/* Black Smut Onion */}
-                            <View style={styles.switchContainer}>
+                            {/* <View style={styles.switchContainer}>
                                 <Text style={styles.text}>{t('BlacksmutOnion')}</Text>
                                 <Switch
                                     value={state.form?.blackSmutOnion || false}
@@ -1188,9 +1112,9 @@ const CAhealthreport = () => {
                                     trackColor={{ false: '#F6A00191', true: '#FF9500' }}
                                     thumbColor={state.form?.blackSmutOnion ? 'white' : '#f4f3f4'}
                                 />
-                            </View>
+                            </View> */}
 
-                            {state.form?.blackSmutOnion && (
+                            {/* {state.form?.blackSmutOnion && (
                                 <>
 
                                     <TextInput
@@ -1211,10 +1135,10 @@ const CAhealthreport = () => {
                                         </Text>
                                     )}
                                 </>
-                            )}
+                            )} */}
 
                             {/* Sprouted Onion */}
-                            <View style={styles.switchContainer}>
+                            {/* <View style={styles.switchContainer}>
                                 <Text style={styles.text}>{t('SproutedOnion')}</Text>
                                 <Switch
                                     value={state.form?.sproutedOnion || false}
@@ -1231,9 +1155,9 @@ const CAhealthreport = () => {
                                     trackColor={{ false: '#F6A00191', true: '#FF9500' }}
                                     thumbColor={state.form?.sproutedOnion ? 'white' : '#f4f3f4'}
                                 />
-                            </View>
+                            </View> */}
 
-                            {state.form?.sproutedOnion && (
+                            {/* {state.form?.sproutedOnion && (
                                 <>
 
                                     <TextInput
@@ -1255,10 +1179,10 @@ const CAhealthreport = () => {
                                     )}
 
                                 </>
-                            )}
+                            )} */}
 
                             {/* Spoiled Onion */}
-                            <View style={styles.switchContainer}>
+                            {/* <View style={styles.switchContainer}>
                                 <Text style={styles.text}>{t('SpoiledOnion')}</Text>
                                 <Switch
                                     value={state.form?.spoiledOnion || false}
@@ -1275,9 +1199,9 @@ const CAhealthreport = () => {
                                     trackColor={{ false: '#F6A00191', true: '#FF9500' }}
                                     thumbColor={state.form?.spoiledOnion ? 'white' : '#f4f3f4'}
                                 />
-                            </View>
+                            </View> */}
 
-                            {state.form?.spoiledOnion && (
+                            {/* {state.form?.spoiledOnion && (
                                 <>
 
                                     <TextInput
@@ -1300,10 +1224,10 @@ const CAhealthreport = () => {
                                     )}
 
                                 </>
-                            )}
+                            )} */}
 
                             {/* Onion Skin */}
-                            <View style={styles.switchContainer}>
+                            {/* <View style={styles.switchContainer}>
                                 <Text style={styles.text}>
                                     {t('Onionskin') + ' : ' + (state.form?.onionSkin === 'SINGLE' ? t('Single') : t('Double'))}
                                 </Text>
@@ -1322,9 +1246,9 @@ const CAhealthreport = () => {
                                     trackColor={{ false: '#F6A00191', true: '#FF9500' }}
                                     thumbColor={state.form?.onionSkin === "SINGLE" ? "white" : "#f4f3f4"}
                                 />
-                            </View>
+                            </View> */}
 
-                            {state.form?.onionSkin === "SINGLE" && (
+                            {/* {state.form?.onionSkin === "SINGLE" && (
                                 <>
 
                                     <TextInput
@@ -1346,11 +1270,11 @@ const CAhealthreport = () => {
                                     )}
 
                                 </>
-                            )}
+                            )} */}
 
 
                             {/* Moisture */}
-                            <View style={styles.switchContainer}>
+                            {/* <View style={styles.switchContainer}>
                                 <Text style={styles.text}>
                                     {t('Moisture') + ' : ' + (state.form?.moisture === 'WET' ? t('Wet') : t('Dry'))}
                                 </Text>
@@ -1369,9 +1293,9 @@ const CAhealthreport = () => {
                                     trackColor={{ false: '#F6A00191', true: '#FF9500' }}
                                     thumbColor={state.form?.moisture === "WET" ? "white" : "#f4f3f4"}
                                 />
-                            </View>
+                            </View> */}
 
-                            {state.form?.moisture === "WET" && (
+                            {/* {state.form?.moisture === "WET" && (
                                 <>
 
                                     <TextInput
@@ -1394,10 +1318,10 @@ const CAhealthreport = () => {
                                     )}
 
                                 </>
-                            )}
+                            )} */}
 
                             {/* Spoiled Switch and Percent */}
-                            <View>
+                            {/* <View>
                                 <Text style={styles.text}>{t('Spoiled')}</Text>
                                 <Switch
                                     value={state.form?.isSpoiledPercentVisible || false}
@@ -1410,9 +1334,9 @@ const CAhealthreport = () => {
                                     trackColor={{ false: '#F6A00191', true: '#FF9500' }}
                                     thumbColor={state.form?.isSpoiledPercentVisible ? "white" : "#f4f3f4"}
                                 />
-                            </View>
+                            </View> */}
 
-                            {state.form?.isSpoiledPercentVisible && (
+                            {/* {state.form?.isSpoiledPercentVisible && (
                                 <TextInput
                                     style={styles.input}
                                     placeholder={t('spoiledperecent')}
@@ -1425,7 +1349,7 @@ const CAhealthreport = () => {
                                     }
                                     keyboardType="numeric"
                                 />
-                            )}
+                            )} */}
 
                             {/* Comments and Branch person name */}
                             <TextInput
