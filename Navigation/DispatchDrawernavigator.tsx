@@ -201,7 +201,7 @@ export default function DispatchDrawernavigator() {
             name="HealthReportlist"
             component={HealthReport}
             options={{
-              title: "Health Report list", // Drawer me space wala title show hoga
+              title: "Receive Health Report list", // Drawer me space wala title show hoga
               headerShown: false,
               drawerIcon: ({ color, size }) => (
                 <Icon name="medical-services" size={size} color={color} />
@@ -212,7 +212,7 @@ export default function DispatchDrawernavigator() {
           <Drawer.Screen name="Dispatch Report list"
             component={DispatchReportlist}
             options={{
-              title: "Health Report list",
+              title: "Dispatch Report list",
               headerShown: false,
               drawerIcon: ({ color, size }) => <Icon name="assignment" size={size} color={color} />
             }} />
@@ -228,7 +228,7 @@ export default function DispatchDrawernavigator() {
 
           <Drawer.Screen name="ReimbursementForm" component={ReimbursementForm} options={{   title: "Reimbursement Form", headerShown: false, drawerIcon: ({ color, size }) => <Icon name="receipt" size={size} color={color} /> }} />
           {/* <Drawer.Screen name="SavedReport" component={SavedReport} options={{ headerShown: false, drawerIcon: ({ color, size }) => <Icon name="save-alt" size={size} color={color} /> }} /> */}
-          <Drawer.Screen name="Language Selector" component={LanguageSelector} options={{ headerShown: false, drawerIcon: ({ color, size }) => <Icon name="language" size={size} color={color} /> }} />
+          
           {/* Hidden Screens */}
           <Drawer.Screen name="SubmitTruckData" component={SubmitTruckData} options={{ headerShown: false, drawerItemStyle: { display: 'none' } }} />
           <Drawer.Screen name="ReimbursementList" component={ReimbursementList} options={{ headerShown: false, drawerItemStyle: { display: 'none' } }} />
