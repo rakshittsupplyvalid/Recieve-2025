@@ -1,6 +1,5 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { View, Text, StyleSheet, TextInput, ScrollView, TouchableOpacity, KeyboardAvoidingView, Switch, Modal, Platform, Image, ActivityIndicator, FlatList, Button, Linking, Alert, BackHandler } from 'react-native';
-import Navbar from '../../App/Navbar';
 import useForm from '../../App/Common/Lib/useForm'// Assuming you have a utility function to create form data
 import { Picker } from '@react-native-picker/picker';
 import { launchCamera } from 'react-native-image-picker';
@@ -14,17 +13,17 @@ import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import { useTranslation } from 'react-i18next';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '../../types/Type';
-
 import Storage from '../../utils/Storage';
 import md5 from 'md5';
-
-
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 
 
+
 const { width } = Dimensions.get('window');
+
 const isSmallDevice = width < 375;
+
 
 type ImageAsset = {
   uri: string;

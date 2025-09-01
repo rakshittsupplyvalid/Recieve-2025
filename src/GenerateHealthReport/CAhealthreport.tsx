@@ -415,7 +415,6 @@ const CAhealthreport = () => {
     const handleNext = (nextStep: number) => {
         let result: any = { isValid: true }; // Initialize with default valid state
 
-        // Step 0 validation (company/branch/federation selection)
         if (currentStep === 0) {
             if (!state.form.reportType) {
                 alert('Please select a report type');
@@ -448,6 +447,7 @@ const CAhealthreport = () => {
         }
         // Step 1 validation (basic information)
         else if (currentStep === 1) {
+
             if (!state.form.Trucknumber || state.form.Trucknumber.trim() === '') {
                 alert('Please enter truck number');
                 return;
@@ -472,6 +472,7 @@ const CAhealthreport = () => {
                 alert('Please enter a valid size');
                 return;
             }
+            
         }
         // Step 2 validation (quality parameters)
         else if (currentStep === 2) {
@@ -661,13 +662,6 @@ const CAhealthreport = () => {
                 setIsPressed(false); // Hide loading indicator
             });
     };
-
-
-
-
-
-
-
 
 
 

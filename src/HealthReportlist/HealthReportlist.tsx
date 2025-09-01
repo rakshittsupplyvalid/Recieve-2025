@@ -1,22 +1,19 @@
 import React, { useEffect, useState } from 'react';
 import {
-  Modal,
+
   SafeAreaView,
-  ScrollView,
+
   Text,
   FlatList,
-  ActivityIndicator,
   View,
   TouchableOpacity,
-  Image,
+
   TextInput,
-  RefreshControl
+ 
 } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import Navbar from '../../App/Navbar';
 import apiClient from '../../service/api/apiInterceptors';
-import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
-import ImageViewing from "react-native-image-viewing";
 import moment from "moment";
 import { useTranslation } from 'react-i18next';
 import { HealthreportStyle } from '../../theme/HealthreportStyle';

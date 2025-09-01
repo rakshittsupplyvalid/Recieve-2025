@@ -17,10 +17,8 @@ import { useTranslation } from 'react-i18next';
 import apiClient from '../../service/api/apiInterceptors';
 import { useRoute, useNavigation, NavigationProp } from '@react-navigation/native';
 import LinearGradient from 'react-native-linear-gradient';
-
 import { RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import HealthReport from '../../Screenthree/HealthReport';
 
 
 
