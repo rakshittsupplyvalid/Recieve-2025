@@ -45,7 +45,7 @@ const LoginApp: React.FC<LoginAppProps> = ({ navigation }) => {
   const { t, i18n } = useTranslation();
   const isOffline = !isConnected;
 
-  // Pre-fill form for testing (optional)
+
   useEffect(() => {
     setForm({
       mobileNo: '9999999902',

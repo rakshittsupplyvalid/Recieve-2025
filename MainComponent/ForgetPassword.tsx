@@ -185,11 +185,14 @@ const styles = StyleSheet.create({
   logo: { width: screenWidth * 0.5, height: screenWidth * 0.2, resizeMode: 'contain' },
   
   logoText: { fontSize: 21, fontWeight: 'bold', color: '#333', marginTop: 20 },
+
   inputContainer: { flexDirection: 'row', alignItems: 'center', borderWidth: 1, borderColor: '#F6A001', borderRadius: 28, paddingHorizontal: 10, marginVertical: 10, width: '100%', backgroundColor: '#ffffff', elevation: 14 },
   input: { flex: 1, height: 50, padding: 10, fontSize: 16 },
+
   icon: { marginRight: 10 },
   button: { width: '70%', height: 50, backgroundColor: '#F6A001', borderRadius: 35, alignItems: 'center', justifyContent: 'center', marginTop: 10 },
   buttonText: { color: '#fff', fontSize: 18, fontWeight: 'bold' },
+  
   photobottomtcontainer: { position: 'absolute', bottom: 1, left: 0, transform: [{ translateX: -42 }], width: 60, height: 60 },
   inputBackground: { width: '100%', height: 450, justifyContent: 'center', alignItems: 'center' },
 });

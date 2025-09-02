@@ -71,6 +71,7 @@ const ReimbursementForm = () => {
   const [isModalVisible, setModalVisible] = useState(false);
   const [errors, setErrors] = useState<ValidationErrors>({});
   const [touched, setTouched] = useState<Record<string, boolean>>({});
+  const [showAlerts, setShowAlerts] = useState(false);
   const { t, i18n } = useTranslation();
 
   const today = new Date();
@@ -89,14 +90,16 @@ const ReimbursementForm = () => {
   const handleInputChange = (key: string, value: string) => {
     setFormData({ ...formData, [key]: value });
     setTouched({ ...touched, [key]: true });
+    // Validate the specific field immediately after change
+    validateField(key, true);
   };
 
   const handleBlur = (field: string) => {
     setTouched({ ...touched, [field]: true });
-    validateField(field);
+    validateField(field, true);
   };
 
-  const validateField = (field?: string) => {
+  const validateField = (field?: string, showAlert = false) => {
     const { date, StartTripReading, EndTripReading, Amount, BillType, Purpose, VehicleType, VehicleNumber } = formData;
     const newErrors: ValidationErrors = { ...errors };
 
@@ -104,6 +107,7 @@ const ReimbursementForm = () => {
     if (!field || field === 'date') {
       if (!date) {
         newErrors.date = 'Date is required';
+        if (showAlert && showAlerts) Alert.alert('Validation Error', 'Date is required');
       } else {
         delete newErrors.date;
       }
@@ -112,6 +116,7 @@ const ReimbursementForm = () => {
     if (!field || field === 'BillType') {
       if (!BillType) {
         newErrors.BillType = 'Bill type is required';
+        if (showAlert && showAlerts) Alert.alert('Validation Error', 'Bill type is required');
       } else {
         delete newErrors.BillType;
       }
@@ -120,8 +125,10 @@ const ReimbursementForm = () => {
     if (!field || field === 'Amount') {
       if (!Amount) {
         newErrors.Amount = 'Amount is required';
+        if (showAlert && showAlerts) Alert.alert('Validation Error', 'Amount is required');
       } else if (isNaN(Number(Amount)) || Number(Amount) <= 0) {
         newErrors.Amount = 'Please enter a valid amount';
+        if (showAlert && showAlerts) Alert.alert('Validation Error', 'Please enter a valid amount');
       } else {
         delete newErrors.Amount;
       }
@@ -130,6 +137,7 @@ const ReimbursementForm = () => {
     if (!field || field === 'Purpose') {
       if (!Purpose) {
         newErrors.Purpose = 'Purpose is required';
+        if (showAlert && showAlerts) Alert.alert('Validation Error', 'Purpose is required');
       } else {
         delete newErrors.Purpose;
       }
@@ -139,6 +147,7 @@ const ReimbursementForm = () => {
       if (!field || field === 'VehicleType') {
         if (!VehicleType || VehicleType === 'None') {
           newErrors.VehicleType = 'Please select a valid vehicle type';
+          if (showAlert && showAlerts) Alert.alert('Validation Error', 'Please select a valid vehicle type');
         } else {
           delete newErrors.VehicleType;
         }
@@ -148,8 +157,10 @@ const ReimbursementForm = () => {
         const truckRegex = /^[A-Z0-9 ]{1,12}$/;
         if (!VehicleNumber) {
           newErrors.VehicleNumber = 'Vehicle number is required';
+          if (showAlert && showAlerts) Alert.alert('Validation Error', 'Vehicle number is required');
         } else if (!truckRegex.test(VehicleNumber.trim())) {
           newErrors.VehicleNumber = 'Please enter a valid Vehicle Number (only capital letters & numbers, max 12 chars)';
+          if (showAlert && showAlerts) Alert.alert('Validation Error', 'Please enter a valid Vehicle Number (only capital letters & numbers, max 12 chars)');
         } else {
           delete newErrors.VehicleNumber;
         }
@@ -158,8 +169,10 @@ const ReimbursementForm = () => {
       if (!field || field === 'StartTripReading') {
         if (!StartTripReading) {
           newErrors.StartTripReading = 'Start trip reading is required';
-        } else if (!/^\d{7}$/.test(StartTripReading)) {
-          newErrors.StartTripReading = 'Start Trip Reading must be a 7 digit number';
+          if (showAlert && showAlerts) Alert.alert('Validation Error', 'Start trip reading is required');
+        } else if (isNaN(Number(StartTripReading)) || Number(StartTripReading) < 0) {
+          newErrors.StartTripReading = 'Please enter a valid reading';
+          if (showAlert && showAlerts) Alert.alert('Validation Error', 'Please enter a valid reading');
         } else {
           delete newErrors.StartTripReading;
         }
@@ -168,10 +181,13 @@ const ReimbursementForm = () => {
       if (!field || field === 'EndTripReading') {
         if (!EndTripReading) {
           newErrors.EndTripReading = 'End trip reading is required';
-        } else if (!/^\d{7}$/.test(EndTripReading)) {
-          newErrors.EndTripReading = 'End Trip Reading must be a 7 digit number';
+          if (showAlert && showAlerts) Alert.alert('Validation Error', 'End trip reading is required');
+        } else if (isNaN(Number(EndTripReading)) || Number(EndTripReading) < 0) {
+          newErrors.EndTripReading = 'Please enter a valid reading';
+          if (showAlert && showAlerts) Alert.alert('Validation Error', 'Please enter a valid reading');
         } else if (Number(EndTripReading) <= Number(StartTripReading)) {
-          newErrors.EndTripReading = 'End Trip Reading must be greater than Start Trip Reading';
+          newErrors.EndTripReading = 'End reading must be greater than start reading';
+          if (showAlert && showAlerts) Alert.alert('Validation Error', 'End reading must be greater than start reading');
         } else {
           delete newErrors.EndTripReading;
         }
@@ -187,6 +203,7 @@ const ReimbursementForm = () => {
     if (!field || field === 'images') {
       if (images.length === 0) {
         newErrors.images = 'Please upload at least one image';
+        if (showAlert && showAlerts) Alert.alert('Validation Error', 'Please upload at least one image');
       } else {
         delete newErrors.images;
       }
@@ -195,76 +212,178 @@ const ReimbursementForm = () => {
     setErrors(newErrors);
   };
 
-  const validateForm = () => {
-    // First validate all fields to ensure errors state is up to date
-    validateField();
-    
-    // Check for any validation errors
-    const { date, StartTripReading, EndTripReading, Amount, BillType, Purpose, VehicleType, VehicleNumber } = formData;
-    
-    if (!date) {
-      Alert.alert('Validation Error', 'Date is required');
-      return false;
-    }
-    if (!BillType) {
-      Alert.alert('Validation Error', 'Bill type is required');
-      return false;
-    }
-    if (!Amount || isNaN(Number(Amount)) || Number(Amount) <= 0) {
-      Alert.alert('Validation Error', 'Please enter a valid amount');
-      return false;
-    }
-    if (!Purpose) {
-      Alert.alert('Validation Error', 'Purpose is required');
-      return false;
-    }
-
-    if (BillType === 'Petrol') {
-      if (!VehicleType || VehicleType === 'None') {
-        Alert.alert('Validation Error', 'Please select a valid vehicle type');
-        return false;
-      }
-
-      const vehicleRegex = /^[A-Z0-9 ]{1,12}$/;
-      if (!VehicleNumber) {
-        Alert.alert('Validation Error', 'Vehicle number is required');
-        return false;
-      } else if (!vehicleRegex.test(VehicleNumber.trim())) {
-        Alert.alert(
-          'Validation Error',
-          'Please enter a valid Vehicle Number (only capital letters & numbers, max 12 chars)'
+  const requestCameraPermission = async () => {
+    if (Platform.OS === 'android') {
+      try {
+        const granted = await PermissionsAndroid.request(
+          PermissionsAndroid.PERMISSIONS.CAMERA
         );
-        return false;
+        if (granted === PermissionsAndroid.RESULTS.GRANTED) {
+          console.log('Camera permission granted');
+          handleTakePhoto();
+        } else {
+          console.log('Camera permission denied');
+        }
+      } catch (err) {
+        console.warn(err);
       }
-
-      if (!StartTripReading || !/^\d{7}$/.test(StartTripReading)) {
-        Alert.alert('Validation Error', 'Start Trip Reading must be a 7 digit number');
-        return false;
-      }
-
-      if (!EndTripReading || !/^\d{7}$/.test(EndTripReading)) {
-        Alert.alert('Validation Error', 'End Trip Reading must be a 7 digit number');
-        return false;
-      } else if (Number(EndTripReading) <= Number(StartTripReading)) {
-        Alert.alert('Validation Error', 'End Trip Reading must be greater than Start Trip Reading');
-        return false;
-      }
+    } else {
+      handleTakePhoto(); // iOS me direct open
     }
-
-    // ✅ Fix: Image validation
-    if (images.length < 1) {
-      Alert.alert('Validation Error', 'Please upload at least 1 image');
-      return false;
-    }
-    if (images.length > 9) {
-      Alert.alert('Validation Error', 'You can upload a maximum of 9 images');
-      return false;
-    }
-
-    return true;
   };
 
-  // Rest of your component code (requestCameraPermission, openCamera, handlePickImage, handleDeleteImage, handleSubmit, handleDateChange)
+  const handleTakePhoto = () => {
+    launchCamera(
+      {
+        mediaType: 'photo',
+        includeBase64: false,
+        cameraType: 'back',
+        quality: 0.4,
+        maxWidth: 700,
+        maxHeight: 700,
+      },
+      (response: ImagePickerResponse) => {
+        if (response.didCancel) {
+          console.log('User cancelled image picker');
+        } else if (response.errorCode) {
+          console.log('ImagePicker Error: ', response.errorMessage);
+        } else if (response.assets) {
+          const capturedImage = response.assets[0];
+          const image = {
+            uri: capturedImage.uri ?? '',
+            fileName: capturedImage.fileName || `image_${capturedImage.id}.jpg`,
+            type: capturedImage.type || 'image/jpeg',
+          };
+          setImages((prevImages) => [...prevImages, image]);
+          // Validate images after adding
+          validateField('images', true);
+        }
+      }
+    );
+    toggleModal();
+  };
+
+  const handlePickImage = () => {
+    launchImageLibrary(
+      {
+        mediaType: 'photo',
+        includeBase64: false,
+        quality: 0.4,
+        maxWidth: 700,
+        maxHeight: 700,
+      },
+      (response: ImagePickerResponse) => {
+        if (response.didCancel) {
+          console.log('User cancelled image picker');
+        } else if (response.errorCode) {
+          console.log('ImagePicker Error: ', response.errorMessage);
+        } else if (response.assets) {
+          const pickedImage = response.assets[0];
+          const image = {
+            uri: pickedImage.uri ?? '',
+            fileName: pickedImage.fileName || `image_${pickedImage.id}.jpg`,
+            type: pickedImage.type || 'image/jpeg',
+          };
+          setImages((prevImages) => [...prevImages, image]);
+          // Validate images after adding
+          validateField('images', true);
+        }
+      }
+    );
+    toggleModal();
+  };
+
+  const handleDeleteImage = (index: number) => {
+    setImages((prevImages) => prevImages.filter((_, i) => i !== index));
+    // Validate images after deletion
+    setTimeout(() => validateField('images', true), 100);
+  };
+
+  const handleSubmit = async () => {
+    // Enable alerts for final validation
+    setShowAlerts(true);
+    
+    // Validate all fields before submission
+    validateField(undefined, true);
+    
+    // Check if there are any errors
+    if (Object.keys(errors).length > 0) {
+      Alert.alert('Validation Error', 'Please fix all errors before submitting');
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    const data = new FormData();
+    data.append('Date', formData.date);
+    data.append('StartTripReading', formData.StartTripReading);
+    data.append('EndTripReading', formData.EndTripReading);
+    data.append('Amount', formData.Amount);
+    data.append('BillType', formData.BillType);
+    data.append('Purpose', formData.Purpose);
+    data.append('VehicleType', formData.VehicleType);
+    data.append('VehicleNumber', formData.VehicleNumber);
+
+    images.forEach((image) => {
+      data.append('Images', {
+        uri: image.uri,
+        name: image.fileName,
+        type: image.type,
+      } as any);
+    });
+
+    try {
+      const response = await apiClient.post('api/mobile/Reimbursment', data, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+
+      if (response.status === 200) {
+        // Clear form data
+        setFormData({
+          date: '',
+          StartTripReading: '',
+          EndTripReading: '',
+          Amount: '',
+          BillType: '',
+          Purpose: '',
+          VehicleType: '',
+          VehicleNumber: '',
+        });
+        
+        // Clear images
+        setImages([]);
+        
+        // Clear validation errors
+        setErrors({});
+        
+        // Clear touched fields
+        setTouched({});
+        
+        // Reset date
+        setSelectedDate(new Date());
+        
+        // Disable alerts
+        setShowAlerts(false);
+        
+        Alert.alert('Success', response.data.message || 'Reimbursement added successfully');
+      }
+    } catch (error) {
+      console.error('Error submitting form:', error.response?.data);
+      Alert.alert('Error', 'Something went wrong while submitting the form');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleDateChange = (event: any, selectedDate: Date | undefined) => {
+    const currentDate = selectedDate || new Date();
+    setShowDatePicker(false);
+    setSelectedDate(currentDate);
+    const formattedDate = currentDate.toISOString().split('T')[0];
+    handleInputChange('date', formattedDate);
+  };
 
   return (
     <KeyboardAvoidingView
@@ -320,6 +439,7 @@ const ReimbursementForm = () => {
                 };
               });
               setTouched({ ...touched, BillType: true });
+              validateField('BillType', true);
             }}
           >
             <Picker.Item label={t('selectBilltype')} value="" />
@@ -345,6 +465,7 @@ const ReimbursementForm = () => {
                     VehicleType: itemValue,
                   }));
                   setTouched({ ...touched, VehicleType: true });
+                  validateField('VehicleType', true);
                 }}
               >
                 <Picker.Item label="Select Vehicle Type" value="" />
