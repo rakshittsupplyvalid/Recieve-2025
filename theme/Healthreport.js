@@ -136,6 +136,18 @@ const styles = StyleSheet.create({
     marginTop: 20,
 
   },
+
+   Camerabutton: {
+    backgroundColor: '#FF9500', // Blue color for buttons
+    paddingVertical: 10,
+    paddingHorizontal: 15,
+    borderRadius: 5,
+    alignItems: 'center',
+    justifyContent: 'center',
+    flex: 1,
+   
+    borderRadius: 50,
+  },
   button: {
     backgroundColor: '#FF9500', // Blue color for buttons
     paddingVertical: 12,
@@ -216,6 +228,27 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255,255,255,0.7)',
     borderRadius: 12,
     padding: 2,
+  },
+   heading: {
+    fontSize: 18,
+    marginBottom: 20,
+    textAlign: 'center',
+  },
+  list: {
+    marginTop: 20,
+  },
+  videoContainer: {
+    marginBottom: 20,
+  },
+  videoText: {
+    fontSize: 14,
+    marginBottom: 8,
+    color: '#333',
+  },
+  video: {
+    width: '100%',
+    height: 200,
+    backgroundColor: '#000',
   },
 });
 export default styles;
