@@ -15,10 +15,11 @@ import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import ImageViewing from "react-native-image-viewing";
 import { useTranslation } from 'react-i18next';
 import apiClient from '../../service/api/apiInterceptors';
-import { useRoute, useNavigation, NavigationProp } from '@react-navigation/native';
+import { useRoute, useNavigation } from '@react-navigation/native';
 import LinearGradient from 'react-native-linear-gradient';
 import { RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import Video from 'react-native-video';
 
 
 
@@ -159,6 +160,9 @@ const HealthReportDetails = () => {
         );
     }
 
+      const images = report.files?.filter((file: string) => !file.endsWith('.mp4')) || [];
+  const videos = report.files?.filter((file: string) => file.endsWith('.mp4')) || [];
+
     return (
         <View style={styles.container}>
             <LinearGradient
@@ -281,70 +285,67 @@ const HealthReportDetails = () => {
                     <Text style={styles.commentText}>{report.comment || 'No comments available'}</Text>
                 </View>
 
-                {report.files && report.files.length > 0 && (
-                    <View style={styles.card}>
-                        <View style={styles.cardHeader}>
+
+                  {images.length > 0 && (
+                        <View style={styles.card}>
+                          <View style={styles.cardHeader}>
                             <FontAwesome name="camera" size={20} color="#F79B00" />
-                            <Text style={styles.cardTitle}>{t('Attachments')}</Text>
+                            <Text style={styles.cardTitle}>Images</Text>
+                          </View>
+                
+                          <FlatList
+                            data={images}
+                            keyExtractor={(item, index) => index.toString()}
+                            horizontal
+                            showsHorizontalScrollIndicator={false}
+                            renderItem={({ item, index }) => (
+                              <TouchableOpacity
+                                onPress={() => {
+                                  setCurrentImageIndex(index);
+                                  setShowImages(true);
+                                }}
+                              >
+                                <Image
+                                  source={{ uri: apiClient.defaults.baseURL + item }}
+                                  style={styles.imageThumbnail}
+                                  resizeMode="cover"
+                                />
+                              </TouchableOpacity>
+                            )}
+                          />
+                
+                          <ImageViewing
+                            images={images.map((file: string) => ({ uri: apiClient.defaults.baseURL + file }))}
+                            imageIndex={currentImageIndex}
+                            visible={showImages}
+                            onRequestClose={() => setShowImages(false)}
+                          />
                         </View>
+                      )}
+                
+                      {/* Videos Section */}
+                      {videos.length > 0 && (
+                        <View style={styles.card}>
+                          <View style={styles.cardHeader}>
+                            <FontAwesome name="video-camera" size={20} color="#F79B00" />
+                            <Text style={styles.cardTitle}>Videos</Text>
+                          </View>
+                
+                          {videos.map((video: string, index: number) => (
+                            <View key={index} style={{ marginBottom: 20 }}>
+                         
+                              <Video
+                                source={{ uri: apiClient.defaults.baseURL + video }}
+                                style={styles.videoPlayer}
+                                controls
+                                resizeMode="contain"
+                              />
+                            </View>
+                          ))}
+                        </View>
+                      )}
 
-                        <TouchableOpacity
-                            style={styles.imageToggleButton}
-                            onPress={() => setShowImages(!showImages)}
-                            activeOpacity={0.7}
-                        >
-                            <Text style={styles.imageToggleText}>
-                                {showImages ? t('HideImages') : t('ShowImages')} ({report.files.length})
-                            </Text>
-                            <MaterialIcons
-                                name={showImages ? 'visibility-off' : 'visibility'}
-                                size={24}
-                                color="#6C63FF"
-                            />
-                        </TouchableOpacity>
-
-                        {showImages && (
-                            <>
-                                <FlatList
-                                    data={report.files}
-                                    keyExtractor={(item, index) => index.toString()}
-                                    horizontal
-                                    showsHorizontalScrollIndicator={false}
-                                    contentContainerStyle={styles.imageList}
-                                    renderItem={({ item, index }) => (
-                                        <TouchableOpacity
-                                            onPress={() => {
-                                                setCurrentImageIndex(index);
-                                                setShowImages(true);
-                                            }}
-                                            activeOpacity={0.7}
-                                        >
-                                            <Image
-                                                source={{ uri: apiClient.defaults.baseURL + item }}
-                                                style={styles.imageThumbnail}
-                                                resizeMode="cover"
-                                            />
-                                        </TouchableOpacity>
-                                    )}
-                                />
-
-                                <ImageViewing
-                                    images={report.files.map(file => ({ uri: apiClient.defaults.baseURL + file }))}
-                                    imageIndex={currentImageIndex}
-                                    visible={showImages}
-                                    onRequestClose={() => setShowImages(false)}
-                                    FooterComponent={({ imageIndex }) => (
-                                        <View style={styles.footer}>
-                                            <Text style={styles.footerText}>
-                                                {imageIndex + 1} / {report.files?.length}
-                                            </Text>
-                                        </View>
-                                    )}
-                                />
-                            </>
-                        )}
-                    </View>
-                )}
+          
             </ScrollView>
         </View>
     );
@@ -554,5 +555,12 @@ const styles = StyleSheet.create({
         color: '#FFF',
         fontFamily: 'Inter-SemiBold',
     },
+      videoName: { fontSize: 14, fontWeight: '600', marginBottom: 8, color: '#333' },
+  videoPlayer: {
+    width: width - 64,
+    height: 220,
+    borderRadius: 10,
+    backgroundColor: '#000',
+  },
 });
 export default HealthReportDetails;

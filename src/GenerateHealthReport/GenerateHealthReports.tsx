@@ -24,26 +24,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 
 const { width } = Dimensions.get('window');
-const isSmallDevice = width < 375;
 
-type ImageAsset = {
-  uri: string;
-  fileName: string;
-  type: string;
-};
 
-type Chawl = {
-  isCopiedFromFirst: boolean | undefined;
-  isCopiedFromPrevious?: boolean;
-  length: string;
-  breadth: string;
-  height: string;
-  originalValues?: {
-    length: string;
-    breadth: string;
-    height: string;
-  };
-};
 
 
 
@@ -53,7 +35,7 @@ type Chawl = {
 const TestForm = () => {
   const { t } = useTranslation();
   const { state, updateState } = useForm();
-  const [isSubmitted, setIsSubmitted] = useState(false);
+ 
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
   const currentStep = state?.hidden?.currentStep || 0;
   const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
@@ -227,61 +209,62 @@ const TestForm = () => {
 
 
 
-const openCamera = () => {
-  launchCamera(
-    {
-      mediaType: 'mixed',   // 👈 photo + video dono allow
-      videoQuality: 'high', // optional
-      durationLimit: 30,    // video max seconds (optional)
-      saveToPhotos: true,
-      quality: 0.4,         // photo ke liye quality
-      maxWidth: 700,
-      maxHeight: 700,
-    },
-    async (response) => {
-      if (response.didCancel) {
-        console.log('User cancelled camera');
-      } else if (response.errorMessage) {
-        console.log('Camera Error: ', response.errorMessage);
-      } else if (response.assets && response.assets.length > 0) {
-        const capturedFile = response.assets[0];
 
-        // Hash generate karna
-        const fileHash = md5(capturedFile.uri);
-
-        // Duplicate check
-        const isDuplicate = state.form?.Files?.some(file => file.hash === fileHash);
-
-        if (isDuplicate) {
-          console.log('Duplicate file detected. File will not be added.');
-        } else {
-          const isImage = capturedFile.type?.startsWith('image');
-          const isVideo = capturedFile.type?.startsWith('video');
-
-          const newFile = {
-            uri: Platform.OS === 'android'
-              ? capturedFile.uri
-              : capturedFile.uri.replace('file://', ''),
-            fileName: capturedFile.fileName || 
-                      (isImage ? `photo_${Date.now()}.jpg` : `video_${Date.now()}.mp4`),
-            type: capturedFile.type || (isImage ? 'image/jpeg' : 'video/mp4'),
-            hash: fileHash,
-          };
-
-          updateState({
-            form: {
-              ...state.form,
-              Files: [...(state.form?.Files || []), newFile],
+    const openCamera = () => {
+        launchCamera(
+            {
+                mediaType: 'photo',
+                includeBase64: false,
+                cameraType: 'back',
+                saveToPhotos: true,
+                quality: 0.4,
+                maxWidth: 700,
+                maxHeight: 700,
             },
-          });
+            async (response) => {
+                if (response.didCancel) {
+                    console.log('User cancelled image picker');
+                } else if (response.errorMessage) {
+                    console.log('ImagePicker Error: ', response.errorMessage);
+                } else if (response.assets && response.assets.length > 0) {
+                    const capturedImage = response.assets[0];
 
-          console.log(isImage ? 'Image added' : 'Video added', newFile);
-        }
-      }
-    }
-  );
-};
+                    // Generate MD5 hash from the image URI or fileName
+                    const imageHash = md5(capturedImage.uri);
 
+                    // Check if this hash already exists in the current list of files
+                    const isDuplicate = state.form?.Files?.some(file => file.hash === imageHash);
+
+                    if (isDuplicate) {
+                        console.log('Duplicate image detected. Image will not be added.');
+                    } else {
+                        const newFile = {
+                            uri: Platform.OS === 'android'
+                                ? capturedImage.uri
+                                : capturedImage.uri.replace('file://', ''),  // iOS mein remove karo, Android mein rehne do
+                            fileName: capturedImage.fileName || `photo_${Date.now()}.jpg`,
+                            type: capturedImage.type || 'image/jpeg',
+                            hash: imageHash, // Adding the MD5 hash
+                        };
+
+
+
+                        // Update state with the new image (if not a duplicate)
+                        updateState({
+                            form: {
+                                ...state.form,
+                                Files: [...(state.form?.Files || []), newFile],
+                            },
+
+                        });
+
+
+
+                    }
+                }
+            }
+        );
+    };
 
 
  const requestvideoPermission = async () => {
@@ -336,8 +319,17 @@ const openCamera = () => {
              
             };
 
-            setVideos([...videos, newVideo]);
+
+              // updateState({
+              //               form: {
+              //                   ...state.form,
+              //                   Files: [...(state.form?.Files || []), newVideo],
+              //               },
+
+              //           });
+          setVideos([...videos, newVideo]);
             console.log('Video added:', newVideo);
+  
           }
         }
       }
