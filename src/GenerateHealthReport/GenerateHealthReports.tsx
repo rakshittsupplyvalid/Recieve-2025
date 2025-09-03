@@ -16,6 +16,7 @@ import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '../../types/Type';
 import Storage from '../../utils/Storage';
 import Video from 'react-native-video';
+
 import md5 from 'md5';
 
 
@@ -210,61 +211,51 @@ const TestForm = () => {
 
 
 
-    const openCamera = () => {
-        launchCamera(
-            {
-                mediaType: 'photo',
-                includeBase64: false,
-                cameraType: 'back',
-                saveToPhotos: true,
-                quality: 0.4,
-                maxWidth: 700,
-                maxHeight: 700,
-            },
-            async (response) => {
-                if (response.didCancel) {
-                    console.log('User cancelled image picker');
-                } else if (response.errorMessage) {
-                    console.log('ImagePicker Error: ', response.errorMessage);
-                } else if (response.assets && response.assets.length > 0) {
-                    const capturedImage = response.assets[0];
+   const openCamera = () => {
+  launchCamera(
+    {
+      mediaType: 'photo',
+      includeBase64: false,
+      cameraType: 'back',
+      saveToPhotos: true,
+      quality: 0.4,
+      maxWidth: 700,
+      maxHeight: 700,
+    },
+    async (response) => {
+      if (response.assets && response.assets.length > 0) {
+        const capturedImage = response.assets[0];
+        const imageHash = md5(capturedImage.uri);
 
-                    // Generate MD5 hash from the image URI or fileName
-                    const imageHash = md5(capturedImage.uri);
+        const isDuplicate = state.form?.Files?.some(file => file.hash === imageHash);
+        if (isDuplicate) {
+          Alert.alert('Duplicate', 'This image is already added.');
+          return;
+        }
 
-                    // Check if this hash already exists in the current list of files
-                    const isDuplicate = state.form?.Files?.some(file => file.hash === imageHash);
+        // Check if already 9 files ho gaye
+        if ((state.form?.Files || []).filter(f => f.type.startsWith("image")).length >= 9) {
+          Alert.alert("Limit", "Maximum 9 images allowed.");
+          return;
+        }
 
-                    if (isDuplicate) {
-                        console.log('Duplicate image detected. Image will not be added.');
-                    } else {
-                        const newFile = {
-                            uri: Platform.OS === 'android'
-                                ? capturedImage.uri
-                                : capturedImage.uri.replace('file://', ''),  // iOS mein remove karo, Android mein rehne do
-                            fileName: capturedImage.fileName || `photo_${Date.now()}.jpg`,
-                            type: capturedImage.type || 'image/jpeg',
-                            hash: imageHash, // Adding the MD5 hash
-                        };
+        const newFile = {
+          uri: Platform.OS === 'android' ? capturedImage.uri : capturedImage.uri.replace('file://', ''),
+          fileName: capturedImage.fileName || `photo_${Date.now()}.jpg`,
+          type: capturedImage.type || 'image/jpeg',
+          hash: imageHash,
+        };
 
-
-
-                        // Update state with the new image (if not a duplicate)
-                        updateState({
-                            form: {
-                                ...state.form,
-                                Files: [...(state.form?.Files || []), newFile],
-                            },
-
-                        });
-
-
-
-                    }
-                }
-            }
-        );
-    };
+        updateState({
+          form: {
+            ...state.form,
+            Files: [...(state.form?.Files || []), newFile],
+          },
+        });
+      }
+    }
+  );
+};
 
 
  const requestvideoPermission = async () => {
@@ -287,54 +278,48 @@ const TestForm = () => {
     }
   };
 
-  const openCameraForVideo = () => {
-    launchCamera(
-      {
-        mediaType: 'video',   // only video
-        videoQuality: 'low', // low | medium | high
-        durationLimit: 60,    // max seconds
-        saveToPhotos: true,
-      },
-      async (response) => {
-        if (response.didCancel) {
-          console.log('User cancelled video capture');
-        } else if (response.errorMessage) {
-          console.log('Camera Error: ', response.errorMessage);
-          Alert.alert('Error', response.errorMessage);
-        } else if (response.assets && response.assets.length > 0) {
-          const capturedVideo = response.assets[0];
-          const videoHash = md5(capturedVideo.uri);
+   const openCameraForVideo = () => {
+  launchCamera(
+    {
+      mediaType: 'video',
+     videoQuality: 'low', // 👈 high quality video
+      durationLimit: 60,
+      saveToPhotos: true,
+    },
+    async (response) => {
+      if (response.assets && response.assets.length > 0) {
+        const capturedVideo = response.assets[0];
+        const videoHash = md5(capturedVideo.uri);
 
-          const isDuplicate = videos.some(file => file.hash === videoHash);
-
-          if (isDuplicate) {
-            Alert.alert('Duplicate', 'This video is already added.');
-          } else {
-            const newVideo = {
-              uri: Platform.OS === 'android'
-                ? capturedVideo.uri
-                : capturedVideo.uri.replace('file://', ''),
-              fileName: capturedVideo.fileName || `video_${Date.now()}.mp4`,
-              type: capturedVideo.type || 'video/mp4',
-             
-            };
-
-
-              // updateState({
-              //               form: {
-              //                   ...state.form,
-              //                   Files: [...(state.form?.Files || []), newVideo],
-              //               },
-
-              //           });
-          setVideos([...videos, newVideo]);
-            console.log('Video added:', newVideo);
-  
-          }
+        const isDuplicate = state.form?.Files?.some(file => file.hash === videoHash);
+        if (isDuplicate) {
+          Alert.alert('Duplicate', 'This video is already added.');
+          return;
         }
+
+        // Max 2 videos check
+        if ((state.form?.Files || []).filter(f => f.type.startsWith("video")).length >= 2) {
+          Alert.alert("Limit", "Maximum 2 videos allowed.");
+          return;
+        }
+
+        const newVideo = {
+          uri: Platform.OS === 'android' ? capturedVideo.uri : capturedVideo.uri.replace('file://', ''),
+          fileName: capturedVideo.fileName || `video_${Date.now()}.mp4`,
+          type: capturedVideo.type || 'video/mp4',
+          hash: videoHash,
+        };
+
+        updateState({
+          form: {
+            ...state.form,
+            Files: [...(state.form?.Files || []), newVideo],
+          },
+        });
       }
-    );
-  };
+    }
+  );
+};
 
 
 
@@ -342,146 +327,147 @@ const TestForm = () => {
     let validationResult: { isValid: boolean; message?: string } | null = null;
 
     // Step 0 validation (company/branch/federation selection)
-    // if (currentStep === 0) {
-    //   if (!state.form.option1) {
-    //     alert('Please select a company');
-    //     return;
-    //   }
-    //   if (!state.form.option2) {
-    //     alert('Please select a branch');
-    //     return;
-    //   }
+    if (currentStep === 0) {
+      if (!state.form.option1) {
+        alert('Please select a company');
+        return;
+      }
+      if (!state.form.option2) {
+        alert('Please select a branch');
+        return;
+      }
 
-    //   if (!state.form.Storagedata) {
-    //     alert('Please select a storage location');
-    //     return;
-    //   }
-    // }
-    // Step 1 validation (basic information)
-    // else if (currentStep === 1) {
-    //   if (!state.form.Trucknumber || state.form.Trucknumber.trim() === '') {
-    //     alert('Please enter truck number');
-    //     return;
-    //   }
+      if (!state.form.Storagedata) {
+        alert('Please select a storage location');
+        return;
+      }
+    }
+  
+    else if (currentStep === 1) {
+      if (!state.form.Trucknumber || state.form.Trucknumber.trim() === '') {
+        alert('Please enter truck number');
+        return;
+      }
 
      
-    //   const truckRegex = /^[A-Z]{2}\d{2}[A-Z]{1,2}\d{4}$/;
-    //   if (!truckRegex.test(state.form.Trucknumber)) {
-    //     alert('Invalid Truck Number (Format: XX00XX0000)');
-    //     return;
-    //   }
+      const truckRegex = /^[A-Z]{2}\d{2}[A-Z]{1,2}\d{4}$/;
+      if (!truckRegex.test(state.form.Trucknumber)) {
+        alert('Invalid Truck Number (Format: XX00XX0000)');
+        return;
+      }
 
-    //   if (!state.form.grossWeight || isNaN(parseFloat(state.form.grossWeight))) {
-    //     alert('Please enter a valid gross weight');
-    //     return;
-    //   }
-    //   if (!state.form.tareWeight || isNaN(parseFloat(state.form.tareWeight))) {
-    //     alert('Please enter a valid tare weight');
-    //     return;
-    //   }
-    //   if (!state.form.date) {
-    //     alert('Please select a date');
-    //     return;
-    //   }
-    //   if (!state.form.bagCount || isNaN(parseInt(state.form.bagCount))) {
-    //     alert('Please enter a valid bag count');
-    //     return;
-    //   }
-    //   if (!state.form.size || isNaN(parseFloat(state.form.size))) {
-    //     alert('Please enter a valid size');
-    //     return;
-    //   }
-    // }
+      if (!state.form.grossWeight || isNaN(parseFloat(state.form.grossWeight))) {
+        alert('Please enter a valid gross weight');
+        return;
+      }
+      if (!state.form.tareWeight || isNaN(parseFloat(state.form.tareWeight))) {
+        alert('Please enter a valid tare weight');
+        return;
+      }
+      if (!state.form.date) {
+        alert('Please select a date');
+        return;
+      }
+      if (!state.form.bagCount || isNaN(parseInt(state.form.bagCount))) {
+        alert('Please enter a valid bag count');
+        return;
+      }
+      if (!state.form.size || isNaN(parseFloat(state.form.size))) {
+        alert('Please enter a valid size');
+        return;
+      }
+    }
 
-    // Step 2 validation (quality parameters)
-    // else if (currentStep === 2) {
 
-    //   // Validate percentages if switches are on
-    //   if (state.form.stainingColour) {
-    //     if (!state.form.stainingColourPercent || isNaN(parseFloat(state.form.stainingColourPercent))) {
-    //       alert('Please enter staining color percentage');
-    //       return;
-    //     }
-    //     if (parseFloat(state.form.stainingColourPercent) > 100) {
-    //       alert('Staining color percentage cannot exceed 100%');
-    //       return;
-    //     }
-    //   }
+    else if (currentStep === 2) {
 
-    //   if (state.form.blackSmutOnion) {
-    //     if (!state.form.blackSmutPercent || isNaN(parseFloat(state.form.blackSmutPercent))) {
-    //       alert('Please enter black smut percentage');
-    //       return;
-    //     }
-    //     if (parseFloat(state.form.blackSmutPercent) > 100) {
-    //       alert('Black smut percentage cannot exceed 100%');
-    //       return;
-    //     }
-    //   }
+      // Validate percentages if switches are on
+      if (state.form.stainingColour) {
+        if (!state.form.stainingColourPercent || isNaN(parseFloat(state.form.stainingColourPercent))) {
+          alert('Please enter staining color percentage');
+          return;
+        }
+        if (parseFloat(state.form.stainingColourPercent) > 100) {
+          alert('Staining color percentage cannot exceed 100%');
+          return;
+        }
+      }
 
-    //   if (state.form.sproutedOnion) {
-    //     if (!state.form.sproutedPercent || isNaN(parseFloat(state.form.sproutedPercent))) {
-    //       alert('Please enter sprouted percentage');
-    //       return;
-    //     }
-    //     if (parseFloat(state.form.sproutedPercent) > 100) {
-    //       alert('Sprouted percentage cannot exceed 100%');
-    //       return;
-    //     }
-    //   }
+      if (state.form.blackSmutOnion) {
+        if (!state.form.blackSmutPercent || isNaN(parseFloat(state.form.blackSmutPercent))) {
+          alert('Please enter black smut percentage');
+          return;
+        }
+        if (parseFloat(state.form.blackSmutPercent) > 100) {
+          alert('Black smut percentage cannot exceed 100%');
+          return;
+        }
+      }
 
-    //   if (state.form.spoiledOnion) {
-    //     if (!state.form.spoiledPercent || isNaN(parseFloat(state.form.spoiledPercent))) {
-    //       alert('Please enter spoiled percentage');
-    //       return;
-    //     }
-    //     if (parseFloat(state.form.spoiledPercent) > 100) {
-    //       alert('Spoiled percentage cannot exceed 100%');
-    //       return;
-    //     }
-    //   }
+      if (state.form.sproutedOnion) {
+        if (!state.form.sproutedPercent || isNaN(parseFloat(state.form.sproutedPercent))) {
+          alert('Please enter sprouted percentage');
+          return;
+        }
+        if (parseFloat(state.form.sproutedPercent) > 100) {
+          alert('Sprouted percentage cannot exceed 100%');
+          return;
+        }
+      }
 
-    //   if (state.form.onionSkin === "SINGLE") {
-    //     if (!state.form.onionSkinPercent || isNaN(parseFloat(state.form.onionSkinPercent))) {
-    //       alert('Please enter onion skin percentage');
-    //       return;
-    //     }
-    //     if (parseFloat(state.form.onionSkinPercent) > 100) {
-    //       alert('Onion skin percentage cannot exceed 100%');
-    //       return;
-    //     }
-    //   }
+      if (state.form.spoiledOnion) {
+        if (!state.form.spoiledPercent || isNaN(parseFloat(state.form.spoiledPercent))) {
+          alert('Please enter spoiled percentage');
+          return;
+        }
+        if (parseFloat(state.form.spoiledPercent) > 100) {
+          alert('Spoiled percentage cannot exceed 100%');
+          return;
+        }
+      }
 
-    //   if (state.form.moisture === "WET") {
-    //     if (!state.form.moisturePercent || isNaN(parseFloat(state.form.moisturePercent))) {
-    //       alert('Please enter moisture percentage');
-    //       return;
-    //     }
-    //     if (parseFloat(state.form.moisturePercent) > 100) {
-    //       alert('Moisture percentage cannot exceed 100%');
-    //       return;
-    //     }
-    //   }
+      if (state.form.onionSkin === "SINGLE") {
+        if (!state.form.onionSkinPercent || isNaN(parseFloat(state.form.onionSkinPercent))) {
+          alert('Please enter onion skin percentage');
+          return;
+        }
+        if (parseFloat(state.form.onionSkinPercent) > 100) {
+          alert('Onion skin percentage cannot exceed 100%');
+          return;
+        }
+      }
 
-    //   if (state.form.isSpoiledPercentVisible) {
-    //     if (!state.form.SpoliedPercent || isNaN(parseFloat(state.form.SpoliedPercent))) {
-    //       alert('Please enter spoiled percentage');
-    //       return;
-    //     }
-    //     if (parseFloat(state.form.SpoliedPercent) > 100) {
-    //       alert('Spoiled percentage cannot exceed 100%');
-    //       return;
-    //     }
-    //   }
+      if (state.form.moisture === "WET") {
+        if (!state.form.moisturePercent || isNaN(parseFloat(state.form.moisturePercent))) {
+          alert('Please enter moisture percentage');
+          return;
+        }
+        if (parseFloat(state.form.moisturePercent) > 100) {
+          alert('Moisture percentage cannot exceed 100%');
+          return;
+        }
+      }
 
-    //   if (!state.form.SpoliedBranch || state.form.SpoliedBranch.trim() === '') {
-    //     alert('Please enter branch person name');
-    //     return;
-    //   }
-    // }
+      if (state.form.isSpoiledPercentVisible) {
+        if (!state.form.SpoliedPercent || isNaN(parseFloat(state.form.SpoliedPercent))) {
+          alert('Please enter spoiled percentage');
+          return;
+        }
+        if (parseFloat(state.form.SpoliedPercent) > 100) {
+          alert('Spoiled percentage cannot exceed 100%');
+          return;
+        }
+      }
+
+      if (!state.form.SpoliedBranch || state.form.SpoliedBranch.trim() === '') {
+        alert('Please enter branch person name');
+        return;
+      }
+    }
     // Step 3 validation is already handled in the submit button's disabled prop
 
     // Proceed to next step if validation passes
+    
     updateState({
       ...state,
       hidden: {
@@ -645,6 +631,8 @@ const TestForm = () => {
       FPCPersonName: state.form?.SpoliedBranch || '',
       Files: state.form?.Files || [],
       Comment: state.form?.SpoliedComment || ''
+        
+
     };
 
     // Ensure required fields are present
@@ -1281,19 +1269,7 @@ const TestForm = () => {
                 </TouchableOpacity>
               </View>
 
-              {/* Image Upload Error Message */}
-              {(state.form?.Files || []).length < 3 && (state.form?.Files || []).length > 0 && (
-                <Text style={styles.warningText}>
-
-                  You need to upload atleast three images
-
-                </Text>
-              )}
-              {(state.form?.Files || []).length > 9 && (
-                <Text style={styles.warningText}>
-                  You need to upload atleast Nine images
-                </Text>
-              )}
+              
 
               {/* Previous and Submit Buttons */}
               <View style={styles.buttoncontent}>
@@ -1321,7 +1297,7 @@ const TestForm = () => {
               </View>
 
               {/* Image Grid */}
-              <View style={styles.imageGrid}>
+              {/* <View style={styles.imageGrid}>
                 {(state.form?.Files || []).map((item, index) => (
                   <View key={index} style={styles.imageContainer}>
                     <TouchableOpacity onPress={() => setSelectedImage(item.uri)}>
@@ -1349,7 +1325,51 @@ const TestForm = () => {
               resizeMode="contain"
             />
           </View>
-        ))}
+        ))} */}
+         
+
+
+         <View style={styles.fileGrid}>
+          {(state.form?.Files || []).map((item, index) => {
+  // 👇 safe type check
+  const fileType = item.type || "image/jpeg";
+
+  return (
+    <View key={index} style={styles.imageContainer}>
+     
+      {fileType.startsWith("image") ? (
+        <TouchableOpacity onPress={() => setSelectedImage(item.uri)}>
+             <View style={styles.videoView}>
+          <Image source={{ uri: item.uri }} style={styles.image} />
+          </View>
+        </TouchableOpacity>
+      
+      ) : fileType.startsWith("video") ? (
+        <View style={styles.videoView}> 
+        <Video
+          source={{ uri: item.uri }}
+          style={styles.video}
+          controls
+          resizeMode="contain"
+        />
+        </View>
+      ) : (
+        <Text style={{ color: "red" }}>Unknown File</Text>
+      )}
+
+      {/* Delete button */}
+      {/* <TouchableOpacity
+        style={styles.deleteIcon}
+        onPress={() => handleDeleteImage(index)}
+      >
+        <MaterialIcons name="cancel" size={24} color="red" />
+      </TouchableOpacity> */}
+    </View>
+  );
+})}
+
+</View>
+
 
 
 

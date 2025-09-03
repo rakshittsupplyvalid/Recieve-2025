@@ -235,6 +235,22 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     textAlign: 'center',
   },
+    fileGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'flex-start',
+    marginVertical: 10,
+  },
+  fileContainer: {
+    margin: 5,
+    borderRadius: 8,
+    overflow: 'hidden',
+    backgroundColor: '#f2f2f2',
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: 100,
+    height: 100,
+},
   list: {
     marginTop: 20,
   },
@@ -246,10 +262,24 @@ const styles = StyleSheet.create({
     marginBottom: 8,
     color: '#333',
   },
-  video: {
+  videoView: {
     width: '100%',
-    height: 200,
+   height: '100%',
+   padding: 10,
+   borderRadius: 10,
+   justifyContent: 'center',
+   alignItems: 'center',
+   marginLeft : 5,
+   //
+  
+  
+    
+  },
+  video: { 
+    width: '100%',
+    height: '100%',
     backgroundColor: '#000',
+  
   },
 });
 export default styles;
