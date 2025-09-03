@@ -16,6 +16,9 @@ import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '../../types/Type';
 import Storage from '../../utils/Storage';
 import Video from 'react-native-video';
+import { Video as RNVideoCompressor } from 'react-native-compressor'; 
+// import { Video } from 'react-native-compressor'; // Removed to fix duplicate identifier error
+import RNFS from 'react-native-fs';
 
 import md5 from 'md5';
 
@@ -278,11 +281,13 @@ const TestForm = () => {
     }
   };
 
-   const openCameraForVideo = () => {
+
+
+  const openCameraForVideo = () => {
   launchCamera(
     {
       mediaType: 'video',
-     videoQuality: 'low', // 👈 high quality video
+      videoQuality: 'high', // 👈 High quality capture, phir compress hoga
       durationLimit: 60,
       saveToPhotos: true,
     },
@@ -291,35 +296,69 @@ const TestForm = () => {
         const capturedVideo = response.assets[0];
         const videoHash = md5(capturedVideo.uri);
 
+        // 🔹 Duplicate check
         const isDuplicate = state.form?.Files?.some(file => file.hash === videoHash);
         if (isDuplicate) {
           Alert.alert('Duplicate', 'This video is already added.');
           return;
         }
 
-        // Max 2 videos check
+        // 🔹 Max 2 videos check
         if ((state.form?.Files || []).filter(f => f.type.startsWith("video")).length >= 2) {
           Alert.alert("Limit", "Maximum 2 videos allowed.");
           return;
         }
 
-        const newVideo = {
-          uri: Platform.OS === 'android' ? capturedVideo.uri : capturedVideo.uri.replace('file://', ''),
-          fileName: capturedVideo.fileName || `video_${Date.now()}.mp4`,
-          type: capturedVideo.type || 'video/mp4',
-          hash: videoHash,
-        };
+        try {
+          // 🔹 Original size
+          const originalStat = await RNFS.stat(capturedVideo.uri.replace("file://", ""));
+          const originalSizeMB = (Number(originalStat.size) / (1024 * 1024)).toFixed(2);
+          console.log("Original Size:", originalSizeMB, "MB");
 
-        updateState({
-          form: {
-            ...state.form,
-            Files: [...(state.form?.Files || []), newVideo],
-          },
-        });
+          // 🔹 Compress video
+          const compressedUri = await RNVideoCompressor.compress(
+            capturedVideo.uri,
+            {
+              compressionMethod: 'auto',
+              maxSize: 720,
+            },
+            (progress) => {
+              console.log("Compression Progress:", progress);
+            }
+          );
+
+          // 🔹 Compressed size
+          const compressedStat = await RNFS.stat(compressedUri.replace("file://", ""));
+          const compressedSizeMB = (Number(compressedStat.size) / (1024 * 1024)).toFixed(2);
+          console.log("Compressed Size:", compressedSizeMB, "MB");
+
+          // ✅ Final video object
+          const newVideo = {
+            uri: Platform.OS === 'android' ? compressedUri : compressedUri.replace('file://', ''),
+            fileName: capturedVideo.fileName || `video_${Date.now()}.mp4`,
+            type: capturedVideo.type || 'video/mp4',
+            hash: videoHash,
+            originalSize: `${originalSizeMB} MB`,
+            compressedSize: `${compressedSizeMB} MB`,
+          };
+
+          // 🔹 Update global state
+          updateState({
+            form: {
+              ...state.form,
+              Files: [...(state.form?.Files || []), newVideo],
+            },
+          });
+
+        } catch (error) {
+          console.error("Video processing error:", error);
+          Alert.alert("Error", "Video compression failed.");
+        }
       }
     }
   );
 };
+
 
 
 

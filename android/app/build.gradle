@@ -154,10 +154,17 @@ android {
         }
     }
 }
-
-dependencies {
+     dependencies {
     // The version of react-native is set by the React Native Gradle Plugin
     implementation("com.facebook.react:react-android")
+
+    // Fixed duplicate class issue by excluding aspectjrt from VideoCompressor
+    implementation('com.github.NaughtyHotpot:VideoCompressor:0.1.2') {
+        exclude group: 'org.aspectj', module: 'aspectjrt'
+    }
+    
+    // Force specific version to avoid conflicts
+    implementation 'org.aspectj:aspectjrt:1.9.7'
 
     def isGifEnabled = (findProperty('expo.gif.enabled') ?: "") == "true";
     def isWebpEnabled = (findProperty('expo.webp.enabled') ?: "") == "true";
