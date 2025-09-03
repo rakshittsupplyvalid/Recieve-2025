@@ -446,34 +446,57 @@ const CAhealthreport = () => {
             }
         }
         // Step 1 validation (basic information)
-        else if (currentStep === 1) {
+     else if (currentStep === 1) {
 
-            if (!state.form.Trucknumber || state.form.Trucknumber.trim() === '') {
-                alert('Please enter truck number');
-                return;
-            }
-            if (!state.form.grossWeight || isNaN(parseFloat(state.form.grossWeight))) {
-                alert('Please enter a valid gross weight');
-                return;
-            }
-            if (!state.form.tareWeight || isNaN(parseFloat(state.form.tareWeight))) {
-                alert('Please enter a valid tare weight');
-                return;
-            }
-            if (!state.form.date) {
-                alert('Please select a date');
-                return;
-            }
-            if (!state.form.bagCount || isNaN(parseInt(state.form.bagCount))) {
-                alert('Please enter a valid bag count');
-                return;
-            }
-            if (!state.form.size || isNaN(parseFloat(state.form.size))) {
-                alert('Please enter a valid size');
-                return;
-            }
-            
-        }
+    // Truck number validation
+    if (!state.form.Trucknumber || state.form.Trucknumber.trim() === '') {
+        alert('Please enter truck number');
+        return;
+    }
+    // const truckRegex = /^[A-Z]{2}[0-9]{2}[A-Z]{2}[0-9]{4}$/;
+    // if (!truckRegex.test(state.form.Trucknumber)) {
+    //     alert('Please enter a valid truck number (e.g., UP32AB1234)');
+    //     return;
+    // }
+
+    // Gross weight validation
+    if (!state.form.grossWeight || isNaN(parseFloat(state.form.grossWeight))) {
+        alert('Please enter a valid gross weight');
+        return;
+    }
+
+    // Tare weight validation
+    if (!state.form.tareWeight || isNaN(parseFloat(state.form.tareWeight))) {
+        alert('Please enter a valid tare weight');
+        return;
+    }
+
+    // Net weight validation (Gross - Tare >= 0)
+    const netWeight = parseFloat(state.form.grossWeight) - parseFloat(state.form.tareWeight);
+    if (netWeight < 0) {
+        alert('Net weight cannot be negative');
+        return;
+    }
+
+    // Date validation
+    if (!state.form.date) {
+        alert('Please select a date');
+        return;
+    }
+
+    // Bag count validation
+    if (!state.form.bagCount || isNaN(parseInt(state.form.bagCount))) {
+        alert('Please enter a valid bag count');
+        return;
+    }
+
+    // Size validation
+    if (!state.form.size || isNaN(parseFloat(state.form.size))) {
+        alert('Please enter a valid size');
+        return;
+    }
+}
+
         // Step 2 validation (quality parameters)
         else if (currentStep === 2) {
            
@@ -954,6 +977,7 @@ const CAhealthreport = () => {
                                 }}
                                 autoCapitalize="characters"
                                 keyboardType="default" // Yeh aap 'keyb' likh rahe the, pura likha
+                                   maxLength={13} 
                             />
 
                             <TextInput
@@ -1014,6 +1038,7 @@ const CAhealthreport = () => {
                                     }
                                 })}
                                 keyboardType="numeric"
+                                 maxLength={5}  
                             />
 
                             <TextInput
@@ -1028,6 +1053,7 @@ const CAhealthreport = () => {
                                     }
                                 })}
                                 keyboardType="numeric"
+                                 maxLength={5}  
                             />
 
 

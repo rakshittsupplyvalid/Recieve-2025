@@ -13,7 +13,7 @@ import SubmitTruckData from '../Screenthree/SubmitTruckData';
 import LanguageSelector from '../Screenthree/Languages';
 import ReimbursementList from '../Screenthree/ReimbursementList';
 import HealthReportDetails from '../src/HealthReportlist/HealthReportDeails';
-import TestForm from '../src/GenerateHealthReport/GenerateHealthReports';
+// import TestForm from '../src/GenerateHealthReport/GenerateHealthReports';
 import LotDetailsApproved from '../src/LotDetails/LotDetailsApproved';
 import DirectNormal from '../src/Directandnormal/DirectNormal';
 import StockMove from '../src/StockMove/StockMove';
@@ -179,13 +179,13 @@ export default function DispatchDrawernavigator() {
       ) : (
         <>
           <Drawer.Screen name="RecieveDhasboard" component={RecieveDhasboard} options={{ headerShown: false, title: 'Dashboard', drawerIcon: ({ color, size }) => <Icon name="dashboard" size={size} color={color} /> }} />
-          <Drawer.Screen name="Normal Health Report"
+          {/* <Drawer.Screen name="Normal Health Report"
             component={TestForm}
             options={{
               headerShown: false,
               drawerIcon: ({ color, size }) => <Icon name="health-and-safety" size={size} color={color} />
             }}
-          />
+          /> */}
 
 
           <Drawer.Screen name="CA Health Report"

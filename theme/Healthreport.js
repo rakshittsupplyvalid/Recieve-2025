@@ -126,6 +126,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.2, // Shadow opacity (0 to 1)
     shadowRadius: 3, // Shadow blur radius
     elevation: 3, // For Android shadow
+    color: '#333', // Text color
   },
   inputContainer: {
     marginBottom: 15,
