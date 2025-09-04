@@ -1,6 +1,6 @@
-import React, { useState, useRef, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, StyleSheet, TextInput, ScrollView, TouchableOpacity, KeyboardAvoidingView, Switch, Modal, Platform, Image, ActivityIndicator, FlatList, Button, Linking, Alert, BackHandler } from 'react-native';
-import Navbar from '../../App/Navbar';
+
 import useForm from '../../App/Common/Lib/useForm'// Assuming you have a utility function to create form data
 import { Picker } from '@react-native-picker/picker';
 import { launchCamera } from 'react-native-image-picker';
@@ -14,6 +14,8 @@ import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import { useTranslation } from 'react-i18next';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '../../types/Type';
+import VideoPlayer from 'react-native-video'; // 👈 yeh sirf video play karne ke liye
+import { Video as VideoCompressor } from 'react-native-compressor';
 
 import Storage from '../../utils/Storage';
 import md5 from 'md5';
@@ -82,6 +84,33 @@ const CAhealthreport = () => {
         { label: 'Select Dispatch Type', value: '' },
         { label: 'CA', value: 'CA' },
     ];
+
+
+
+
+
+
+    const [clickCount, setClickCount] = useState(0);
+
+    const handlePress = () => {
+        if (clickCount < 2) {
+            setClickCount(clickCount + 1);
+            requestvideoPermission();
+        } else {
+            Alert.alert("you can upload maximum 2 videos");
+        }
+    };
+
+
+
+    const handlePresscamera = () => {
+        if (clickCount < 5) {
+            setClickCount(clickCount + 1);
+            requestCameraPermission();
+        } else {
+            Alert.alert("Maximum Required", "You can upload maximum 5 images.");
+        }
+    };
 
 
 
@@ -334,6 +363,7 @@ const CAhealthreport = () => {
     };
 
 
+
     const requestCameraPermission = async () => {
         if (Platform.OS === 'android') {
             try {
@@ -412,103 +442,182 @@ const CAhealthreport = () => {
         );
     };
 
+
+
+
+    const requestvideoPermission = async () => {
+        if (Platform.OS === 'android') {
+            try {
+                const granted = await PermissionsAndroid.request(
+                    PermissionsAndroid.PERMISSIONS.CAMERA
+                );
+                if (granted === PermissionsAndroid.RESULTS.GRANTED) {
+                    console.log('Camera permission granted');
+                    openCameraForVideo();
+                } else {
+                    console.log('Camera permission denied');
+                }
+            } catch (err) {
+                console.warn(err);
+            }
+        } else {
+            openCameraForVideo(); // iOS me direct open
+        }
+    };
+
+    const openCameraForVideo = () => {
+        launchCamera(
+            {
+                mediaType: 'video',
+                videoQuality: 'high', // high quality capture, baad me compress hoga
+                durationLimit: 60,
+                saveToPhotos: true,
+            },
+            async (response) => {
+                if (response.assets && response.assets.length > 0) {
+                    const capturedVideo = response.assets[0];
+
+                    // Max 2 videos check
+                    if ((state.form?.Files || []).filter(f => f.type.startsWith("video")).length >= 2) {
+                        Alert.alert("Limit", "Maximum 2 videos allowed.");
+                        return;
+                    }
+
+                    try {
+                        // 👉 Compress the video
+                        const compressedUri = await VideoCompressor.compress(
+                            capturedVideo.uri,
+                            {
+                                compressionMethod: 'auto', // auto | low | medium | high
+                            },
+                            (progress) => {
+                                console.log('Compression Progress: ', progress); // 0 - 1
+                            }
+                        );
+
+                        console.log("Original URI:", capturedVideo.uri);
+                        console.log("Compressed URI:", compressedUri);
+
+                        const newVideo = {
+                            uri: Platform.OS === 'android' ? compressedUri : compressedUri.replace('file://', ''),
+                            fileName: capturedVideo.fileName || `video_${Date.now()}.mp4`,
+                            type: capturedVideo.type || 'video/mp4',
+                        };
+
+                        updateState({
+                            form: {
+                                ...state.form,
+                                Files: [...(state.form?.Files || []), newVideo],
+                            },
+                        });
+                    } catch (error) {
+                        console.log("Video compression error:", error);
+                    }
+                }
+            }
+        );
+    };
+
+
+
+
     const handleNext = (nextStep: number) => {
         let result: any = { isValid: true }; // Initialize with default valid state
 
-        if (currentStep === 0) {
-            if (!state.form.reportType) {
-                alert('Please select a report type');
-                return;
-            }
-            if (!state.form.healthReportDispatchType) {
-                alert('Please select a health report dispatch type');
-                return;
-            }
-            if (!state.form.clientdata) {
-                alert('Please select a client');
-                return;
-            }
-            if (!state.form.option1) {
-                alert('Please select a company');
-                return;
-            }
-            if (!state.form.option2) {
-                alert('Please select a branch');
-                return;
-            }
-            if (!state.form.Caadmindata) {
-                alert('Please select a CA Admin');
-                return;
-            }
-            if (!state.form.Storagedata) {
-                alert('Please select a storage location');
-                return;
-            }
-        }
+        // if (currentStep === 0) {
+        //     if (!state.form.reportType) {
+        //         alert('Please select a report type');
+        //         return;
+        //     }
+        //     if (!state.form.healthReportDispatchType) {
+        //         alert('Please select a health report dispatch type');
+        //         return;
+        //     }
+        //     if (!state.form.clientdata) {
+        //         alert('Please select a client');
+        //         return;
+        //     }
+        //     if (!state.form.option1) {
+        //         alert('Please select a company');
+        //         return;
+        //     }
+        //     if (!state.form.option2) {
+        //         alert('Please select a branch');
+        //         return;
+        //     }
+        //     if (!state.form.Caadmindata) {
+        //         alert('Please select a CA Admin');
+        //         return;
+        //     }
+        //     if (!state.form.Storagedata) {
+        //         alert('Please select a storage location');
+        //         return;
+        //     }
+        // }
         // Step 1 validation (basic information)
-     else if (currentStep === 1) {
+        //      else if (currentStep === 1) {
 
-    // Truck number validation
-    if (!state.form.Trucknumber || state.form.Trucknumber.trim() === '') {
-        alert('Please enter truck number');
-        return;
-    }
-    // const truckRegex = /^[A-Z]{2}[0-9]{2}[A-Z]{2}[0-9]{4}$/;
-    // if (!truckRegex.test(state.form.Trucknumber)) {
-    //     alert('Please enter a valid truck number (e.g., UP32AB1234)');
-    //     return;
-    // }
+        //     // Truck number validation
+        //     if (!state.form.Trucknumber || state.form.Trucknumber.trim() === '') {
+        //         alert('Please enter truck number');
+        //         return;
+        //     }
+        //     // const truckRegex = /^[A-Z]{2}[0-9]{2}[A-Z]{2}[0-9]{4}$/;
+        //     // if (!truckRegex.test(state.form.Trucknumber)) {
+        //     //     alert('Please enter a valid truck number (e.g., UP32AB1234)');
+        //     //     return;
+        //     // }
 
-    // Gross weight validation
-    if (!state.form.grossWeight || isNaN(parseFloat(state.form.grossWeight))) {
-        alert('Please enter a valid gross weight');
-        return;
-    }
+        //     // Gross weight validation
+        //     if (!state.form.grossWeight || isNaN(parseFloat(state.form.grossWeight))) {
+        //         alert('Please enter a valid gross weight');
+        //         return;
+        //     }
 
-    // Tare weight validation
-    if (!state.form.tareWeight || isNaN(parseFloat(state.form.tareWeight))) {
-        alert('Please enter a valid tare weight');
-        return;
-    }
+        //     // Tare weight validation
+        //     if (!state.form.tareWeight || isNaN(parseFloat(state.form.tareWeight))) {
+        //         alert('Please enter a valid tare weight');
+        //         return;
+        //     }
 
-    // Net weight validation (Gross - Tare >= 0)
-    const netWeight = parseFloat(state.form.grossWeight) - parseFloat(state.form.tareWeight);
-    if (netWeight < 0) {
-        alert('Net weight cannot be negative');
-        return;
-    }
+        //     // Net weight validation (Gross - Tare >= 0)
+        //     const netWeight = parseFloat(state.form.grossWeight) - parseFloat(state.form.tareWeight);
+        //     if (netWeight < 0) {
+        //         alert('Net weight cannot be negative');
+        //         return;
+        //     }
 
-    // Date validation
-    if (!state.form.date) {
-        alert('Please select a date');
-        return;
-    }
+        //     // Date validation
+        //     if (!state.form.date) {
+        //         alert('Please select a date');
+        //         return;
+        //     }
 
-    // Bag count validation
-    if (!state.form.bagCount || isNaN(parseInt(state.form.bagCount))) {
-        alert('Please enter a valid bag count');
-        return;
-    }
+        //     // Bag count validation
+        //     if (!state.form.bagCount || isNaN(parseInt(state.form.bagCount))) {
+        //         alert('Please enter a valid bag count');
+        //         return;
+        //     }
 
-    // Size validation
-    if (!state.form.size || isNaN(parseFloat(state.form.size))) {
-        alert('Please enter a valid size');
-        return;
-    }
-}
+        //     // Size validation
+        //     if (!state.form.size || isNaN(parseFloat(state.form.size))) {
+        //         alert('Please enter a valid size');
+        //         return;
+        //     }
+        // }
 
         // Step 2 validation (quality parameters)
-        else if (currentStep === 2) {
-           
-
-            if (!state.form.SpoliedBranch || state.form.SpoliedBranch.trim() === '') {
-                alert('Please enter branch person name');
-                return;
-            }
-        }
+        // else if (currentStep === 2) {
 
 
-        // if (currentStep === 0) {
+        //     if (!state.form.SpoliedBranch || state.form.SpoliedBranch.trim() === '') {
+        //         alert('Please enter branch person name');
+        //         return;
+        //     }
+        // }
+
+
+
         //     if (!selectedHelthReport) {
         //         alert('Please select a health report type');
         //         return;
@@ -622,7 +731,7 @@ const CAhealthreport = () => {
             NetWeight: parseFloat(state.form?.netWeight) || 0,
             TareWeight: parseFloat(state.form?.tareWeight) || 0,
             Date: state.form?.date || new Date().toISOString(),
-            StainingColour:  false,
+            StainingColour: false,
             StainingColourPercent: 0,
             BagCount: parseInt(state.form?.bagCount) || 0,
             Size: parseInt(state.form?.size) || 0,
@@ -631,11 +740,11 @@ const CAhealthreport = () => {
             SproutedOnion: false,
             SproutedPercent: 0,
             OnionSkin: 'DOUBLE',
-            OnionSkinPercent:  0,
-            Moisture:  'DRY',
-            MoisturePercent:  0,
+            OnionSkinPercent: 0,
+            Moisture: 'DRY',
+            MoisturePercent: 0,
             SpoiledOnion: false,
-            SpoiledPercent:  0,
+            SpoiledPercent: 0,
             FPCPersonName: state.form?.SpoliedBranch || '',
             Files: state.form?.Files || [],
             Comment: state.form?.SpoliedComment || ''
@@ -977,7 +1086,7 @@ const CAhealthreport = () => {
                                 }}
                                 autoCapitalize="characters"
                                 keyboardType="default" // Yeh aap 'keyb' likh rahe the, pura likha
-                                   maxLength={13} 
+                                maxLength={13}
                             />
 
                             <TextInput
@@ -1038,7 +1147,7 @@ const CAhealthreport = () => {
                                     }
                                 })}
                                 keyboardType="numeric"
-                                 maxLength={5}  
+                                maxLength={5}
                             />
 
                             <TextInput
@@ -1053,7 +1162,7 @@ const CAhealthreport = () => {
                                     }
                                 })}
                                 keyboardType="numeric"
-                                 maxLength={5}  
+                                maxLength={5}
                             />
 
 
@@ -1414,8 +1523,8 @@ const CAhealthreport = () => {
                             {/* Camera Button */}
                             <View style={styles.buttoncontent}>
                                 <TouchableOpacity
-                                    style={styles.button}
-                                    onPress={requestCameraPermission}
+                                    style={styles.Camerabutton}
+                                    onPress={handlePresscamera}
                                     disabled={(state.form?.Files || []).length >= 9}
                                 >
                                     <MaterialIcons name="camera" size={30} color="white" />
@@ -1423,18 +1532,20 @@ const CAhealthreport = () => {
                                 </TouchableOpacity>
                             </View>
 
-                            {(state.form?.Files || []).length < 3 && (state.form?.Files || []).length > 0 && (
-                                <Text style={styles.warningText}>
+                            <View style={styles.buttoncontent}>
+                                <TouchableOpacity
+                                    style={styles.Camerabutton}
+                                    onPress={requestvideoPermission}
+                                    disabled={
+                                        (state.form?.Files || []).filter(f => f.type?.startsWith("video")).length >= 2
+                                    } // 👈 sirf 2 video allow
+                                >
+                                    <MaterialIcons name="camera" size={30} color="white" />
+                                    <Text style={styles.buttonText}>Pick From Video</Text>
+                                </TouchableOpacity>
+                            </View>
 
-                                    You need to upload atleast three images
 
-                                </Text>
-                            )}
-                            {(state.form?.Files || []).length > 9 && (
-                                <Text style={styles.warningText}>
-                                    You need to upload atleast Nine images
-                                </Text>
-                            )}
 
                             {/* Previous and Submit Buttons */}
                             <View style={styles.buttoncontent}>
@@ -1462,22 +1573,79 @@ const CAhealthreport = () => {
                             </View>
 
                             {/* Image Grid */}
-                            <View style={styles.imageGrid}>
-                                {(state.form?.Files || []).map((item, index) => (
-                                    <View key={index} style={styles.imageContainer}>
-                                        <TouchableOpacity onPress={() => setSelectedImage(item.uri)}>
-                                            <Image source={{ uri: item.uri }} style={styles.image} />
-                                        </TouchableOpacity>
+                            {/* <View style={styles.imageGrid}>
+                                   {(state.form?.Files || []).map((item, index) => (
+                                     <View key={index} style={styles.imageContainer}>
+                                       <TouchableOpacity onPress={() => setSelectedImage(item.uri)}>
+                                         <Image source={{ uri: item.uri }} style={styles.image} />
+                                       </TouchableOpacity>
+                   
+                                       <TouchableOpacity
+                                         style={styles.deleteIcon}
+                                         onPress={() => handleDeleteImage(index)}
+                                       >
+                                         <MaterialIcons name="cancel" size={24} color="red" />
+                                       </TouchableOpacity>
+                                     </View>
+                                   ))}
+                                 </View>
+                   
+                   
+                                   {videos.map((v, index) => (
+                             <View key={index} style={styles.videoContainer}>
+                              
+                               <Video
+                                 source={{ uri: v.uri }}
+                                 style={styles.video}
+                                 controls   // 👈 play/pause controls enable karega
+                                 resizeMode="contain"
+                               />
+                             </View>
+                           ))} */}
 
-                                        <TouchableOpacity
-                                            style={styles.deleteIcon}
-                                            onPress={() => handleDeleteImage(index)}
-                                        >
-                                            <MaterialIcons name="cancel" size={24} color="red" />
-                                        </TouchableOpacity>
-                                    </View>
-                                ))}
+
+
+                            <View style={styles.fileGrid}>
+                                {(state.form?.Files || []).map((item, index) => {
+                                    // 👇 safe type check
+                                    const fileType = item.type || "image/jpeg";
+
+                                    return (
+                                        <View key={index} style={styles.imageContainer}>
+
+                                            {fileType.startsWith("image") ? (
+                                                <TouchableOpacity onPress={() => setSelectedImage(item.uri)}>
+                                                    <View style={styles.videoView}>
+                                                        <Image source={{ uri: item.uri }} style={styles.image} />
+                                                    </View>
+                                                </TouchableOpacity>
+
+                                            ) : fileType.startsWith("video") ? (
+                                                <View style={styles.videoView}>
+                                                    <VideoPlayer
+                                                        source={{ uri: item.uri }}
+                                                        style={styles.video}
+                                                        controls
+                                                        resizeMode="contain"
+                                                    />
+                                                </View>
+                                            ) : (
+                                                <Text style={{ color: "red" }}>Unknown File</Text>
+                                            )}
+
+                                            {/* Delete button */}
+                                            {/* <TouchableOpacity
+                           style={styles.deleteIcon}
+                           onPress={() => handleDeleteImage(index)}
+                         >
+                           <MaterialIcons name="cancel" size={24} color="red" />
+                         </TouchableOpacity> */}
+                                        </View>
+                                    );
+                                })}
+
                             </View>
+
 
 
 

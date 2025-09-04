@@ -117,7 +117,7 @@ const RecieveDhasboard = () => {
                   onPress={() => navigation.navigate("ReimbursementList", { ApprovalStatus: "PENDING" })}
                 />
               </View>
-              <View style={styles.cardWrapper}>
+              {/* <View style={styles.cardWrapper}>
                 <TruckCard
                         title={t('paidPayment')}
                   count={PaymentPaid}
@@ -136,7 +136,7 @@ const RecieveDhasboard = () => {
                   iconName="cancel"
                   onPress={() => navigation.navigate("ReimbursementList", { BillPaymentStatus: "DECLINE", ApprovalStatus: "APPROVED" })}
                 />
-              </View>
+              </View> */}
             </View>
           </ScrollView>
         ) : (
@@ -158,7 +158,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     alignItems: 'center',
-   paddingVertical : 30
+   paddingVertical : 100
   },
   scrollView: {
     flexGrow: 1,

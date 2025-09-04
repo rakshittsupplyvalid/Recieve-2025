@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text , TextInput, ScrollView, TouchableOpacity, KeyboardAvoidingView, Switch, Modal, Platform, Image, ActivityIndicator, FlatList, Button, Linking, Alert, BackHandler } from 'react-native';
+import { View, Text, TextInput, ScrollView, TouchableOpacity, KeyboardAvoidingView, Switch, Modal, Platform, Image, ActivityIndicator, FlatList, Button, Linking, Alert, BackHandler } from 'react-native';
 import Navbar from '../../App/Navbar';
 import useForm from '../../App/Common/Lib/useForm'
 import { Picker } from '@react-native-picker/picker';
@@ -15,7 +15,10 @@ import { useTranslation } from 'react-i18next';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '../../types/Type';
 import Storage from '../../utils/Storage';
-import Video from 'react-native-video';
+import VideoPlayer from 'react-native-video'; // 👈 yeh sirf video play karne ke liye
+import { Video as VideoCompressor } from 'react-native-compressor';
+
+
 
 import md5 from 'md5';
 
@@ -36,14 +39,14 @@ const { width } = Dimensions.get('window');
 const TestForm = () => {
   const { t } = useTranslation();
   const { state, updateState } = useForm();
- 
+
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
   const currentStep = state?.hidden?.currentStep || 0;
   const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
   const previousSteps = state?.hidden?.previousSteps || [];
   const [selectedImage, setSelectedImage] = useState(null);
   const [isPressed, setIsPressed] = useState(false);
-    const [videos, setVideos] = useState<any[]>([]);
+  const [videos, setVideos] = useState<any[]>([]);
 
 
 
@@ -54,9 +57,34 @@ const TestForm = () => {
 
 
 
+  const [clickCount, setClickCount] = useState(0);
+
+  const handlePress = () => {
+    if (clickCount < 2) {
+      setClickCount(clickCount + 1);
+      requestvideoPermission();
+    } else {
+      Alert.alert("you can upload maximum 2 videos");
+    }
+  };
 
 
-  
+
+  const handlePresscamera = () => {
+    if (clickCount < 5) {
+      setClickCount(clickCount + 1);
+      requestCameraPermission();
+    } else {
+      Alert.alert("Maximum Required", "You can upload maximum 5 images.");
+    }
+  };
+
+
+
+
+
+
+
   useEffect(() => {
     CompanyDropdown();
 
@@ -206,59 +234,120 @@ const TestForm = () => {
     }
   };
 
+  const openCamera = () => {
+    launchCamera(
+      {
+        mediaType: 'photo',
+        includeBase64: false,
+        cameraType: 'back',
+        saveToPhotos: true,
+        quality: 0.4,
+        maxWidth: 700,
+        maxHeight: 700,
+      },
+      async (response) => {
+        if (response.assets && response.assets.length > 0) {
+          const capturedImage = response.assets[0];
+          const imageHash = md5(capturedImage.uri);
 
+          const isDuplicate = state.form?.Files?.some(file => file.hash === imageHash);
+          if (isDuplicate) {
+            Alert.alert('Duplicate', 'This image is already added.');
+            return;
+          }
 
+          // Check if already 9 files ho gaye
+          if ((state.form?.Files || []).filter(f => f.type.startsWith("image")).length >= 9) {
+            Alert.alert("Limit", "Maximum 9 images allowed.");
+            return;
+          }
 
+          const newFile = {
+            uri: Platform.OS === 'android' ? capturedImage.uri : capturedImage.uri.replace('file://', ''),
+            fileName: capturedImage.fileName || `photo_${Date.now()}.jpg`,
+            type: capturedImage.type || 'image/jpeg',
+            hash: imageHash,
+          };
 
-
-   const openCamera = () => {
-  launchCamera(
-    {
-      mediaType: 'photo',
-      includeBase64: false,
-      cameraType: 'back',
-      saveToPhotos: true,
-      quality: 0.4,
-      maxWidth: 700,
-      maxHeight: 700,
-    },
-    async (response) => {
-      if (response.assets && response.assets.length > 0) {
-        const capturedImage = response.assets[0];
-        const imageHash = md5(capturedImage.uri);
-
-        const isDuplicate = state.form?.Files?.some(file => file.hash === imageHash);
-        if (isDuplicate) {
-          Alert.alert('Duplicate', 'This image is already added.');
-          return;
+          updateState({
+            form: {
+              ...state.form,
+              Files: [...(state.form?.Files || []), newFile],
+            },
+          });
         }
-
-        // Check if already 9 files ho gaye
-        if ((state.form?.Files || []).filter(f => f.type.startsWith("image")).length >= 9) {
-          Alert.alert("Limit", "Maximum 9 images allowed.");
-          return;
-        }
-
-        const newFile = {
-          uri: Platform.OS === 'android' ? capturedImage.uri : capturedImage.uri.replace('file://', ''),
-          fileName: capturedImage.fileName || `photo_${Date.now()}.jpg`,
-          type: capturedImage.type || 'image/jpeg',
-          hash: imageHash,
-        };
-
-        updateState({
-          form: {
-            ...state.form,
-            Files: [...(state.form?.Files || []), newFile],
-          },
-        });
       }
-    }
-  );
-};
+    );
+  };
 
 
- const requestvideoPermission = async () => {
+  //  const requestvideoPermission = async () => {
+  //     if (Platform.OS === 'android') {
+  //       try {
+  //         const granted = await PermissionsAndroid.request(
+  //           PermissionsAndroid.PERMISSIONS.CAMERA
+  //         );
+  //         if (granted === PermissionsAndroid.RESULTS.GRANTED) {
+  //           console.log('Camera permission granted');
+  //           openCameraForVideo();
+  //         } else {
+  //           console.log('Camera permission denied');
+  //         }
+  //       } catch (err) {
+  //         console.warn(err);
+  //       }
+  //     } else {
+  //       openCameraForVideo(); // iOS me direct open
+  //     }
+  //   };
+
+  //    const openCameraForVideo = () => {
+  //   launchCamera(
+  //     {
+  //       mediaType: 'video',
+  //      videoQuality: 'low', // 👈 high quality video
+  //       durationLimit: 60,
+  //       saveToPhotos: true,
+  //     },
+  //     async (response) => {
+  //       if (response.assets && response.assets.length > 0) {
+  //         const capturedVideo = response.assets[0];
+  //         const videoHash = md5(capturedVideo.uri);
+
+  //         const isDuplicate = state.form?.Files?.some(file => file.hash === videoHash);
+  //         if (isDuplicate) {
+  //           Alert.alert('Duplicate', 'This video is already added.');
+  //           return;
+  //         }
+
+  //         // Max 2 videos check
+  //         if ((state.form?.Files || []).filter(f => f.type.startsWith("video")).length >= 2) {
+  //           Alert.alert("Limit", "Maximum 2 videos allowed.");
+  //           return;
+  //         }
+
+  //         const newVideo = {
+  //           uri: Platform.OS === 'android' ? capturedVideo.uri : capturedVideo.uri.replace('file://', ''),
+  //           fileName: capturedVideo.fileName || `video_${Date.now()}.mp4`,
+  //           type: capturedVideo.type || 'video/mp4',
+  //           hash: videoHash,
+  //         };
+
+  //         updateState({
+  //           form: {
+  //             ...state.form,
+  //             Files: [...(state.form?.Files || []), newVideo],
+  //           },
+  //         });
+  //       }
+  //     }
+  //   );
+  // };
+
+
+
+
+  const requestvideoPermission = async () => {
     if (Platform.OS === 'android') {
       try {
         const granted = await PermissionsAndroid.request(
@@ -278,196 +367,204 @@ const TestForm = () => {
     }
   };
 
-   const openCameraForVideo = () => {
-  launchCamera(
-    {
-      mediaType: 'video',
-     videoQuality: 'low', // 👈 high quality video
-      durationLimit: 60,
-      saveToPhotos: true,
-    },
-    async (response) => {
-      if (response.assets && response.assets.length > 0) {
-        const capturedVideo = response.assets[0];
-        const videoHash = md5(capturedVideo.uri);
+  const openCameraForVideo = () => {
+    launchCamera(
+      {
+        mediaType: 'video',
+        videoQuality: 'high', // high quality capture, baad me compress hoga
+        durationLimit: 60,
+        saveToPhotos: true,
+      },
+      async (response) => {
+        if (response.assets && response.assets.length > 0) {
+          const capturedVideo = response.assets[0];
 
-        const isDuplicate = state.form?.Files?.some(file => file.hash === videoHash);
-        if (isDuplicate) {
-          Alert.alert('Duplicate', 'This video is already added.');
-          return;
+          // Max 2 videos check
+          if ((state.form?.Files || []).filter(f => f.type.startsWith("video")).length >= 2) {
+            Alert.alert("Limit", "Maximum 2 videos allowed.");
+            return;
+          }
+
+          try {
+            // 👉 Compress the video
+            const compressedUri = await VideoCompressor.compress(
+              capturedVideo.uri,
+              {
+                compressionMethod: 'auto', // auto | low | medium | high
+              },
+              (progress) => {
+                console.log('Compression Progress: ', progress); // 0 - 1
+              }
+            );
+
+            console.log("Original URI:", capturedVideo.uri);
+            console.log("Compressed URI:", compressedUri);
+
+            const newVideo = {
+              uri: Platform.OS === 'android' ? compressedUri : compressedUri.replace('file://', ''),
+              fileName: capturedVideo.fileName || `video_${Date.now()}.mp4`,
+              type: capturedVideo.type || 'video/mp4',
+            };
+
+            updateState({
+              form: {
+                ...state.form,
+                Files: [...(state.form?.Files || []), newVideo],
+              },
+            });
+          } catch (error) {
+            console.log("Video compression error:", error);
+          }
         }
-
-        // Max 2 videos check
-        if ((state.form?.Files || []).filter(f => f.type.startsWith("video")).length >= 2) {
-          Alert.alert("Limit", "Maximum 2 videos allowed.");
-          return;
-        }
-
-        const newVideo = {
-          uri: Platform.OS === 'android' ? capturedVideo.uri : capturedVideo.uri.replace('file://', ''),
-          fileName: capturedVideo.fileName || `video_${Date.now()}.mp4`,
-          type: capturedVideo.type || 'video/mp4',
-          hash: videoHash,
-        };
-
-        updateState({
-          form: {
-            ...state.form,
-            Files: [...(state.form?.Files || []), newVideo],
-          },
-        });
       }
-    }
-  );
-};
-
-
+    );
+  };
 
   const handleNext = (nextStep: number) => {
     let validationResult: { isValid: boolean; message?: string } | null = null;
 
     // Step 0 validation (company/branch/federation selection)
-    if (currentStep === 0) {
-      if (!state.form.option1) {
-        alert('Please select a company');
-        return;
-      }
-      if (!state.form.option2) {
-        alert('Please select a branch');
-        return;
-      }
+    // if (currentStep === 0) {
+    //   if (!state.form.option1) {
+    //     alert('Please select a company');
+    //     return;
+    //   }
+    //   if (!state.form.option2) {
+    //     alert('Please select a branch');
+    //     return;
+    //   }
 
-      if (!state.form.Storagedata) {
-        alert('Please select a storage location');
-        return;
-      }
-    }
-  
-    else if (currentStep === 1) {
-      if (!state.form.Trucknumber || state.form.Trucknumber.trim() === '') {
-        alert('Please enter truck number');
-        return;
-      }
+    //   if (!state.form.Storagedata) {
+    //     alert('Please select a storage location');
+    //     return;
+    //   }
+    // }
 
-     
-      const truckRegex = /^[A-Z]{2}\d{2}[A-Z]{1,2}\d{4}$/;
-      if (!truckRegex.test(state.form.Trucknumber)) {
-        alert('Invalid Truck Number (Format: XX00XX0000)');
-        return;
-      }
-
-      if (!state.form.grossWeight || isNaN(parseFloat(state.form.grossWeight))) {
-        alert('Please enter a valid gross weight');
-        return;
-      }
-      if (!state.form.tareWeight || isNaN(parseFloat(state.form.tareWeight))) {
-        alert('Please enter a valid tare weight');
-        return;
-      }
-      if (!state.form.date) {
-        alert('Please select a date');
-        return;
-      }
-      if (!state.form.bagCount || isNaN(parseInt(state.form.bagCount))) {
-        alert('Please enter a valid bag count');
-        return;
-      }
-      if (!state.form.size || isNaN(parseFloat(state.form.size))) {
-        alert('Please enter a valid size');
-        return;
-      }
-    }
+    // else if (currentStep === 1) {
+    //   if (!state.form.Trucknumber || state.form.Trucknumber.trim() === '') {
+    //     alert('Please enter truck number');
+    //     return;
+    //   }
 
 
-    else if (currentStep === 2) {
+    //   const truckRegex = /^[A-Z]{2}\d{2}[A-Z]{1,2}\d{4}$/;
+    //   if (!truckRegex.test(state.form.Trucknumber)) {
+    //     alert('Invalid Truck Number (Format: XX00XX0000)');
+    //     return;
+    //   }
 
-      // Validate percentages if switches are on
-      if (state.form.stainingColour) {
-        if (!state.form.stainingColourPercent || isNaN(parseFloat(state.form.stainingColourPercent))) {
-          alert('Please enter staining color percentage');
-          return;
-        }
-        if (parseFloat(state.form.stainingColourPercent) > 100) {
-          alert('Staining color percentage cannot exceed 100%');
-          return;
-        }
-      }
+    //   if (!state.form.grossWeight || isNaN(parseFloat(state.form.grossWeight))) {
+    //     alert('Please enter a valid gross weight');
+    //     return;
+    //   }
+    //   if (!state.form.tareWeight || isNaN(parseFloat(state.form.tareWeight))) {
+    //     alert('Please enter a valid tare weight');
+    //     return;
+    //   }
+    //   if (!state.form.date) {
+    //     alert('Please select a date');
+    //     return;
+    //   }
+    //   if (!state.form.bagCount || isNaN(parseInt(state.form.bagCount))) {
+    //     alert('Please enter a valid bag count');
+    //     return;
+    //   }
+    //   if (!state.form.size || isNaN(parseFloat(state.form.size))) {
+    //     alert('Please enter a valid size');
+    //     return;
+    //   }
+    // }
 
-      if (state.form.blackSmutOnion) {
-        if (!state.form.blackSmutPercent || isNaN(parseFloat(state.form.blackSmutPercent))) {
-          alert('Please enter black smut percentage');
-          return;
-        }
-        if (parseFloat(state.form.blackSmutPercent) > 100) {
-          alert('Black smut percentage cannot exceed 100%');
-          return;
-        }
-      }
 
-      if (state.form.sproutedOnion) {
-        if (!state.form.sproutedPercent || isNaN(parseFloat(state.form.sproutedPercent))) {
-          alert('Please enter sprouted percentage');
-          return;
-        }
-        if (parseFloat(state.form.sproutedPercent) > 100) {
-          alert('Sprouted percentage cannot exceed 100%');
-          return;
-        }
-      }
+    // else if (currentStep === 2) {
 
-      if (state.form.spoiledOnion) {
-        if (!state.form.spoiledPercent || isNaN(parseFloat(state.form.spoiledPercent))) {
-          alert('Please enter spoiled percentage');
-          return;
-        }
-        if (parseFloat(state.form.spoiledPercent) > 100) {
-          alert('Spoiled percentage cannot exceed 100%');
-          return;
-        }
-      }
+    //   // Validate percentages if switches are on
+    //   if (state.form.stainingColour) {
+    //     if (!state.form.stainingColourPercent || isNaN(parseFloat(state.form.stainingColourPercent))) {
+    //       alert('Please enter staining color percentage');
+    //       return;
+    //     }
+    //     if (parseFloat(state.form.stainingColourPercent) > 100) {
+    //       alert('Staining color percentage cannot exceed 100%');
+    //       return;
+    //     }
+    //   }
 
-      if (state.form.onionSkin === "SINGLE") {
-        if (!state.form.onionSkinPercent || isNaN(parseFloat(state.form.onionSkinPercent))) {
-          alert('Please enter onion skin percentage');
-          return;
-        }
-        if (parseFloat(state.form.onionSkinPercent) > 100) {
-          alert('Onion skin percentage cannot exceed 100%');
-          return;
-        }
-      }
+    //   if (state.form.blackSmutOnion) {
+    //     if (!state.form.blackSmutPercent || isNaN(parseFloat(state.form.blackSmutPercent))) {
+    //       alert('Please enter black smut percentage');
+    //       return;
+    //     }
+    //     if (parseFloat(state.form.blackSmutPercent) > 100) {
+    //       alert('Black smut percentage cannot exceed 100%');
+    //       return;
+    //     }
+    //   }
 
-      if (state.form.moisture === "WET") {
-        if (!state.form.moisturePercent || isNaN(parseFloat(state.form.moisturePercent))) {
-          alert('Please enter moisture percentage');
-          return;
-        }
-        if (parseFloat(state.form.moisturePercent) > 100) {
-          alert('Moisture percentage cannot exceed 100%');
-          return;
-        }
-      }
+    //   if (state.form.sproutedOnion) {
+    //     if (!state.form.sproutedPercent || isNaN(parseFloat(state.form.sproutedPercent))) {
+    //       alert('Please enter sprouted percentage');
+    //       return;
+    //     }
+    //     if (parseFloat(state.form.sproutedPercent) > 100) {
+    //       alert('Sprouted percentage cannot exceed 100%');
+    //       return;
+    //     }
+    //   }
 
-      if (state.form.isSpoiledPercentVisible) {
-        if (!state.form.SpoliedPercent || isNaN(parseFloat(state.form.SpoliedPercent))) {
-          alert('Please enter spoiled percentage');
-          return;
-        }
-        if (parseFloat(state.form.SpoliedPercent) > 100) {
-          alert('Spoiled percentage cannot exceed 100%');
-          return;
-        }
-      }
+    //   if (state.form.spoiledOnion) {
+    //     if (!state.form.spoiledPercent || isNaN(parseFloat(state.form.spoiledPercent))) {
+    //       alert('Please enter spoiled percentage');
+    //       return;
+    //     }
+    //     if (parseFloat(state.form.spoiledPercent) > 100) {
+    //       alert('Spoiled percentage cannot exceed 100%');
+    //       return;
+    //     }
+    //   }
 
-      if (!state.form.SpoliedBranch || state.form.SpoliedBranch.trim() === '') {
-        alert('Please enter branch person name');
-        return;
-      }
-    }
+    //   if (state.form.onionSkin === "SINGLE") {
+    //     if (!state.form.onionSkinPercent || isNaN(parseFloat(state.form.onionSkinPercent))) {
+    //       alert('Please enter onion skin percentage');
+    //       return;
+    //     }
+    //     if (parseFloat(state.form.onionSkinPercent) > 100) {
+    //       alert('Onion skin percentage cannot exceed 100%');
+    //       return;
+    //     }
+    //   }
+
+    //   if (state.form.moisture === "WET") {
+    //     if (!state.form.moisturePercent || isNaN(parseFloat(state.form.moisturePercent))) {
+    //       alert('Please enter moisture percentage');
+    //       return;
+    //     }
+    //     if (parseFloat(state.form.moisturePercent) > 100) {
+    //       alert('Moisture percentage cannot exceed 100%');
+    //       return;
+    //     }
+    //   }
+
+    //   if (state.form.isSpoiledPercentVisible) {
+    //     if (!state.form.SpoliedPercent || isNaN(parseFloat(state.form.SpoliedPercent))) {
+    //       alert('Please enter spoiled percentage');
+    //       return;
+    //     }
+    //     if (parseFloat(state.form.SpoliedPercent) > 100) {
+    //       alert('Spoiled percentage cannot exceed 100%');
+    //       return;
+    //     }
+    //   }
+
+    //   if (!state.form.SpoliedBranch || state.form.SpoliedBranch.trim() === '') {
+    //     alert('Please enter branch person name');
+    //     return;
+    //   }
+    // }
     // Step 3 validation is already handled in the submit button's disabled prop
 
     // Proceed to next step if validation passes
-    
+
     updateState({
       ...state,
       hidden: {
@@ -606,6 +703,13 @@ const TestForm = () => {
 
   const handleSubmit = () => {
     // Create a new object with only the required fields
+
+    if (clickCount < 3) {
+      Alert.alert("Minimum Required", "Please upload at least 3 images.");
+    } else {
+      Alert.alert("Success", "Proceeding with captured data.");
+      // Yahan aapka next step ya API call chalega
+    }
     const payload = {
       DestinationBranch: state.form?.option2 || '',
       DestinationLocationId: state.form?.Storagedata || '',
@@ -631,7 +735,7 @@ const TestForm = () => {
       FPCPersonName: state.form?.SpoliedBranch || '',
       Files: state.form?.Files || [],
       Comment: state.form?.SpoliedComment || ''
-        
+
 
     };
 
@@ -641,7 +745,7 @@ const TestForm = () => {
       return;
     }
 
-    
+
 
     const formData = createFormData(payload);
 
@@ -1250,7 +1354,7 @@ const TestForm = () => {
               <View style={styles.buttoncontent}>
                 <TouchableOpacity
                   style={styles.Camerabutton}
-                  onPress={requestCameraPermission}
+                  onPress={handlePresscamera}
                   disabled={(state.form?.Files || []).length >= 9}
                 >
                   <MaterialIcons name="camera" size={30} color="white" />
@@ -1258,18 +1362,21 @@ const TestForm = () => {
                 </TouchableOpacity>
               </View>
 
-                 <View style={styles.buttoncontent}>
+              <View style={styles.buttoncontent}>
                 <TouchableOpacity
                   style={styles.Camerabutton}
                   onPress={requestvideoPermission}
-                  disabled={(state.form?.Files || []).length >= 9}
+                  disabled={
+                    (state.form?.Files || []).filter(f => f.type?.startsWith("video")).length >= 2
+                  } // 👈 sirf 2 video allow
                 >
                   <MaterialIcons name="camera" size={30} color="white" />
                   <Text style={styles.buttonText}>Pick From Video</Text>
                 </TouchableOpacity>
               </View>
 
-              
+
+
 
               {/* Previous and Submit Buttons */}
               <View style={styles.buttoncontent}>
@@ -1326,49 +1433,49 @@ const TestForm = () => {
             />
           </View>
         ))} */}
-         
 
 
-         <View style={styles.fileGrid}>
-          {(state.form?.Files || []).map((item, index) => {
-  // 👇 safe type check
-  const fileType = item.type || "image/jpeg";
 
-  return (
-    <View key={index} style={styles.imageContainer}>
-     
-      {fileType.startsWith("image") ? (
-        <TouchableOpacity onPress={() => setSelectedImage(item.uri)}>
-             <View style={styles.videoView}>
-          <Image source={{ uri: item.uri }} style={styles.image} />
-          </View>
-        </TouchableOpacity>
-      
-      ) : fileType.startsWith("video") ? (
-        <View style={styles.videoView}> 
-        <Video
-          source={{ uri: item.uri }}
-          style={styles.video}
-          controls
-          resizeMode="contain"
-        />
-        </View>
-      ) : (
-        <Text style={{ color: "red" }}>Unknown File</Text>
-      )}
+              <View style={styles.fileGrid}>
+                {(state.form?.Files || []).map((item, index) => {
+                  // 👇 safe type check
+                  const fileType = item.type || "image/jpeg";
 
-      {/* Delete button */}
-      {/* <TouchableOpacity
+                  return (
+                    <View key={index} style={styles.imageContainer}>
+
+                      {fileType.startsWith("image") ? (
+                        <TouchableOpacity onPress={() => setSelectedImage(item.uri)}>
+                          <View style={styles.videoView}>
+                            <Image source={{ uri: item.uri }} style={styles.image} />
+                          </View>
+                        </TouchableOpacity>
+
+                      ) : fileType.startsWith("video") ? (
+                        <View style={styles.videoView}>
+                          <VideoPlayer
+                            source={{ uri: item.uri }}
+                            style={styles.video}
+                            controls
+                            resizeMode="contain"
+                          />
+                        </View>
+                      ) : (
+                        <Text style={{ color: "red" }}>Unknown File</Text>
+                      )}
+
+                      {/* Delete button */}
+                      {/* <TouchableOpacity
         style={styles.deleteIcon}
         onPress={() => handleDeleteImage(index)}
       >
         <MaterialIcons name="cancel" size={24} color="red" />
       </TouchableOpacity> */}
-    </View>
-  );
-})}
+                    </View>
+                  );
+                })}
 
-</View>
+              </View>
 
 
 

@@ -46,12 +46,12 @@ const LoginApp: React.FC<LoginAppProps> = ({ navigation }) => {
   const isOffline = !isConnected;
 
 
-  useEffect(() => {
-    setForm({
-      mobileNo: '9999999902',
-      password: 'Password@123'
-    });
-  }, []);
+  // useEffect(() => {
+  //   setForm({
+  //     mobileNo: '9999999902',
+  //     password: 'Password@123'
+  //   });
+  // }, []);
 
   useEffect(() => {
     const unsubscribe = NetInfo.addEventListener(state => {
