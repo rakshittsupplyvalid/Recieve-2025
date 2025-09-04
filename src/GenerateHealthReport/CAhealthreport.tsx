@@ -1534,7 +1534,7 @@ const CAhealthreport = () => {
                                 </TouchableOpacity>
                             </View>
 
-                            {/* <View style={styles.buttoncontent}>
+                            <View style={styles.buttoncontent}>
                                 <TouchableOpacity
                                     style={styles.Camerabutton}
                                     onPress={requestvideoPermission}
@@ -1545,7 +1545,7 @@ const CAhealthreport = () => {
                                     <MaterialIcons name="camera" size={30} color="white" />
                                     <Text style={styles.buttonText}>Pick From Video</Text>
                                 </TouchableOpacity>
-                            </View> */}
+                            </View>
 
 
 

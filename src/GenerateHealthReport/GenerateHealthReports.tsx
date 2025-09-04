@@ -592,6 +592,7 @@ const TestForm = () => {
 
   const handleDateConfirm = (selectedDate: Date) => {
     setDatePickerVisibility(false);
+      console.log("Selected Date:", selectedDate);
     if (selectedDate) {
       // Format the date to ISO string without milliseconds
       const formattedDate = selectedDate.toISOString().split('.')[0] + 'Z';
@@ -901,7 +902,7 @@ const TestForm = () => {
 
                     }}
                   >
-                    <Picker.Item label="Select storage" value="" />
+                    <Picker.Item label="Select Location" value="" />
                     {state.fielddata.storageLocation?.map((item: { text: string; value: string }) => (
                       <Picker.Item key={item.value} label={item.text} value={item.value} />
                     ))}
@@ -1365,7 +1366,7 @@ const TestForm = () => {
                 </TouchableOpacity>
               </View>
 
-              {/* <View style={styles.buttoncontent}>
+              <View style={styles.buttoncontent}>
                 <TouchableOpacity
                   style={styles.Camerabutton}
                   onPress={requestvideoPermission}
@@ -1376,7 +1377,7 @@ const TestForm = () => {
                   <MaterialIcons name="camera" size={30} color="white" />
                   <Text style={styles.buttonText}>Pick From Video</Text>
                 </TouchableOpacity>
-              </View> */}
+              </View>
 
 
 

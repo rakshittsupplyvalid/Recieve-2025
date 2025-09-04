@@ -324,7 +324,7 @@ const HealthReportDetails = () => {
                       )}
                 
                       {/* Videos Section */}
-                      {/* {videos.length > 0 && (
+                      {videos.length > 0 && (
                         <View style={styles.card}>
                           <View style={styles.cardHeader}>
                             <FontAwesome name="video-camera" size={20} color="#F79B00" />
@@ -343,7 +343,7 @@ const HealthReportDetails = () => {
                             </View>
                           ))}
                         </View>
-                      )} */}
+                      )}
 
           
             </ScrollView>

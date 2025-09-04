@@ -45,7 +45,7 @@ const RecieveDhasboard = () => {
       setDispatchCount(dispatchResponse.data);
             console.log('count 1' , dispatchResponse.data);
 
-      const recieveResponse = await apiClient.get('/api/mobile/count/total?ReportType=RECEIVE&ReportDispatchType=NORMAL&ApprovalStatus=PENDING&ApprovalStatus=APPROVED&ApprovalStatus=REJECTED');
+      const recieveResponse = await apiClient.get('/api/mobile/count/total?ReportType=RECEIVE&ApprovalStatus=PENDING&ApprovalStatus=APPROVED&ApprovalStatus=REJECTED');
       setRecieveCount(recieveResponse.data);
         console.log('count 2' , recieveResponse.data);
 
