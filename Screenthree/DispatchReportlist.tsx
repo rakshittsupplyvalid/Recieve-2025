@@ -45,18 +45,19 @@ const DispatchReportList = () => {
     }
   };
 
-  const filterReports = (data, query) => {
-    if (!query) return data;
-    const lowerQuery = query.toLowerCase();
-    return data.filter(item => {
-      const formattedDate = moment(item.date).add(5, "hours").format("DD-MM-YYYY");
-      return (
-        item.trucknumber?.toLowerCase().includes(lowerQuery) ||
-        item.assayername?.toLowerCase().includes(lowerQuery) ||
-        formattedDate.includes(lowerQuery)
-      );
-    });
-  };
+const filterReports = (data, query) => {
+  if (!query) return data;
+  const lowerQuery = query.toLowerCase();
+  return data.filter(item => {
+    const formattedDate = moment(item.date).add(5, "hours").format("DD-MM-YYYY");
+    return (
+      item.truckNumber?.toLowerCase().includes(lowerQuery) ||   // ✅ corrected key
+      item.assayerName?.toLowerCase().includes(lowerQuery) ||   // ✅ corrected key
+      formattedDate.includes(lowerQuery)
+    );
+  });
+};
+
 
   useEffect(() => {
     fetchHealthReports();
@@ -77,41 +78,48 @@ const DispatchReportList = () => {
       <Navbar />
       <View style={styles.searchContainer}>
         <TextInput
-          placeholder="Search Truck, Assayer or Date"
+          placeholder="Search Truck, Assayer or Dates"
           style={styles.searchInput}
           value={searchQuery}
           onChangeText={(text) => setSearchQuery(text)}
         />
       </View>
 
+      
       <FlatList
-        data={filteredReports}
-        keyExtractor={(item, index) => index.toString()}
-        renderItem={({ item }) => (
-          <View style={styles.one}>
-            <View style={styles.card}>
-              <View style={styles.topRightCorner} />
-              <View style={styles.bottomLeftCorner} />
-              <View style={styles.row}>
-                <Text style={styles.label}>{t('assyarerName')}</Text>
-                <Text style={styles.value}>{item.assayerName}</Text>
-              </View>
-              <View style={styles.row}>
-                <Text style={styles.label}>{t('Date')}</Text>
-                <Text style={styles.value}>{moment(item.date).format('DD-MM-YYYY')}</Text>
-              </View>
-              <View style={styles.row}>
-                <Text style={styles.label}>{t('TruckNumber')}</Text>
-                <Text style={styles.value}>{item.truckNumber}</Text>
-              </View>
-            </View>
-          </View>
-        )}
-        onEndReached={handleLoadMore}
-        onEndReachedThreshold={0.5}
-        ListFooterComponent={loading ? <ActivityIndicator size="large" color="blue" /> : null}
-        ListEmptyComponent={!loading && <Text style={{ textAlign: 'center', marginTop: 20 }}>No Data Found</Text>}
-      />
+  data={filteredReports}
+  keyExtractor={(item, index) => index.toString()}
+  renderItem={({ item }) => (
+    <View style={styles.one}>
+      <View style={styles.card}>
+        <View style={styles.topRightCorner} />
+        <View style={styles.bottomLeftCorner} />
+        <View style={styles.row}>
+          <Text style={styles.label}>{t('assyarerName')}</Text>
+          <Text style={styles.value}>{item.assayerName}</Text>
+        </View>
+        <View style={styles.row}>
+          <Text style={styles.label}>{t('Date')}</Text>
+          <Text style={styles.value}>{moment(item.date).format('DD-MM-YYYY')}</Text>
+        </View>
+        <View style={styles.row}>
+          <Text style={styles.label}>{t('TruckNumber')}</Text>
+          <Text style={styles.value}>{item.truckNumber}</Text>
+        </View>
+      </View>
+    </View>
+  )}
+  onEndReached={handleLoadMore}
+  onEndReachedThreshold={0.5}
+  ListEmptyComponent={
+    !loading && (
+      <Text style={{ textAlign: 'center', marginTop: 20, fontSize: 16 }}>
+        No Data Found
+      </Text>
+    )
+  }
+/>
+
     </SafeAreaView>
   );
 };

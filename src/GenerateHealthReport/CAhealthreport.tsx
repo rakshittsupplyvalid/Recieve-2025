@@ -524,97 +524,97 @@ const CAhealthreport = () => {
     const handleNext = (nextStep: number) => {
         let result: any = { isValid: true }; // Initialize with default valid state
 
-        // if (currentStep === 0) {
-        //     if (!state.form.reportType) {
-        //         alert('Please select a report type');
-        //         return;
-        //     }
-        //     if (!state.form.healthReportDispatchType) {
-        //         alert('Please select a health report dispatch type');
-        //         return;
-        //     }
-        //     if (!state.form.clientdata) {
-        //         alert('Please select a client');
-        //         return;
-        //     }
-        //     if (!state.form.option1) {
-        //         alert('Please select a company');
-        //         return;
-        //     }
-        //     if (!state.form.option2) {
-        //         alert('Please select a branch');
-        //         return;
-        //     }
-        //     if (!state.form.Caadmindata) {
-        //         alert('Please select a CA Admin');
-        //         return;
-        //     }
-        //     if (!state.form.Storagedata) {
-        //         alert('Please select a storage location');
-        //         return;
-        //     }
-        // }
-        // Step 1 validation (basic information)
-        //      else if (currentStep === 1) {
+        if (currentStep === 0) {
+            if (!state.form.reportType) {
+                alert('Please select a report type');
+                return;
+            }
+            if (!state.form.healthReportDispatchType) {
+                alert('Please select a health report dispatch type');
+                return;
+            }
+            if (!state.form.clientdata) {
+                alert('Please select a client');
+                return;
+            }
+            if (!state.form.option1) {
+                alert('Please select a company');
+                return;
+            }
+            if (!state.form.option2) {
+                alert('Please select a branch');
+                return;
+            }
+            if (!state.form.Caadmindata) {
+                alert('Please select a CA Admin');
+                return;
+            }
+            if (!state.form.Storagedata) {
+                alert('Please select a storage location');
+                return;
+            }
+        }
+ 
+             else if (currentStep === 1) {
 
-        //     // Truck number validation
-        //     if (!state.form.Trucknumber || state.form.Trucknumber.trim() === '') {
-        //         alert('Please enter truck number');
-        //         return;
-        //     }
-        //     // const truckRegex = /^[A-Z]{2}[0-9]{2}[A-Z]{2}[0-9]{4}$/;
-        //     // if (!truckRegex.test(state.form.Trucknumber)) {
-        //     //     alert('Please enter a valid truck number (e.g., UP32AB1234)');
-        //     //     return;
-        //     // }
+            // Truck number validation
+            if (!state.form.Trucknumber || state.form.Trucknumber.trim() === '') {
+                alert('Please enter truck number');
+                return;
+            }
+            // const truckRegex = /^[A-Z]{2}[0-9]{2}[A-Z]{2}[0-9]{4}$/;
+            // if (!truckRegex.test(state.form.Trucknumber)) {
+            //     alert('Please enter a valid truck number (e.g., UP32AB1234)');
+            //     return;
+            // }
 
-        //     // Gross weight validation
-        //     if (!state.form.grossWeight || isNaN(parseFloat(state.form.grossWeight))) {
-        //         alert('Please enter a valid gross weight');
-        //         return;
-        //     }
+            // Gross weight validation
+            if (!state.form.grossWeight || isNaN(parseFloat(state.form.grossWeight))) {
+                alert('Please enter a valid gross weight');
+                return;
+            }
 
-        //     // Tare weight validation
-        //     if (!state.form.tareWeight || isNaN(parseFloat(state.form.tareWeight))) {
-        //         alert('Please enter a valid tare weight');
-        //         return;
-        //     }
+            // Tare weight validation
+            if (!state.form.tareWeight || isNaN(parseFloat(state.form.tareWeight))) {
+                alert('Please enter a valid tare weight');
+                return;
+            }
 
-        //     // Net weight validation (Gross - Tare >= 0)
-        //     const netWeight = parseFloat(state.form.grossWeight) - parseFloat(state.form.tareWeight);
-        //     if (netWeight < 0) {
-        //         alert('Net weight cannot be negative');
-        //         return;
-        //     }
+            // Net weight validation (Gross - Tare >= 0)
+            const netWeight = parseFloat(state.form.grossWeight) - parseFloat(state.form.tareWeight);
+            if (netWeight < 0) {
+                alert('Net weight cannot be negative');
+                return;
+            }
 
-        //     // Date validation
-        //     if (!state.form.date) {
-        //         alert('Please select a date');
-        //         return;
-        //     }
+            // Date validation
+            if (!state.form.date) {
+                alert('Please select a date');
+                return;
+            }
 
-        //     // Bag count validation
-        //     if (!state.form.bagCount || isNaN(parseInt(state.form.bagCount))) {
-        //         alert('Please enter a valid bag count');
-        //         return;
-        //     }
+            // Bag count validation
+            if (!state.form.bagCount || isNaN(parseInt(state.form.bagCount))) {
+                alert('Please enter a valid bag count');
+                return;
+            }
 
-        //     // Size validation
-        //     if (!state.form.size || isNaN(parseFloat(state.form.size))) {
-        //         alert('Please enter a valid size');
-        //         return;
-        //     }
-        // }
-
-        // Step 2 validation (quality parameters)
-        // else if (currentStep === 2) {
+            // Size validation
+            if (!state.form.size || isNaN(parseFloat(state.form.size))) {
+                alert('Please enter a valid size');
+                return;
+            }
+        }
 
 
-        //     if (!state.form.SpoliedBranch || state.form.SpoliedBranch.trim() === '') {
-        //         alert('Please enter branch person name');
-        //         return;
-        //     }
-        // }
+        else if (currentStep === 2) {
+
+
+            if (!state.form.SpoliedBranch || state.form.SpoliedBranch.trim() === '') {
+                alert('Please enter branch person name');
+                return;
+            }
+        }
 
 
 
@@ -644,6 +644,8 @@ const CAhealthreport = () => {
         // }
 
         // Proceed to next step
+      
+      
         updateState({
             ...state,
             hidden: {
@@ -1532,7 +1534,7 @@ const CAhealthreport = () => {
                                 </TouchableOpacity>
                             </View>
 
-                            <View style={styles.buttoncontent}>
+                            {/* <View style={styles.buttoncontent}>
                                 <TouchableOpacity
                                     style={styles.Camerabutton}
                                     onPress={requestvideoPermission}
@@ -1543,7 +1545,7 @@ const CAhealthreport = () => {
                                     <MaterialIcons name="camera" size={30} color="white" />
                                     <Text style={styles.buttonText}>Pick From Video</Text>
                                 </TouchableOpacity>
-                            </View>
+                            </View> */}
 
 
 

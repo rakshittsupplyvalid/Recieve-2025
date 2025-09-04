@@ -424,144 +424,144 @@ const TestForm = () => {
     let validationResult: { isValid: boolean; message?: string } | null = null;
 
     // Step 0 validation (company/branch/federation selection)
-    // if (currentStep === 0) {
-    //   if (!state.form.option1) {
-    //     alert('Please select a company');
-    //     return;
-    //   }
-    //   if (!state.form.option2) {
-    //     alert('Please select a branch');
-    //     return;
-    //   }
+    if (currentStep === 0) {
+      if (!state.form.option1) {
+        alert('Please select a company');
+        return;
+      }
+      if (!state.form.option2) {
+        alert('Please select a branch');
+        return;
+      }
 
-    //   if (!state.form.Storagedata) {
-    //     alert('Please select a storage location');
-    //     return;
-    //   }
-    // }
+      if (!state.form.Storagedata) {
+        alert('Please select a storage location');
+        return;
+      }
+    }
 
-    // else if (currentStep === 1) {
-    //   if (!state.form.Trucknumber || state.form.Trucknumber.trim() === '') {
-    //     alert('Please enter truck number');
-    //     return;
-    //   }
-
-
-    //   const truckRegex = /^[A-Z]{2}\d{2}[A-Z]{1,2}\d{4}$/;
-    //   if (!truckRegex.test(state.form.Trucknumber)) {
-    //     alert('Invalid Truck Number (Format: XX00XX0000)');
-    //     return;
-    //   }
-
-    //   if (!state.form.grossWeight || isNaN(parseFloat(state.form.grossWeight))) {
-    //     alert('Please enter a valid gross weight');
-    //     return;
-    //   }
-    //   if (!state.form.tareWeight || isNaN(parseFloat(state.form.tareWeight))) {
-    //     alert('Please enter a valid tare weight');
-    //     return;
-    //   }
-    //   if (!state.form.date) {
-    //     alert('Please select a date');
-    //     return;
-    //   }
-    //   if (!state.form.bagCount || isNaN(parseInt(state.form.bagCount))) {
-    //     alert('Please enter a valid bag count');
-    //     return;
-    //   }
-    //   if (!state.form.size || isNaN(parseFloat(state.form.size))) {
-    //     alert('Please enter a valid size');
-    //     return;
-    //   }
-    // }
+    else if (currentStep === 1) {
+      if (!state.form.Trucknumber || state.form.Trucknumber.trim() === '') {
+        alert('Please enter truck number');
+        return;
+      }
 
 
-    // else if (currentStep === 2) {
+      const truckRegex = /^[A-Z]{2}\d{2}[A-Z]{1,2}\d{4}$/;
+      if (!truckRegex.test(state.form.Trucknumber)) {
+        alert('Invalid Truck Number (Format: XX00XX0000)');
+        return;
+      }
 
-    //   // Validate percentages if switches are on
-    //   if (state.form.stainingColour) {
-    //     if (!state.form.stainingColourPercent || isNaN(parseFloat(state.form.stainingColourPercent))) {
-    //       alert('Please enter staining color percentage');
-    //       return;
-    //     }
-    //     if (parseFloat(state.form.stainingColourPercent) > 100) {
-    //       alert('Staining color percentage cannot exceed 100%');
-    //       return;
-    //     }
-    //   }
+      if (!state.form.grossWeight || isNaN(parseFloat(state.form.grossWeight))) {
+        alert('Please enter a valid gross weight');
+        return;
+      }
+      if (!state.form.tareWeight || isNaN(parseFloat(state.form.tareWeight))) {
+        alert('Please enter a valid tare weight');
+        return;
+      }
+      if (!state.form.date) {
+        alert('Please select a date');
+        return;
+      }
+      if (!state.form.bagCount || isNaN(parseInt(state.form.bagCount))) {
+        alert('Please enter a valid bag count');
+        return;
+      }
+      if (!state.form.size || isNaN(parseFloat(state.form.size))) {
+        alert('Please enter a valid size');
+        return;
+      }
+    }
 
-    //   if (state.form.blackSmutOnion) {
-    //     if (!state.form.blackSmutPercent || isNaN(parseFloat(state.form.blackSmutPercent))) {
-    //       alert('Please enter black smut percentage');
-    //       return;
-    //     }
-    //     if (parseFloat(state.form.blackSmutPercent) > 100) {
-    //       alert('Black smut percentage cannot exceed 100%');
-    //       return;
-    //     }
-    //   }
 
-    //   if (state.form.sproutedOnion) {
-    //     if (!state.form.sproutedPercent || isNaN(parseFloat(state.form.sproutedPercent))) {
-    //       alert('Please enter sprouted percentage');
-    //       return;
-    //     }
-    //     if (parseFloat(state.form.sproutedPercent) > 100) {
-    //       alert('Sprouted percentage cannot exceed 100%');
-    //       return;
-    //     }
-    //   }
+    else if (currentStep === 2) {
 
-    //   if (state.form.spoiledOnion) {
-    //     if (!state.form.spoiledPercent || isNaN(parseFloat(state.form.spoiledPercent))) {
-    //       alert('Please enter spoiled percentage');
-    //       return;
-    //     }
-    //     if (parseFloat(state.form.spoiledPercent) > 100) {
-    //       alert('Spoiled percentage cannot exceed 100%');
-    //       return;
-    //     }
-    //   }
+      // Validate percentages if switches are on
+      if (state.form.stainingColour) {
+        if (!state.form.stainingColourPercent || isNaN(parseFloat(state.form.stainingColourPercent))) {
+          alert('Please enter staining color percentage');
+          return;
+        }
+        if (parseFloat(state.form.stainingColourPercent) > 100) {
+          alert('Staining color percentage cannot exceed 100%');
+          return;
+        }
+      }
 
-    //   if (state.form.onionSkin === "SINGLE") {
-    //     if (!state.form.onionSkinPercent || isNaN(parseFloat(state.form.onionSkinPercent))) {
-    //       alert('Please enter onion skin percentage');
-    //       return;
-    //     }
-    //     if (parseFloat(state.form.onionSkinPercent) > 100) {
-    //       alert('Onion skin percentage cannot exceed 100%');
-    //       return;
-    //     }
-    //   }
+      if (state.form.blackSmutOnion) {
+        if (!state.form.blackSmutPercent || isNaN(parseFloat(state.form.blackSmutPercent))) {
+          alert('Please enter black smut percentage');
+          return;
+        }
+        if (parseFloat(state.form.blackSmutPercent) > 100) {
+          alert('Black smut percentage cannot exceed 100%');
+          return;
+        }
+      }
 
-    //   if (state.form.moisture === "WET") {
-    //     if (!state.form.moisturePercent || isNaN(parseFloat(state.form.moisturePercent))) {
-    //       alert('Please enter moisture percentage');
-    //       return;
-    //     }
-    //     if (parseFloat(state.form.moisturePercent) > 100) {
-    //       alert('Moisture percentage cannot exceed 100%');
-    //       return;
-    //     }
-    //   }
+      if (state.form.sproutedOnion) {
+        if (!state.form.sproutedPercent || isNaN(parseFloat(state.form.sproutedPercent))) {
+          alert('Please enter sprouted percentage');
+          return;
+        }
+        if (parseFloat(state.form.sproutedPercent) > 100) {
+          alert('Sprouted percentage cannot exceed 100%');
+          return;
+        }
+      }
 
-    //   if (state.form.isSpoiledPercentVisible) {
-    //     if (!state.form.SpoliedPercent || isNaN(parseFloat(state.form.SpoliedPercent))) {
-    //       alert('Please enter spoiled percentage');
-    //       return;
-    //     }
-    //     if (parseFloat(state.form.SpoliedPercent) > 100) {
-    //       alert('Spoiled percentage cannot exceed 100%');
-    //       return;
-    //     }
-    //   }
+      if (state.form.spoiledOnion) {
+        if (!state.form.spoiledPercent || isNaN(parseFloat(state.form.spoiledPercent))) {
+          alert('Please enter spoiled percentage');
+          return;
+        }
+        if (parseFloat(state.form.spoiledPercent) > 100) {
+          alert('Spoiled percentage cannot exceed 100%');
+          return;
+        }
+      }
 
-    //   if (!state.form.SpoliedBranch || state.form.SpoliedBranch.trim() === '') {
-    //     alert('Please enter branch person name');
-    //     return;
-    //   }
-    // }
-    // Step 3 validation is already handled in the submit button's disabled prop
+      if (state.form.onionSkin === "SINGLE") {
+        if (!state.form.onionSkinPercent || isNaN(parseFloat(state.form.onionSkinPercent))) {
+          alert('Please enter onion skin percentage');
+          return;
+        }
+        if (parseFloat(state.form.onionSkinPercent) > 100) {
+          alert('Onion skin percentage cannot exceed 100%');
+          return;
+        }
+      }
+
+      if (state.form.moisture === "WET") {
+        if (!state.form.moisturePercent || isNaN(parseFloat(state.form.moisturePercent))) {
+          alert('Please enter moisture percentage');
+          return;
+        }
+        if (parseFloat(state.form.moisturePercent) > 100) {
+          alert('Moisture percentage cannot exceed 100%');
+          return;
+        }
+      }
+
+      if (state.form.isSpoiledPercentVisible) {
+        if (!state.form.SpoliedPercent || isNaN(parseFloat(state.form.SpoliedPercent))) {
+          alert('Please enter spoiled percentage');
+          return;
+        }
+        if (parseFloat(state.form.SpoliedPercent) > 100) {
+          alert('Spoiled percentage cannot exceed 100%');
+          return;
+        }
+      }
+
+      if (!state.form.SpoliedBranch || state.form.SpoliedBranch.trim() === '') {
+        alert('Please enter branch person name');
+        return;
+      }
+    }
+  
 
     // Proceed to next step if validation passes
 
@@ -943,6 +943,7 @@ const TestForm = () => {
                 }}
                 autoCapitalize="characters"
                 keyboardType="default" // Yeh aap 'keyb' likh rahe the, pura likha
+                     maxLength={13}
               />
 
               <TextInput
@@ -1003,6 +1004,7 @@ const TestForm = () => {
                   }
                 })}
                 keyboardType="numeric"
+                     maxLength={5}
               />
 
               <TextInput
@@ -1017,6 +1019,7 @@ const TestForm = () => {
                   }
                 })}
                 keyboardType="numeric"
+                     maxLength={5}
               />
 
 
@@ -1362,7 +1365,7 @@ const TestForm = () => {
                 </TouchableOpacity>
               </View>
 
-              <View style={styles.buttoncontent}>
+              {/* <View style={styles.buttoncontent}>
                 <TouchableOpacity
                   style={styles.Camerabutton}
                   onPress={requestvideoPermission}
@@ -1373,7 +1376,7 @@ const TestForm = () => {
                   <MaterialIcons name="camera" size={30} color="white" />
                   <Text style={styles.buttonText}>Pick From Video</Text>
                 </TouchableOpacity>
-              </View>
+              </View> */}
 
 
 
