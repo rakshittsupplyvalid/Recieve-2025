@@ -703,14 +703,17 @@ const TestForm = () => {
 
 
   const handleSubmit = () => {
-    // Create a new object with only the required fields
+// Minimum 3 required
+if ((state.form?.Files || []).length < 3) {
+  Alert.alert('Error', 'Please upload at least 3 images before submitting.');
+  return;
+}
 
-    if (clickCount < 3) {
-      Alert.alert("Minimum Required", "Please upload at least 3 images.");
-    } else {
-      Alert.alert("Success", "Proceeding with captured data.");
-      // Yahan aapka next step ya API call chalega
-    }
+// Maximum 8 allowed
+if ((state.form?.Files || []).length > 8) {
+  Alert.alert('Error', 'Please upload Maximum 8 images before submitting.');
+  return;
+}
     const payload = {
       DestinationBranch: state.form?.option2 || '',
       DestinationLocationId: state.form?.Storagedata || '',

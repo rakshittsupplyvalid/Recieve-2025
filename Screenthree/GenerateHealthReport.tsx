@@ -633,7 +633,7 @@ const handleNext = (nextStep: number) => {
     }
 
     if (imageUri.length > 9) {
-      Alert.alert('Error', 'Please upload Maximum 3 images before submitting.');
+      Alert.alert('Error', 'Please upload Maximum 9 images before submitting.');
       return;
     }
 

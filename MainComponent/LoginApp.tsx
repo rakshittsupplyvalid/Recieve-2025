@@ -46,12 +46,12 @@ const LoginApp: React.FC<LoginAppProps> = ({ navigation }) => {
   const isOffline = !isConnected;
 
 
-  // useEffect(() => {
-  //   setForm({
-  //     mobileNo: '6290497244',
-  //     password: 'Password@123'
-  //   });
-  // }, []);
+  useEffect(() => {
+    setForm({
+      mobileNo: '6290497244',
+      password: 'Passwordgit@123'
+    });
+  }, []);
 
 
 
