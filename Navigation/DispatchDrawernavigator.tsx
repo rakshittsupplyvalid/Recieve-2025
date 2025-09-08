@@ -62,8 +62,21 @@ export default function DispatchDrawernavigator() {
     try {
       storage.delete('userToken');
       console.log('User logged out successfully');
-      if (navigation) {
-        navigation.reset({ routes: [{ name: 'LoginApp' }] });
+      if (
+        
+        navigation
+
+      )
+        
+        
+        
+        {
+        navigation.reset({ routes: [{ name: 'LoginApp' } 
+
+        ] 
+        
+      }
+     );
       }
     } catch (error) {
       console.error('Error during logout:', error);
