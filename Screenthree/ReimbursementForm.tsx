@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import {
   View,
   Text,
@@ -11,6 +11,8 @@ import {
   Pressable,
   KeyboardAvoidingView,
   Platform,
+  ActivityIndicator,
+  Dimensions
 } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import { launchCamera, launchImageLibrary, ImagePickerResponse } from 'react-native-image-picker';
@@ -22,6 +24,11 @@ import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import Modal from 'react-native-modal';
 import Navbar from '../App/Navbar';
 import { ScrollView } from 'react-native-gesture-handler';
+import * as Location from 'expo-location';
+import ViewShot from 'react-native-view-shot';
+
+const { width } = Dimensions.get('window');
+const isSmallDevice = width < 375;
 
 type ImageAsset = {
   uri: string;
@@ -44,7 +51,6 @@ const ReimbursementForm = () => {
     VehicleType: '',
     VehicleNumber: '',
   });
-  const [images, setImages] = useState<ImageAsset[]>([]);
   const [billTypeItems] = useState([
     { label: 'Petrol', value: 'Petrol' },
     { label: 'Food', value: 'Food' },
@@ -56,14 +62,32 @@ const ReimbursementForm = () => {
     { label: 'Four Wheeler', value: 'FourWheeler' },
   ]);
   const [showDatePicker, setShowDatePicker] = useState(false);
+  const [address, setAddress] = useState<Location.LocationGeocodedAddress | null>(null);
+  const [location, setLocation] = useState<Location.LocationObjectCoords | null>(null);
+  const [formattedAddress, setFormattedAddress] = useState('');
+  const [imageUri, setImageUri] = useState<ImageAsset[]>([]);
   const [selectedDate, setSelectedDate] = useState(new Date());
+  const [screenshots, setScreenshots] = useState<ImageAsset[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isModalVisible, setModalVisible] = useState(false);
+  const [isCapturingLocation, setIsCapturingLocation] = useState(false);
+  const viewShotRefs = useRef<Array<ViewShot | null>>([]);
   const { t } = useTranslation();
 
   const today = new Date();
   const threeMonthsAgo = new Date();
   threeMonthsAgo.setMonth(today.getMonth() - 3);
+
+  // Validate minimum and maximum images
+  const validateImages = () => {
+    if (screenshots.length === 0) {
+      return 'Please upload at least one image';
+    }
+    if (screenshots.length > 5) {
+      return 'Maximum 5 images allowed';
+    }
+    return '';
+  };
 
   const validateField = (field: string, value: any) => {
     let error = '';
@@ -116,9 +140,8 @@ const ReimbursementForm = () => {
         }
         break;
       case 'images':
-        if ((formData.BillType === 'Food' || formData.BillType === 'Petrol') && images.length === 0) {
-          error = 'Please upload at least one image';
-        }
+        const imageError = validateImages();
+        if (imageError) error = imageError;
         break;
     }
 
@@ -133,8 +156,6 @@ const ReimbursementForm = () => {
         const error = validateField(field, formData[field as keyof typeof formData]);
         if (error) newErrors[field] = error;
       });
-      const imageError = validateField('images', null);
-      if (imageError) newErrors.images = imageError;
     }
 
     if (formData.BillType === 'Petrol') {
@@ -142,9 +163,11 @@ const ReimbursementForm = () => {
         const error = validateField(field, formData[field as keyof typeof formData]);
         if (error) newErrors[field] = error;
       });
-      const imageError = validateField('images', null);
-      if (imageError) newErrors.images = imageError;
     }
+
+    // Always validate images
+    const imageError = validateImages();
+    if (imageError) newErrors.images = imageError;
 
     if (!formData.BillType) {
       newErrors.BillType = 'Bill type is required';
@@ -167,6 +190,39 @@ const ReimbursementForm = () => {
     setFormData({ ...formData, [key]: value });
   };
 
+  const fetchLocation = async () => {
+    try {
+      setIsCapturingLocation(true);
+      let { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== 'granted') {
+        alert('Location permission denied');
+        return;
+      }
+
+      let locationData = await Location.getCurrentPositionAsync({
+        accuracy: Location.Accuracy.High
+      });
+      setLocation(locationData.coords);
+
+      let reverseGeocode = await Location.reverseGeocodeAsync({
+        latitude: locationData.coords.latitude,
+        longitude: locationData.coords.longitude,
+      });
+
+      if (reverseGeocode.length > 0) {
+        setAddress(reverseGeocode[0] || null);
+        const addr = reverseGeocode[0];
+        const formatted = `${addr.name || ''}, ${addr.city || ''}, ${addr.region || ''}, ${addr.country || ''}`.replace(/\s*,\s*,/g, ',').replace(/^,\s*|\s*,$/g, '');
+        setFormattedAddress(formatted);
+      }
+    } catch (error) {
+      console.error('Location error:', error);
+      Alert.alert('Location Error', 'Could not fetch location');
+    } finally {
+      setIsCapturingLocation(false);
+    }
+  };
+
   const requestCameraPermission = async () => {
     if (Platform.OS === 'android') {
       try {
@@ -174,39 +230,73 @@ const ReimbursementForm = () => {
           PermissionsAndroid.PERMISSIONS.CAMERA
         );
         if (granted === PermissionsAndroid.RESULTS.GRANTED) {
-          handleTakePhoto();
+          openCamera();
         }
       } catch (err) {
         console.warn(err);
       }
     } else {
-      handleTakePhoto();
+      openCamera();
     }
   };
 
-  const handleTakePhoto = () => {
-    launchCamera(
-      {
-        mediaType: 'photo',
-        includeBase64: false,
-        cameraType: 'back',
-        quality: 0.4,
-        maxWidth: 700,
-        maxHeight: 700,
-      },
-      (response: ImagePickerResponse) => {
-        if (response.assets) {
-          const capturedImage = response.assets[0];
-          const image = {
-            uri: capturedImage.uri ?? '',
-            fileName: capturedImage.fileName || `image_${Date.now()}.jpg`,
-            type: capturedImage.type || 'image/jpeg',
+  const openCamera = async () => {
+    // First get location
+    await fetchLocation();
+    
+    launchCamera({ 
+      mediaType: 'photo',
+      quality: 0.8,
+      maxWidth: 1024,
+      maxHeight: 1024
+    }, (response) => {
+      if (response.didCancel) {
+        console.log('User cancelled image picker');
+      } else if (response.errorMessage) {
+        Alert.alert('Error', response.errorMessage);
+      } else if (response.assets && response.assets.length > 0) {
+        const asset = response.assets[0];
+        const newImage: ImageAsset = {
+          uri: asset.uri!,
+          fileName: asset.fileName || `image_${Date.now()}.jpg`,
+          type: asset.type || 'image/jpeg'
+        };
+        const newIndex = imageUri.length;
+
+        setImageUri((prev) => {
+          const updatedList = [...prev, newImage];
+          // Capture screenshot with geolocation
+          setTimeout(() => {
+            captureSingleScreenshot(newIndex);
+          }, 1000);
+          return updatedList;
+        });
+      }
+    });
+    toggleModal();
+  };
+
+  const captureSingleScreenshot = async (index: number) => {
+    try {
+      const ref = viewShotRefs.current[index];
+      if (ref && typeof ref.capture === 'function') {
+        const uri = await ref.capture();
+        if (uri) {
+          const screenshotImage: ImageAsset = {
+            uri,
+            fileName: `geotagged_${Date.now()}_${index}.jpg`,
+            type: 'image/jpeg',
           };
-          setImages((prevImages) => [...prevImages, image]);
+          setScreenshots((prev) => {
+            const newScreenshots = [...prev];
+            newScreenshots[index] = screenshotImage;
+            return newScreenshots;
+          });
         }
       }
-    );
-    toggleModal();
+    } catch (error) {
+      console.error('Screenshot error:', error);
+    }
   };
 
   const handlePickImage = () => {
@@ -214,19 +304,27 @@ const ReimbursementForm = () => {
       {
         mediaType: 'photo',
         includeBase64: false,
-        quality: 0.4,
-        maxWidth: 700,
-        maxHeight: 700,
+        quality: 0.8,
+        maxWidth: 1024,
+        maxHeight: 1024,
+        selectionLimit: 5 - screenshots.length // Limit selection based on remaining slots
       },
       (response: ImagePickerResponse) => {
         if (response.assets) {
-          const pickedImage = response.assets[0];
-          const image = {
-            uri: pickedImage.uri ?? '',
-            fileName: pickedImage.fileName || `image_${Date.now()}.jpg`,
-            type: pickedImage.type || 'image/jpeg',
-          };
-          setImages((prevImages) => [...prevImages, image]);
+          const newImages: ImageAsset[] = response.assets.map((asset, index) => ({
+            uri: asset.uri ?? '',
+            fileName: asset.fileName || `gallery_${Date.now()}_${index}.jpg`,
+            type: asset.type || 'image/jpeg',
+          }));
+
+          setImageUri((prev) => [...prev, ...newImages]);
+          
+          // For gallery images, we need to capture them with geolocation overlay
+          newImages.forEach((_, index) => {
+            setTimeout(() => {
+              captureSingleScreenshot(imageUri.length + index);
+            }, 1000);
+          });
         }
       }
     );
@@ -234,7 +332,11 @@ const ReimbursementForm = () => {
   };
 
   const handleDeleteImage = (index: number) => {
-    setImages((prevImages) => prevImages.filter((_, i) => i !== index));
+    setImageUri((prev) => prev.filter((_, i) => i !== index));
+    setScreenshots((prev) => prev.filter((_, i) => i !== index));
+    
+    // Clean up refs
+    viewShotRefs.current = viewShotRefs.current.filter((_, i) => i !== index);
   };
 
   const handleSubmit = async () => {
@@ -255,12 +357,15 @@ const ReimbursementForm = () => {
       data.append('VehicleNumber', formData.VehicleNumber);
     }
 
-    images.forEach((image) => {
-      data.append('Images', {
-        uri: image.uri,
-        name: image.fileName,
-        type: image.type,
-      } as any);
+    // Use the geotagged screenshots instead of original images
+    screenshots.forEach((image, index) => {
+      if (image && image.uri) {
+        data.append('Images', {
+          uri: image.uri,
+          name: image.fileName || `image_${index}.jpg`,
+          type: image.type || 'image/jpeg'
+        } as any);
+      }
     });
 
     try {
@@ -281,7 +386,8 @@ const ReimbursementForm = () => {
           VehicleType: '',
           VehicleNumber: '',
         });
-        setImages([]);
+        setImageUri([]);
+        setScreenshots([]);
         setSelectedDate(new Date());
 
         Alert.alert('Success', response.data.message || 'Reimbursement added successfully');
@@ -421,18 +527,36 @@ const ReimbursementForm = () => {
 
         {/* Image Upload Section */}
         <View>
-          <Pressable style={styles.button} onPress={toggleModal}>
-            <Text style={styles.buttonText}>{t("CaptureImage")}</Text>
+          <Text style={styles.label}>Images </Text>
+        
+          
+          <Pressable 
+            style={[styles.button, screenshots.length >= 5 && styles.buttonDisabled]} 
+            onPress={toggleModal}
+            disabled={screenshots.length >= 5}
+          >
+            <Text style={styles.buttonText}>
+              {screenshots.length >= 5 ? 'Maximum 5 images reached' : t("CaptureImage")}
+            </Text>
           </Pressable>
 
           <Modal isVisible={isModalVisible} onBackdropPress={toggleModal}>
             <View style={styles.modalContainer}>
-              <Pressable onPress={requestCameraPermission} style={styles.pressable}>
+              <Pressable 
+                onPress={requestCameraPermission} 
+                style={styles.pressable}
+                disabled={isCapturingLocation}
+              >
                 <Text style={styles.buttonText}>{t("Camera")}</Text>
                 <MaterialIcons name="camera" size={30} color="#fff" />
+                {isCapturingLocation && <ActivityIndicator color="#fff" style={{ marginLeft: 10 }} />}
               </Pressable>
 
-              <Pressable onPress={handlePickImage} style={styles.pressable}>
+              <Pressable 
+                onPress={handlePickImage} 
+                style={styles.pressable}
+                disabled={screenshots.length >= 5}
+              >
                 <Text style={styles.buttonText}>{t("Gallery")}</Text>
                 <MaterialIcons name="photo-library" size={30} color="#fff" />
               </Pressable>
@@ -445,24 +569,64 @@ const ReimbursementForm = () => {
         </View>
 
         {/* Image Preview */}
-        {images.length > 0 && (
-          <View style={styles.imagesContainer}>
-            <Text style={styles.imageLabel}>Uploaded Images:</Text>
-            <View style={styles.imagesList}>
-              {images.map((item, index) => (
-                <View key={`${item.uri}-${index}`} style={styles.imageContainer}>
-                  <TouchableOpacity
-                    onPress={() => handleDeleteImage(index)}
-                    style={styles.deleteButton}
-                  >
-                    <MaterialIcons name="close" size={20} color="#fff" />
-                  </TouchableOpacity>
-                  <Image source={{ uri: item.uri }} style={styles.image} />
+        {imageUri.map((img, index) => (
+          <View key={index} style={{ marginBottom: 20, marginTop: 10 }}>
+            <ViewShot
+              ref={(ref) => { viewShotRefs.current[index] = ref; }}
+              options={{ format: 'jpg', quality: 1.0 }}
+            >
+              <View style={styles.imageContainer}>
+                <Image source={{ uri: img.uri }} style={styles.image} resizeMode="cover" />
+                <View style={styles.overlay}>
+                  {location && address ? (
+                    <>
+                      <Text style={styles.overlayText}>
+                        Lat: {location.latitude.toFixed(6)}, Long: {location.longitude.toFixed(6)}
+                      </Text>
+                      <Text style={styles.overlayText}>
+                        {address.city || ''} {address.region || ''} {address.country || ''}
+                      </Text>
+                      <Text style={styles.overlayText}>
+                        {new Date().toLocaleString()}
+                      </Text>
+                    </>
+                  ) : (
+                    <ActivityIndicator size="small" color="#ffffff" />
+                  )}
                 </View>
-              ))}
-            </View>
+              </View>
+            </ViewShot>
+            
+            <TouchableOpacity 
+              style={styles.deleteImageButton}
+              onPress={() => handleDeleteImage(index)}
+            >
+              <MaterialIcons name="delete" size={20} color="#fff" />
+              <Text style={styles.deleteButtonText}>Delete</Text>
+            </TouchableOpacity>
           </View>
-        )}
+        ))}
+
+        {/* Screenshot Preview Section */}
+{screenshots.length > 0 && (
+  <View style={{ marginTop: 20 }}>
+    <Text style={styles.label}>Geo-tagged Screenshots</Text>
+    {screenshots.map((shot, idx) => (
+      <View key={idx} style={{ marginBottom: 10 }}>
+        <Image
+          source={{ uri: shot.uri }}
+          style={{
+            width: '100%',
+            height: isSmallDevice ? 180 : 200,
+            borderRadius: 8,
+          }}
+          resizeMode="cover"
+        />
+      </View>
+    ))}
+  </View>
+)}
+
 
         {/* Submit Button */}
         <TouchableOpacity
@@ -470,7 +634,9 @@ const ReimbursementForm = () => {
           style={[styles.submitButton, isSubmitting && styles.buttonDisabled]}
           disabled={isSubmitting}
         >
-          <Text style={styles.buttonText}>{isSubmitting ? 'Submitting...' : 'Submit'}</Text>
+          <Text style={styles.buttonText}>
+            {isSubmitting ? 'Submitting...' : 'Submit'}
+          </Text>
         </TouchableOpacity>
       </ScrollView>
     </KeyboardAvoidingView>
@@ -497,13 +663,6 @@ const styles = StyleSheet.create({
     color: '#333',
     marginBottom: 5,
   },
-  imageLabel: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#333',
-    marginTop: 15,
-    marginBottom: 10,
-  },
   input: {
     borderWidth: 1,
     borderColor: '#F79B00',
@@ -528,7 +687,7 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     paddingHorizontal: 20,
     borderRadius: 8,
-    marginTop: 20,
+    marginTop: 10,
     alignItems: 'center',
   },
   submitButton: {
@@ -549,32 +708,30 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
   },
-  imagesContainer: {
-    marginTop: 15,
-  },
-  imagesList: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    marginTop: 10,
-  },
   imageContainer: {
     position: 'relative',
-    marginRight: 10,
     marginBottom: 10,
+    overflow: 'hidden',
+   
   },
   image: {
-    width: 100,
-    height: 100,
-    borderRadius: 10,
+    width: '100%',
+    height: isSmallDevice ? 180 : 200,
+    resizeMode: 'cover',
   },
-  deleteButton: {
-    position: 'absolute',
-    top: -8,
-    right: -8,
+  deleteImageButton: {
     backgroundColor: 'red',
-    borderRadius: 12,
-    padding: 2,
-    zIndex: 1,
+    padding: 8,
+    borderRadius: 5,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 5,
+  },
+  deleteButtonText: {
+    color: '#fff',
+    marginLeft: 5,
+    fontWeight: '600',
   },
   modalContainer: {
     backgroundColor: '#ffffff',
@@ -590,6 +747,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 10,
+    minWidth: 150,
+    justifyContent: 'center',
   },
   closeButton: {
     marginTop: 15,
@@ -601,6 +760,22 @@ const styles = StyleSheet.create({
   buttonDisabled: {
     backgroundColor: '#ccc',
   },
+  overlay: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.6)',
+    padding: 8,
+  },
+  overlayText: {
+    color: '#FFFFFF',
+    fontSize: isSmallDevice ? 10 : 12,
+    marginBottom: 2,
+    textAlign: 'center',
+  }
 });
 
 export default ReimbursementForm;

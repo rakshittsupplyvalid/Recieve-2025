@@ -71,7 +71,7 @@ const ReimbursementList: React.FC = () => {
       }
 
       const response = await api.get(url);
-
+ console.log('Reimbursement API response:', response.data);
       const data = response.data.map((x: any) => ({
         id: x.id || '',
         username: x.userName || 'N/A',
@@ -127,28 +127,22 @@ const ReimbursementList: React.FC = () => {
     }
   };
 
-  const filteredData = tableData
-    .filter((item) => {
-      if (!item) return false;
-      const searchTerm = searchQuery.toUpperCase().trim();
+  const filteredData = tableData.filter((item) => {
+  if (!item) return false;
+  const searchTerm = searchQuery.toUpperCase().trim();
 
-      const itemDate = item.date ? item.date.trim() : '';
-      const normalizedItemDate = itemDate.split('/').reverse().join('');
-      const normalizedSearchQuery = searchQuery.split('/').reverse().join('');
+  const itemDate = item.date ? item.date.trim() : '';
+  const normalizedItemDate = itemDate.split('/').reverse().join('');
+  const normalizedSearchQuery = searchQuery.split('/').reverse().join('');
 
-      return (
-        (item.username && item.username.toUpperCase().includes(searchTerm)) ||
-        (itemDate && normalizedItemDate.includes(normalizedSearchQuery)) ||
-        (item.billType && item.billType.toUpperCase().includes(searchTerm)) ||
-        (item.approvalStatus && item.approvalStatus.toUpperCase().includes(searchTerm)) ||
-        (item.amount && item.amount.toString().includes(searchTerm))
-      );
-    })
-    .sort((a, b) => {
-      const dateA = a.date ? a.date.split('/').reverse().join('-') : '';
-      const dateB = b.date ? b.date.split('/').reverse().join('-') : '';
-      return new Date(dateA).getTime() - new Date(dateB).getTime();
-    });
+  return (
+    (item.username && item.username.toUpperCase().includes(searchTerm)) ||
+    (itemDate && normalizedItemDate.includes(normalizedSearchQuery)) ||
+    (item.billType && item.billType.toUpperCase().includes(searchTerm)) ||
+    (item.approvalStatus && item.approvalStatus.toUpperCase().includes(searchTerm)) ||
+    (item.amount && item.amount.toString().includes(searchTerm))
+  );
+});
 
   const handleRefresh = async () => {
     setRefreshing(true);
@@ -254,7 +248,7 @@ const ReimbursementList: React.FC = () => {
                       {selectedReimbursement.images.map((imageUri, index) => (
                         <Image
                           key={index}
-                          source={{ uri: `https://stage-backend-2025.epravaha.com${imageUri}` }}
+                          source={{ uri: `https://dev-backend-2025.epravaha.com${imageUri}` }}
                           style={styles.image}
                           resizeMode="contain"
                         />

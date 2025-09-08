@@ -137,6 +137,26 @@ const RecieveDhasboard = () => {
                   onPress={() => navigation.navigate("ReimbursementList", { BillPaymentStatus: "DECLINE", ApprovalStatus: "APPROVED" })}
                 />
               </View> */}
+              {/* <View style={styles.cardWrapper}>
+                <TruckCard
+                        title={t('paidPayment')}
+                  count={PaymentPaid}
+                  loading={loading}
+                  error={error}
+                  iconName="done"
+                  onPress={() => navigation.navigate("ReimbursementList", { BillPaymentStatus: "PAID", ApprovalStatus: "APPROVED" })}
+                />
+              </View>
+              <View style={styles.cardWrapper}>
+                <TruckCard
+                  title={t('paymentDeclined')}
+                  count={PaymentPaid}
+                  loading={loading}
+                  error={error}
+                  iconName="cancel"
+                  onPress={() => navigation.navigate("ReimbursementList", { BillPaymentStatus: "DECLINE", ApprovalStatus: "APPROVED" })}
+                />
+              </View> */}
             </View>
           </ScrollView>
         ) : (

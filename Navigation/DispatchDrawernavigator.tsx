@@ -20,7 +20,8 @@ import StockMove from '../src/StockMove/StockMove';
 import RecieveStockmove from '../src/StockMove/RecieveStockmove';
 import RejectStockmove from '../src/StockMove/RejectStockmove';
 import CAhealthreport from '../src/GenerateHealthReport/CAhealthreport';
-
+import OfflineDashboard from '../Screenthree/OfflineDhasboard';
+import NetInfo from "@react-native-community/netinfo";
 
 
 const Drawer = createDrawerNavigator();
@@ -30,7 +31,18 @@ const storage = new MMKV();
 export default function DispatchDrawernavigator() {
   const [profileData, setProfileData] = useState<any>(null);
   const [loading, setLoading] = useState<boolean>(true);
+    const [isConnected, setIsConnected] = useState<boolean>(true);
   const navigation = useContext(NavigationContext);
+
+
+
+    useEffect(() => {
+    const unsubscribe = NetInfo.addEventListener(state => {
+      setIsConnected(state.isConnected ?? false);
+    });
+
+    return () => unsubscribe();
+  }, []);
 
   const fetchProfile = async () => {
     try {
@@ -91,7 +103,35 @@ export default function DispatchDrawernavigator() {
     );
   }
 
+
+   if (!isConnected) {
+    return (
+      <Drawer.Navigator
+      id={undefined}
+        initialRouteName="OfflineDashboard"
+        screenOptions={{
+          headerStyle: { backgroundColor: '#F6A001' },
+          headerTintColor: '#fff',
+        }}
+      >
+        <Drawer.Screen
+          name="OfflineDashboard"
+          component={OfflineDashboard}
+          options={{
+            title: 'Offline Dashboard',
+            drawerIcon: ({ color, size }) => <Icon name="cloud-off" size={size} color={color} />
+          }}
+        />
+      </Drawer.Navigator>
+    );
+  }
+
+
   const initialRoute = profileData?.role === 'StorageAdmin' ? 'Direct and Normal' : 'RecieveDhasboard';
+
+
+  
+  
 
   return (
     <Drawer.Navigator
