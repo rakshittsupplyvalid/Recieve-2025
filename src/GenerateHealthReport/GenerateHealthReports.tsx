@@ -59,6 +59,18 @@ const TestForm = () => {
 
   const [clickCount, setClickCount] = useState(0);
 
+
+  const sizeOptions = [
+    '20-25',
+    '26-30',
+    '31-35',
+    '36-40',
+    '41-45',
+    '46-50',
+    '51-55',
+    '56-60'
+  ];
+
   const handlePress = () => {
     if (clickCount < 2) {
       setClickCount(clickCount + 1);
@@ -470,7 +482,7 @@ const TestForm = () => {
         return;
       }
       if (!state.form.size || isNaN(parseFloat(state.form.size))) {
-        alert('Please enter a valid size');
+        alert('Please Select a valid size');
         return;
       }
     }
@@ -561,7 +573,7 @@ const TestForm = () => {
         return;
       }
     }
-  
+
 
     // Proceed to next step if validation passes
 
@@ -592,7 +604,7 @@ const TestForm = () => {
 
   const handleDateConfirm = (selectedDate: Date) => {
     setDatePickerVisibility(false);
-      console.log("Selected Date:", selectedDate);
+    console.log("Selected Date:", selectedDate);
     if (selectedDate) {
       // Format the date to ISO string without milliseconds
       const formattedDate = selectedDate.toISOString().split('.')[0] + 'Z';
@@ -703,17 +715,17 @@ const TestForm = () => {
 
 
   const handleSubmit = () => {
-// Minimum 3 required
-if ((state.form?.Files || []).length < 3) {
-  Alert.alert('Error', 'Please upload at least 3 images before submitting.');
-  return;
-}
+    // Minimum 3 required
+    if ((state.form?.Files || []).length < 3) {
+      Alert.alert('Error', 'Please upload at least 3 images before submitting.');
+      return;
+    }
 
-// Maximum 8 allowed
-if ((state.form?.Files || []).length > 8) {
-  Alert.alert('Error', 'Please upload Maximum 8 images before submitting.');
-  return;
-}
+    // Maximum 8 allowed
+    if ((state.form?.Files || []).length > 8) {
+      Alert.alert('Error', 'Please upload Maximum 8 images before submitting.');
+      return;
+    }
     const payload = {
       DestinationBranch: state.form?.option2 || '',
       DestinationLocationId: state.form?.Storagedata || '',
@@ -947,7 +959,7 @@ if ((state.form?.Files || []).length > 8) {
                 }}
                 autoCapitalize="characters"
                 keyboardType="default" // Yeh aap 'keyb' likh rahe the, pura likha
-                     maxLength={13}
+                maxLength={13}
               />
 
               <TextInput
@@ -1008,23 +1020,26 @@ if ((state.form?.Files || []).length > 8) {
                   }
                 })}
                 keyboardType="numeric"
-                     maxLength={5}
+                maxLength={5}
               />
 
-              <TextInput
-                style={styles.input}
-                placeholder={t('Size')}
-                value={state.form?.size || ''}
-                onChangeText={(text) => updateState({
-                  ...state,
-                  form: {
-                    ...state.form,
-                    size: text
-                  }
-                })}
-                keyboardType="numeric"
-                     maxLength={5}
-              />
+              <View style={styles.pickerContainer}>
+                <Picker
+                  selectedValue={state.form?.size || ''}
+                  onValueChange={(value) => updateState({
+                    ...state,
+                    form: {
+                      ...state.form,
+                      size: value
+                    }
+                  })}
+                >
+                  <Picker.Item label="Select Onion Size" value="" />
+                  {sizeOptions.map((option) => (
+                    <Picker.Item key={option} label={option} value={option} />
+                  ))}
+                </Picker>
+              </View>
 
 
               <View style={styles.buttoncontent}>

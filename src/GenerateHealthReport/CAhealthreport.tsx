@@ -86,6 +86,18 @@ const CAhealthreport = () => {
     ];
 
 
+    const sizeOptions = [
+        '20-25',
+        '26-30',
+        '31-35',
+        '36-40',
+        '41-45',
+        '46-50',
+        '51-55',
+        '56-60'
+    ];
+
+
 
 
 
@@ -554,8 +566,8 @@ const CAhealthreport = () => {
                 return;
             }
         }
- 
-             else if (currentStep === 1) {
+
+        else if (currentStep === 1) {
 
             // Truck number validation
             if (!state.form.Trucknumber || state.form.Trucknumber.trim() === '') {
@@ -601,7 +613,7 @@ const CAhealthreport = () => {
 
             // Size validation
             if (!state.form.size || isNaN(parseFloat(state.form.size))) {
-                alert('Please enter a valid size');
+                alert('Please select valid size');
                 return;
             }
         }
@@ -644,8 +656,8 @@ const CAhealthreport = () => {
         // }
 
         // Proceed to next step
-      
-      
+
+
         updateState({
             ...state,
             hidden: {
@@ -1151,22 +1163,23 @@ const CAhealthreport = () => {
                                 keyboardType="numeric"
                                 maxLength={5}
                             />
-
-                            <TextInput
-                                style={styles.input}
-                                placeholder={t('Size')}
-                                value={state.form?.size || ''}
-                                onChangeText={(text) => updateState({
-                                    ...state,
-                                    form: {
-                                        ...state.form,
-                                        size: text
-                                    }
-                                })}
-                                keyboardType="numeric"
-                                maxLength={5}
-                            />
-
+                            <View style={styles.pickerContainer}>
+                                <Picker
+                                    selectedValue={state.form?.size || ''}
+                                    onValueChange={(value) => updateState({
+                                        ...state,
+                                        form: {
+                                            ...state.form,
+                                            size: value
+                                        }
+                                    })}
+                                >
+                                    <Picker.Item label="Select Onion Size" value="" />
+                                    {sizeOptions.map((option) => (
+                                        <Picker.Item key={option} label={option} value={option} />
+                                    ))}
+                                </Picker>
+                            </View>
 
                             <View style={styles.buttoncontent}>
                                 <TouchableOpacity style={styles.button} onPress={handlePrevious}>
