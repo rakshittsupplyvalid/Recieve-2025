@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, ScrollView, TouchableOpacity, KeyboardAvoidingView, Switch, Modal, Platform, Image, ActivityIndicator, FlatList, Button, Linking, Alert, BackHandler , StyleSheet } from 'react-native';
+import { View, Text, TextInput, ScrollView, TouchableOpacity, KeyboardAvoidingView, Switch, Modal, Platform, Image, ActivityIndicator, FlatList, Button, Linking, Alert, BackHandler, StyleSheet } from 'react-native';
 import Navbar from '../../App/Navbar';
 import useForm from '../../App/Common/Lib/useForm'
 import { Picker } from '@react-native-picker/picker';
@@ -15,26 +15,12 @@ import { useTranslation } from 'react-i18next';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '../../types/Type';
 import Storage from '../../utils/Storage';
-import VideoPlayer from 'react-native-video'; // 👈 yeh sirf video play karne ke liye
+import VideoPlayer from 'react-native-video';
 import { Video as VideoCompressor } from 'react-native-compressor';
-
-
-
 import md5 from 'md5';
-
-
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-
-
 const { width } = Dimensions.get('window');
-
-
-
-
-
-
-
 
 const TestForm = () => {
   const { t } = useTranslation();
@@ -47,20 +33,14 @@ const TestForm = () => {
   const [selectedImage, setSelectedImage] = useState(null);
   const [isPressed, setIsPressed] = useState(false);
   const [videos, setVideos] = useState<any[]>([]);
-   const [isCompressing, setIsCompressing] = useState(false);
-    const [compressionProgress, setCompressionProgress] = useState(0);
-
-
+  const [isCompressing, setIsCompressing] = useState(false);
+  const [compressionProgress, setCompressionProgress] = useState(0);
 
   const today = new Date();
   const threeMonthsAgo = new Date();
   threeMonthsAgo.setMonth(today.getMonth() - 3);
 
-
-
-
   const [clickCount, setClickCount] = useState(0);
-
 
   const sizeOptions = [
     '20-25',
@@ -82,8 +62,6 @@ const TestForm = () => {
     }
   };
 
-
-
   const handlePresscamera = () => {
     if (clickCount < 5) {
       setClickCount(clickCount + 1);
@@ -93,15 +71,8 @@ const TestForm = () => {
     }
   };
 
-
-
-
-
-
-
   useEffect(() => {
     CompanyDropdown();
-
   }, []);
 
   useEffect(() => {
@@ -128,32 +99,21 @@ const TestForm = () => {
       updateState({
         form: {
           ...state.form,
-
           Storagedata: ''
         },
         fielddata: {
           ...state.fielddata,
-
           storageLocation: null
         }
       });
     }
   }, [state.form.option2]);
 
-
   useEffect(() => {
     if (state.form.option2) {
       Storagelocation(state.form.option2);
-
     }
   }, [state.form.option2]);
-
-
-
-
-
-
-
 
   const CompanyDropdown = () => {
     apiClient.get('/api/dropdown/company')
@@ -186,13 +146,12 @@ const TestForm = () => {
       .catch(console.error);
   };
 
-
   const Storagelocation = (groupId: string) => {
     const url = `/api/dropdown/group/${groupId}/location?locationType=GROUPLOCATION`;
-    console.log('API URL:', url); // URL bhi console pe dekh lo
+    console.log('API URL:', url);
     apiClient.get(url)
       .then((res) => {
-        console.log('STORAGE API response:', res.data); // Yeh pura response console pe print karega
+        console.log('STORAGE API response:', res.data);
         if (res?.data) {
           updateState({
             fielddata: {
@@ -203,14 +162,9 @@ const TestForm = () => {
         }
       })
       .catch((error) => {
-        console.error('API error:', error); // Agar koi error aata hai toh usko bhi console pe dekh lo
+        console.error('API error:', error);
       });
   };
-
-
-
-
-
 
   const handleDeleteImage = (index) => {
     const updatedImages = [...(state.form?.Files || [])];
@@ -223,10 +177,6 @@ const TestForm = () => {
       }
     });
   };
-
-
-
-
 
   const requestCameraPermission = async () => {
     if (Platform.OS === 'android') {
@@ -293,73 +243,6 @@ const TestForm = () => {
       }
     );
   };
-
-
-  //  const requestvideoPermission = async () => {
-  //     if (Platform.OS === 'android') {
-  //       try {
-  //         const granted = await PermissionsAndroid.request(
-  //           PermissionsAndroid.PERMISSIONS.CAMERA
-  //         );
-  //         if (granted === PermissionsAndroid.RESULTS.GRANTED) {
-  //           console.log('Camera permission granted');
-  //           openCameraForVideo();
-  //         } else {
-  //           console.log('Camera permission denied');
-  //         }
-  //       } catch (err) {
-  //         console.warn(err);
-  //       }
-  //     } else {
-  //       openCameraForVideo(); // iOS me direct open
-  //     }
-  //   };
-
-  //    const openCameraForVideo = () => {
-  //   launchCamera(
-  //     {
-  //       mediaType: 'video',
-  //      videoQuality: 'low', // 👈 high quality video
-  //       durationLimit: 60,
-  //       saveToPhotos: true,
-  //     },
-  //     async (response) => {
-  //       if (response.assets && response.assets.length > 0) {
-  //         const capturedVideo = response.assets[0];
-  //         const videoHash = md5(capturedVideo.uri);
-
-  //         const isDuplicate = state.form?.Files?.some(file => file.hash === videoHash);
-  //         if (isDuplicate) {
-  //           Alert.alert('Duplicate', 'This video is already added.');
-  //           return;
-  //         }
-
-  //         // Max 2 videos check
-  //         if ((state.form?.Files || []).filter(f => f.type.startsWith("video")).length >= 2) {
-  //           Alert.alert("Limit", "Maximum 2 videos allowed.");
-  //           return;
-  //         }
-
-  //         const newVideo = {
-  //           uri: Platform.OS === 'android' ? capturedVideo.uri : capturedVideo.uri.replace('file://', ''),
-  //           fileName: capturedVideo.fileName || `video_${Date.now()}.mp4`,
-  //           type: capturedVideo.type || 'video/mp4',
-  //           hash: videoHash,
-  //         };
-
-  //         updateState({
-  //           form: {
-  //             ...state.form,
-  //             Files: [...(state.form?.Files || []), newVideo],
-  //           },
-  //         });
-  //       }
-  //     }
-  //   );
-  // };
-
-
-
 
   const requestvideoPermission = async () => {
     if (Platform.OS === 'android') {
@@ -444,7 +327,6 @@ const TestForm = () => {
     );
   };
 
-  
   const handleNext = (nextStep: number) => {
     let validationResult: { isValid: boolean; message?: string } | null = null;
 
@@ -470,7 +352,6 @@ const TestForm = () => {
         alert('Please enter truck number');
         return;
       }
-
 
       const truckRegex = /^[A-Z]{2}\d{2}[A-Z]{1,2}\d{4}$/;
       if (!truckRegex.test(state.form.Trucknumber)) {
@@ -500,9 +381,7 @@ const TestForm = () => {
       }
     }
 
-
     else if (currentStep === 2) {
-
       // Validate percentages if switches are on
       if (state.form.stainingColour) {
         if (!state.form.stainingColourPercent || isNaN(parseFloat(state.form.stainingColourPercent))) {
@@ -587,9 +466,7 @@ const TestForm = () => {
       }
     }
 
-
     // Proceed to next step if validation passes
-
     updateState({
       ...state,
       hidden: {
@@ -631,7 +508,6 @@ const TestForm = () => {
     }
   };
 
-
   const handleGrossWeightChange = (text) => {
     const tare = parseFloat(state.form?.tareWeight) || 0;
     const gross = parseFloat(text) || 0;
@@ -662,7 +538,6 @@ const TestForm = () => {
     });
   };
 
-
   useEffect(() => {
     const truckNumber = state.form?.Trucknumber || "";
     if (truckNumber.length >= 6) {
@@ -687,7 +562,6 @@ const TestForm = () => {
       console.error("API Error:", error);
     }
   };
-
 
   const fetchReportDetails = async (id: any) => {
     try {
@@ -726,7 +600,6 @@ const TestForm = () => {
     }
   };
 
-
   const handleSubmit = () => {
     // Minimum 3 required
     if ((state.form?.Files || []).length < 3) {
@@ -764,8 +637,6 @@ const TestForm = () => {
       FPCPersonName: state.form?.SpoliedBranch || '',
       Files: state.form?.Files || [],
       Comment: state.form?.SpoliedComment || ''
-
-
     };
 
     // Ensure required fields are present
@@ -773,8 +644,6 @@ const TestForm = () => {
       alert('Please select a date');
       return;
     }
-
-
 
     const formData = createFormData(payload);
 
@@ -786,9 +655,6 @@ const TestForm = () => {
       headers: {
         'Content-Type': 'multipart/form-data',
         Authorization: `Bearer ${token}`,
-
-
-
       },
     })
       .then(response => {
@@ -816,19 +682,6 @@ const TestForm = () => {
       });
   };
 
-
-
-
-
-
-
-
-
-
-
-
-
-
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -845,45 +698,33 @@ const TestForm = () => {
             });
           }}>
             <MaterialIcons name="arrow-back" size={24} color="#fff" />
-
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Normal Health Report form</Text>
         </View>
 
-
-
-          <Modal
-                  visible={isCompressing}
-                  transparent={true}
-                  animationType="fade"
-                >
-                  <View style={compressionStyles.overlay}>
-                    <View style={compressionStyles.container}>
-                      <ActivityIndicator size="large" color="#FF9500" />
-                      <Text style={compressionStyles.text}>Compressing video...</Text>
-                      <Text style={compressionStyles.progress}>
-                        {Math.round(compressionProgress * 100)}% complete
-                      </Text>
-                    </View>
-                  </View>
-                </Modal>
-
-
-
+        {/* Compression Progress Modal */}
+        <Modal
+          visible={isCompressing}
+          transparent={true}
+          animationType="fade"
+        >
+          <View style={compressionStyles.overlay}>
+            <View style={compressionStyles.container}>
+              <ActivityIndicator size="large" color="#FF9500" />
+              <Text style={compressionStyles.text}>Compressing video...</Text>
+              <Text style={compressionStyles.progress}>
+                {Math.round(compressionProgress * 100)}% complete
+              </Text>
+            </View>
+          </View>
+        </Modal>
 
         {/* ScrollView with content */}
-        <ScrollView
-          contentContainerStyle={styles.scrollView}
-
-        >
-
-
+        <ScrollView contentContainerStyle={styles.scrollView}>
           {currentStep === 0 && (
             <View style={styles.onecontainers}>
               <View style={styles.content}>
                 <View style={styles.pickerContainer}>
-
-
                   <Picker
                     selectedValue={state.form.option1}
                     onValueChange={(value) => {
@@ -896,7 +737,6 @@ const TestForm = () => {
                           Storagedata: ''
                         },
                       });
-
                     }}
                   >
                     <Picker.Item label="Select Company Name" value="" />
@@ -909,8 +749,6 @@ const TestForm = () => {
 
               <View style={styles.content}>
                 <View style={styles.pickerContainer}>
-
-
                   <Picker
                     selectedValue={state.form.option2 || ''}
                     onValueChange={(value) => {
@@ -933,7 +771,6 @@ const TestForm = () => {
 
               <View style={styles.content}>
                 <View style={styles.pickerContainer}>
-
                   <Picker
                     selectedValue={state.form.Storagedata || ''}
                     onValueChange={(value) => {
@@ -944,8 +781,6 @@ const TestForm = () => {
                           Storagedata: value,
                         },
                       });
-
-
                     }}
                   >
                     <Picker.Item label="Select Location" value="" />
@@ -954,26 +789,19 @@ const TestForm = () => {
                     ))}
                   </Picker>
                 </View>
-
               </View>
-
-
 
               <View style={styles.buttoncontent}>
                 <TouchableOpacity style={styles.button} onPress={() => handleNext(1)}>
                   <Text style={styles.buttonText}>{t('Next')}</Text>
                 </TouchableOpacity>
               </View>
-
-
-
             </View>
           )}
 
           {/* Step 2 - Basic Information */}
           {currentStep === 1 && (
             <View style={styles.onecontainers}>
-
               <TextInput
                 style={styles.input}
                 placeholder={t('TruckNumber')}
@@ -989,7 +817,7 @@ const TestForm = () => {
                   });
                 }}
                 autoCapitalize="characters"
-                keyboardType="default" // Yeh aap 'keyb' likh rahe the, pura likha
+                keyboardType="default"
                 maxLength={13}
               />
 
@@ -1015,7 +843,6 @@ const TestForm = () => {
                 value={state.form?.netWeight || ''}
                 editable={false}
               />
-
 
               <TouchableOpacity onPress={() => setDatePickerVisibility(true)}>
                 <View style={styles.inputContainer}>
@@ -1072,7 +899,6 @@ const TestForm = () => {
                 </Picker>
               </View>
 
-
               <View style={styles.buttoncontent}>
                 <TouchableOpacity style={styles.button} onPress={handlePrevious}>
                   <Text style={styles.buttonText}>{t('Previous')}</Text>
@@ -1086,7 +912,6 @@ const TestForm = () => {
 
           {currentStep === 2 && (
             <View style={styles.thirdcontainers}>
-
               {/* Staining Colour */}
               <View style={styles.switchContainer}>
                 <Text style={styles.text}>{t("stainingColor")}</Text>
@@ -1121,10 +946,8 @@ const TestForm = () => {
                     }
                     keyboardType="numeric"
                   />
-
                 </>
               )}
-
 
               {/* Black Smut Onion */}
               <View style={styles.switchContainer}>
@@ -1148,7 +971,6 @@ const TestForm = () => {
 
               {state.form?.blackSmutOnion && (
                 <>
-
                   <TextInput
                     style={styles.input}
                     placeholder={t('BlacksmutOnionpercent')}
@@ -1161,7 +983,6 @@ const TestForm = () => {
                     }
                     keyboardType="numeric"
                   />
-
                 </>
               )}
 
@@ -1187,7 +1008,6 @@ const TestForm = () => {
 
               {state.form?.sproutedOnion && (
                 <>
-
                   <TextInput
                     style={styles.input}
                     placeholder={t('SproutedOnionpercent')}
@@ -1200,8 +1020,6 @@ const TestForm = () => {
                     }
                     keyboardType="numeric"
                   />
-
-
                 </>
               )}
 
@@ -1227,7 +1045,6 @@ const TestForm = () => {
 
               {state.form?.spoiledOnion && (
                 <>
-
                   <TextInput
                     style={styles.input}
                     placeholder={t('SpoiledOnionpercent')}
@@ -1240,9 +1057,6 @@ const TestForm = () => {
                     }
                     keyboardType="numeric"
                   />
-
-
-
                 </>
               )}
 
@@ -1270,7 +1084,6 @@ const TestForm = () => {
 
               {state.form?.onionSkin === "SINGLE" && (
                 <>
-
                   <TextInput
                     style={styles.input}
                     placeholder={t('Onionskinsinglepercent')}
@@ -1283,11 +1096,8 @@ const TestForm = () => {
                     }
                     keyboardType="numeric"
                   />
-
-
                 </>
               )}
-
 
               {/* Moisture */}
               <View style={styles.switchContainer}>
@@ -1313,7 +1123,6 @@ const TestForm = () => {
 
               {state.form?.moisture === "WET" && (
                 <>
-
                   <TextInput
                     style={styles.input}
                     placeholder={t('Moisturewetpercent')}
@@ -1326,9 +1135,6 @@ const TestForm = () => {
                     }
                     keyboardType="numeric"
                   />
-
-
-
                 </>
               )}
 
@@ -1397,7 +1203,6 @@ const TestForm = () => {
                   <Text style={styles.buttonText}>{t('Next')}</Text>
                 </TouchableOpacity>
               </View>
-
             </View>
           )}
 
@@ -1421,15 +1226,12 @@ const TestForm = () => {
                   onPress={requestvideoPermission}
                   disabled={
                     (state.form?.Files || []).filter(f => f.type?.startsWith("video")).length >= 2
-                  } // 👈 sirf 2 video allow
+                  }
                 >
                   <MaterialIcons name="camera" size={30} color="white" />
                   <Text style={styles.buttonText}>Pick From Video</Text>
                 </TouchableOpacity>
               </View>
-
-
-
 
               {/* Previous and Submit Buttons */}
               <View style={styles.buttoncontent}>
@@ -1440,11 +1242,8 @@ const TestForm = () => {
                 <TouchableOpacity
                   style={styles.button}
                   onPress={handleSubmit}
-
-
-                  disabled={(state.form?.Files || []).length < 3 || (state.form?.Files || []).length > 9 || isPressed} // Disable submit if image count is out of range
+                  disabled={(state.form?.Files || []).length < 3 || (state.form?.Files || []).length > 9 || isPressed}
                 >
-
                   {isPressed ? (
                     <ActivityIndicator color="#fff" size="small" />
                   ) : (
@@ -1452,58 +1251,21 @@ const TestForm = () => {
                       {t('submit')}
                     </Text>
                   )}
-
                 </TouchableOpacity>
               </View>
 
-              {/* Image Grid */}
-              {/* <View style={styles.imageGrid}>
-                {(state.form?.Files || []).map((item, index) => (
-                  <View key={index} style={styles.imageContainer}>
-                    <TouchableOpacity onPress={() => setSelectedImage(item.uri)}>
-                      <Image source={{ uri: item.uri }} style={styles.image} />
-                    </TouchableOpacity>
-
-                    <TouchableOpacity
-                      style={styles.deleteIcon}
-                      onPress={() => handleDeleteImage(index)}
-                    >
-                      <MaterialIcons name="cancel" size={24} color="red" />
-                    </TouchableOpacity>
-                  </View>
-                ))}
-              </View>
-
-
-                {videos.map((v, index) => (
-          <View key={index} style={styles.videoContainer}>
-           
-            <Video
-              source={{ uri: v.uri }}
-              style={styles.video}
-              controls   // 👈 play/pause controls enable karega
-              resizeMode="contain"
-            />
-          </View>
-        ))} */}
-
-
-
+              {/* File Grid */}
               <View style={styles.fileGrid}>
                 {(state.form?.Files || []).map((item, index) => {
-                  // 👇 safe type check
                   const fileType = item.type || "image/jpeg";
-
                   return (
                     <View key={index} style={styles.imageContainer}>
-
                       {fileType.startsWith("image") ? (
                         <TouchableOpacity onPress={() => setSelectedImage(item.uri)}>
                           <View style={styles.videoView}>
                             <Image source={{ uri: item.uri }} style={styles.image} />
                           </View>
                         </TouchableOpacity>
-
                       ) : fileType.startsWith("video") ? (
                         <View style={styles.videoView}>
                           <VideoPlayer
@@ -1516,25 +1278,10 @@ const TestForm = () => {
                       ) : (
                         <Text style={{ color: "red" }}>Unknown File</Text>
                       )}
-
-                      {/* Delete button */}
-                      {/* <TouchableOpacity
-        style={styles.deleteIcon}
-        onPress={() => handleDeleteImage(index)}
-      >
-        <MaterialIcons name="cancel" size={24} color="red" />
-      </TouchableOpacity> */}
                     </View>
                   );
                 })}
-
               </View>
-
-
-
-
-
-
 
               {/* Modal to show full image */}
               <Modal visible={!!selectedImage} transparent={true}>
@@ -1551,21 +1298,13 @@ const TestForm = () => {
               </Modal>
             </View>
           )}
-
-
-
-
-
         </ScrollView>
-
       </SafeAreaView>
     </KeyboardAvoidingView>
   );
-
 };
 
-
-
+// Compression modal styles
 const compressionStyles = StyleSheet.create({
   overlay: {
     flex: 1,
@@ -1591,7 +1330,5 @@ const compressionStyles = StyleSheet.create({
     color: '#666',
   },
 });
-
-
 
 export default TestForm;

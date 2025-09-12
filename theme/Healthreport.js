@@ -218,6 +218,13 @@ const styles = StyleSheet.create({
     overflow: 'hidden', // Ensure the image stays within the container
    
   },
+  loaderOverlay: {
+  ...StyleSheet.absoluteFillObject,
+  backgroundColor: 'rgba(0,0,0,0.6)',
+  justifyContent: 'center',
+  alignItems: 'center',
+  zIndex: 1,
+},
   image: {
     width: '100%', // Fill the container width
     height: '100%', // Fill the container height
