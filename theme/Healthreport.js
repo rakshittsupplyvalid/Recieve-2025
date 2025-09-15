@@ -221,14 +221,14 @@ const styles = StyleSheet.create({
    
   },
   viewShot: {
-   width: '100%',
-        height: 190,
-   
-        marginTop: 20,
+  width: '100%',
+  aspectRatio: 3/4,  // 👈 Camera photo ratio jaisa rakh (3:4 ya 9:16)
+  backgroundColor: 'white' // black ki jagah white ya transparent
 },
   image: {
-    width: '100%', // Fill the container width
-    height: '100%', // Fill the container height
+  width: '100%',
+  height: '100%',
+  
   },
 
 
@@ -256,86 +256,41 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     textAlign: 'center',
   },
-    fileGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'flex-start',
-    marginVertical: 0,
-  },
-  fileContainer: {
-    margin: 5,
-    borderRadius: 8,
-    overflow: 'hidden',
-    backgroundColor: '#f2f2f2',
-    alignItems: 'center',
-    justifyContent: 'center',
-    width: 100,
-    height: 100,
-},
-  list: {
+  fileGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",   // multiple rows banane ke liye
+    justifyContent: "space-between",
     marginTop: 20,
   },
-  videoContainer: {
-    marginBottom: 20,
+  imageContainer: {
+    width: "48%",       // 2 images ek row me (thoda gap ke liye 48%)
+    aspectRatio: 1,     // square shape ke liye
+    marginBottom: 10,
+    borderRadius: 10,
+    overflow: "hidden",
   },
-  videoText: {
-    fontSize: 14,
-    marginBottom: 8,
-    color: '#333',
+  viewShot: {
+    flex: 1,
   },
   videoView: {
-    width: '100%',
-   height: '90%',
-   padding: 10,
-   borderRadius: 10,
-   justifyContent: 'center',
-   alignItems: 'center',
-   marginLeft : 5,
- 
-
-  
-  
-    
+    flex: 1,
+    position: "relative",
   },
- imageContainer: {
-
-  width: '100%',
-    height: '30%',
-    resizeMode: 'cover',
-  
+  image: {
+    width: "100%",
+    height: "100%",
   },
-
-
-   overlay: {
-     position: 'absolute',
-        bottom: 10,
-        left: 10,
-       
-        backgroundColor: 'rgba(0,0,0,0.4)',
-        padding: 5,
+  overlay: {
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: "rgba(0,0,0,0.4)",
+    padding: 4,
   },
   overlayText: {
-         color: 'white',
-        fontSize: 10,
-        marginBottom: 2,
+    color: "white",
+    fontSize: 10,
   },
-
-
-  video: { 
-    width: '100%',
-    height: '100%',
-    backgroundColor: '#000',
-  
-  },
-
-   deleteButton: {
-        position: 'absolute',
-        top: 5,
-        right: 5,
-        backgroundColor: 'white',
-        borderRadius: 15,
-        padding: 5,
-        zIndex: 10,
-    },
 });
 export default styles;

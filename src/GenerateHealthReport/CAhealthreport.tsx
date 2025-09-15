@@ -56,17 +56,16 @@ const CAhealthreport = () => {
     const [isCapturingScreenshots, setIsCapturingScreenshots] = useState(false);
 
     const viewShotRefs = useRef<Array<ViewShot | null>>([]);
-     const [loading, setLoading] = useState(false);
+    const [loading, setLoading] = useState(false);
 
 
     const [isPressed, setIsPressed] = useState(false);
     const [clientId, setClientId] = useState(null);
     const [groups, setGroups] = useState([]);
     const [previewImages, setPreviewImages] = useState<ImageAsset[]>([]); // Normal captured images (sirf UI ke liye)
-        const [screenshots, setScreenshots] = useState<ImageAsset[]>([]);
+    const [screenshots, setScreenshots] = useState<ImageAsset[]>([]);
 
 
-    const [selectedGroup, setSelectedGroup] = useState(null);
 
 
     const [selectedStorageId, setSelectedStorageId] = useState('');
@@ -442,103 +441,82 @@ const CAhealthreport = () => {
 
     const openCamera = async () => {
         await fetchLocation();
-
-           setLoading(true); // 🔵 Loader start
+        setLoading(true); // 🔵 Loader start
 
         launchCamera(
             {
-                mediaType: 'photo',
+                mediaType: "photo",
                 includeBase64: false,
-                cameraType: 'back',
+                cameraType: "back",
                 saveToPhotos: true,
-                quality: 0.4,
-                maxWidth: 700,
-                maxHeight: 700,
+                quality: 0.6,
+                maxWidth: 800,
+                maxHeight: 800,
             },
             async (response) => {
-                 setLoading(false); // 🔴 Loader stop
+                setLoading(false); // 🔴 Loader stop
+
                 if (response.didCancel) {
-                    console.log('User cancelled image picker');
+                    console.log("User cancelled image picker");
                 } else if (response.errorMessage) {
-                    console.log('ImagePicker Error: ', response.errorMessage);
+                    console.log("ImagePicker Error: ", response.errorMessage);
                 } else if (response.assets && response.assets.length > 0) {
                     const capturedImage = response.assets[0];
 
-                    // Generate MD5 hash from the image URI or fileName
+                    // ✅ Hash generate karo
                     const imageHash = md5(capturedImage.uri);
 
-                    // Check if this hash already exists
-                    const isDuplicate = state.form?.Files?.some(file => file.hash === imageHash);
 
-                    if (isDuplicate) {
-                        console.log('Duplicate image detected. Image will not be added.');
-                    } else {
-                        const newFile: ImageAsset = {
-                            uri: Platform.OS === 'android'
+
+                    // ✅ Normal image object
+                    const newFile: ImageAsset = {
+                        uri:
+                            Platform.OS === "android"
                                 ? capturedImage.uri
-                                : capturedImage.uri.replace('file://', ''),
-                            fileName: capturedImage.fileName || `photo_${Date.now()}.jpg`,
-                            type: capturedImage.type || 'image/jpeg',
+                                : capturedImage.uri.replace("file://", ""),
+                        fileName: capturedImage.fileName || `photo_${Date.now()}.jpg`,
+                        type: capturedImage.type || "image/jpeg",
 
-                        };
+                    };
 
-                         setPreviewImages((prev) => [...prev, newFile]);
+                    // ✅ Normal image UI ke liye save
+                    setPreviewImages((prev) => [...prev, newFile]);
 
-                        
-                     
-                        setTimeout(() => {
-                            captureAllScreenshots((state.form?.Files?.length || 1) - 1);
-                        }, 500);
-                    }
+                    // ⏳ Screenshot capture trigger (last index)
+                    setTimeout(() => {
+                        captureScreenshot(previewImages.length); // naya index
+                    }, 500);
                 }
             }
         );
     };
 
-    const captureAllScreenshots = async (index: number) => {
-       try {
-    const ref = viewShotRefs.current[index];
-    if (ref && typeof ref.capture === "function") {
-      const uri = await ref.capture();
-      if (uri) {
-        const screenshotImage: ImageAsset = {
-          uri,
-          fileName: `geotagged_${Date.now()}_${index}.jpg`,
-          type: "image/jpeg",
-        };
+    // 🖼️ Individual screenshot capture
+    const captureScreenshot = async (index: number) => {
+        try {
+            const ref = viewShotRefs.current[index];
+            if (ref && typeof ref.capture === "function") {
+                const uri = await ref.capture();
+                if (uri) {
+                    const screenshotImage: ImageAsset = {
+                        uri,
+                        fileName: `geotagged_${Date.now()}_${index}.jpg`,
+                        type: "image/jpeg",
+                    };
 
-        // ✅ Sirf API ke liye
-        setScreenshots((prev) => [...prev, screenshotImage]);
-      }
-    }
-  } catch (error) {
-    console.error("Screenshot capture error:", error);
-  }
-    };
-
-    const handleDeleteImage = (index) => {
-        const updatedImages = [...(state.form?.Files || [])];
-        updatedImages.splice(index, 1);
-
-        // Also remove the corresponding screenshot
-        const updatedScreenshots = [...screenshots];
-        updatedScreenshots.splice(index, 1);
-
-        updateState({
-            ...state,
-            form: {
-                ...state.form,
-                Files: updatedImages
+                    // ✅ Screenshot sirf API ke liye store karo
+                    setScreenshots((prev) => {
+                        const updated = [...prev];
+                        updated[index] = screenshotImage;
+                        return updated;
+                    });
+                }
             }
-        });
-
-        setScreenshots(updatedScreenshots);
-
-        // Recapture screenshots after deletion
-        setTimeout(() => {
-            captureAllScreenshots(index);
-        }, 500);
+        } catch (error) {
+            console.error("Screenshot capture error:", error);
+        }
     };
+
 
 
 
@@ -623,97 +601,97 @@ const CAhealthreport = () => {
     const handleNext = (nextStep: number) => {
         let result: any = { isValid: true }; // Initialize with default valid state
 
-        if (currentStep === 0) {
-            if (!state.form.reportType) {
-                alert('Please select a report type');
-                return;
-            }
-            if (!state.form.healthReportDispatchType) {
-                alert('Please select a health report dispatch type');
-                return;
-            }
-            if (!state.form.clientdata) {
-                alert('Please select a client');
-                return;
-            }
-            if (!state.form.option1) {
-                alert('Please select a company');
-                return;
-            }
-            if (!state.form.option2) {
-                alert('Please select a branch');
-                return;
-            }
-            if (!state.form.Caadmindata) {
-                alert('Please select a CA Admin');
-                return;
-            }
-            if (!state.form.Storagedata) {
-                alert('Please select a storage location');
-                return;
-            }
-        }
+        // if (currentStep === 0) {
+        //     if (!state.form.reportType) {
+        //         alert('Please select a report type');
+        //         return;
+        //     }
+        //     if (!state.form.healthReportDispatchType) {
+        //         alert('Please select a health report dispatch type');
+        //         return;
+        //     }
+        //     if (!state.form.clientdata) {
+        //         alert('Please select a client');
+        //         return;
+        //     }
+        //     if (!state.form.option1) {
+        //         alert('Please select a company');
+        //         return;
+        //     }
+        //     if (!state.form.option2) {
+        //         alert('Please select a branch');
+        //         return;
+        //     }
+        //     if (!state.form.Caadmindata) {
+        //         alert('Please select a CA Admin');
+        //         return;
+        //     }
+        //     if (!state.form.Storagedata) {
+        //         alert('Please select a storage location');
+        //         return;
+        //     }
+        // }
 
-        else if (currentStep === 1) {
+        // else if (currentStep === 1) {
 
-            // Truck number validation
-            if (!state.form.Trucknumber || state.form.Trucknumber.trim() === '') {
-                alert('Please enter truck number');
-                return;
-            }
-            // const truckRegex = /^[A-Z]{2}[0-9]{2}[A-Z]{2}[0-9]{4}$/;
-            // if (!truckRegex.test(state.form.Trucknumber)) {
-            //     alert('Please enter a valid truck number (e.g., UP32AB1234)');
-            //     return;
-            // }
+        //     // Truck number validation
+        //     if (!state.form.Trucknumber || state.form.Trucknumber.trim() === '') {
+        //         alert('Please enter truck number');
+        //         return;
+        //     }
+        //     // const truckRegex = /^[A-Z]{2}[0-9]{2}[A-Z]{2}[0-9]{4}$/;
+        //     // if (!truckRegex.test(state.form.Trucknumber)) {
+        //     //     alert('Please enter a valid truck number (e.g., UP32AB1234)');
+        //     //     return;
+        //     // }
 
-            // Gross weight validation
-            if (!state.form.grossWeight || isNaN(parseFloat(state.form.grossWeight))) {
-                alert('Please enter a valid gross weight');
-                return;
-            }
+        //     // Gross weight validation
+        //     if (!state.form.grossWeight || isNaN(parseFloat(state.form.grossWeight))) {
+        //         alert('Please enter a valid gross weight');
+        //         return;
+        //     }
 
-            // Tare weight validation
-            if (!state.form.tareWeight || isNaN(parseFloat(state.form.tareWeight))) {
-                alert('Please enter a valid tare weight');
-                return;
-            }
+        //     // Tare weight validation
+        //     if (!state.form.tareWeight || isNaN(parseFloat(state.form.tareWeight))) {
+        //         alert('Please enter a valid tare weight');
+        //         return;
+        //     }
 
-            // Net weight validation (Gross - Tare >= 0)
-            const netWeight = parseFloat(state.form.grossWeight) - parseFloat(state.form.tareWeight);
-            if (netWeight < 0) {
-                alert('Net weight cannot be negative');
-                return;
-            }
+        //     // Net weight validation (Gross - Tare >= 0)
+        //     const netWeight = parseFloat(state.form.grossWeight) - parseFloat(state.form.tareWeight);
+        //     if (netWeight < 0) {
+        //         alert('Net weight cannot be negative');
+        //         return;
+        //     }
 
-            // Date validation
-            if (!state.form.date) {
-                alert('Please select a date');
-                return;
-            }
+        //     // Date validation
+        //     if (!state.form.date) {
+        //         alert('Please select a date');
+        //         return;
+        //     }
 
-            // Bag count validation
-            if (!state.form.bagCount || isNaN(parseInt(state.form.bagCount))) {
-                alert('Please enter a valid bag count');
-                return;
-            }
+        //     // Bag count validation
+        //     if (!state.form.bagCount || isNaN(parseInt(state.form.bagCount))) {
+        //         alert('Please enter a valid bag count');
+        //         return;
+        //     }
 
-            // Size validation
-            if (!state.form.size || isNaN(parseFloat(state.form.size))) {
-                alert('Please enter a valid size');
-                return;
-            }
-        }
-
-
-        else if (currentStep === 2) {
+        //     // Size validation
+        //     if (!state.form.size || isNaN(parseFloat(state.form.size))) {
+        //         alert('Please enter a valid size');
+        //         return;
+        //     }
+        // }
 
 
-            if (!state.form.SpoliedBranch || state.form.SpoliedBranch.trim() === '') {
-                alert('Please enter branch person name');
-                return;
-            }
-        }
+        // else if (currentStep === 2) {
+
+
+        //     if (!state.form.SpoliedBranch || state.form.SpoliedBranch.trim() === '') {
+        //         alert('Please enter branch person name');
+        //         return;
+        //     }
+        // }
 
 
 
@@ -821,6 +799,7 @@ const CAhealthreport = () => {
 
     // Update the handleSubmit function to include only required fields
     const handleSubmit = () => {
+        console.log('Submitting form with state:', state);
         // Create a new object with only the required fields
         const payload = {
             ReportType: state.form.reportType,
@@ -860,6 +839,14 @@ const CAhealthreport = () => {
         const formData = createFormData(payload);
 
         setIsPressed(true); // Show loading indicator
+
+        screenshots.forEach((file, index) => {
+            formData.append("Files", {
+                uri: file.uri,
+                name: file.fileName || `file_${index}.jpg`,
+                type: file.type || "image/jpeg",
+            } as any);
+        });
 
         const token = Storage.getString('userToken');
         console.log('Submitting form with token:', token);
@@ -1652,7 +1639,7 @@ const CAhealthreport = () => {
                                 <TouchableOpacity
                                     style={styles.button}
                                     onPress={handleSubmit}
-                                    disabled={(state.form?.Files || []).length < 3 || (state.form?.Files || []).length > 9 || isPressed}
+                              
                                 >
                                     {isPressed ? (
                                         <ActivityIndicator color="#fff" size="small" />
@@ -1663,21 +1650,21 @@ const CAhealthreport = () => {
                             </View>
 
                             <View style={styles.fileGrid}>
-                                {(state.form?.Files || []).map((item, index) => (
+                                {previewImages.map((item, index) => (
                                     <View key={index} style={styles.imageContainer}>
                                         <ViewShot
                                             ref={(ref) => { viewShotRefs.current[index] = ref; }}
-                                            options={{ format: 'jpg', quality: 0.9 }}
+                                            options={{ format: "jpg", quality: 0.9 }}
                                             style={styles.viewShot}
                                         >
                                             <View style={styles.videoView}>
-                                                <Image
-                                                    source={{ uri: item.uri }}
-                                                    style={styles.image}
-                                                />
+                                                {/* ✅ Normal image UI ke liye */}
+                                                <Image source={{ uri: item.uri }} style={styles.image}   resizeMode="cover" />
+
+                                                {/* ✅ Overlay */}
                                                 <View style={styles.overlay}>
                                                     <Text style={styles.overlayText}>
-                                                        {profileData.name || 'User'} ({profileData.role || 'SvUser'})
+                                                        {profileData.name || "User"} ({profileData.role || "SvUser"})
                                                     </Text>
                                                     <Text style={styles.overlayText}>
                                                         Lat: {location?.latitude?.toFixed(6) || "N/A"}
@@ -1695,37 +1682,10 @@ const CAhealthreport = () => {
                                             </View>
                                         </ViewShot>
 
-
-
-                                        
-                                        {screenshots[index]?.uri && (
-                                            <View style={{ marginTop: -100, alignItems: 'center' }}>
-                                                <Text style={styles.screenshotLabel}>Geotagged Version</Text>
-                                                <Image
-                                                    source={{ uri: screenshots[index].uri }}
-                                                    style={styles.screenshotPreview}
-                                                    resizeMode="contain"
-                                                />
-                                            </View>
-                                        )}
+                                      
                                     </View>
                                 ))}
                             </View>
-
-                            {/* Modal to show full image */}
-                            {selectedImage && (
-                                <Modal visible={!!selectedImage} transparent={true}>
-                                    <View style={styles.modalContainer}>
-                                        <TouchableOpacity
-                                            style={styles.modalClose}
-                                            onPress={() => setSelectedImage(null)}
-                                        >
-                                            <MaterialIcons name="cancel" size={30} color="white" />
-                                        </TouchableOpacity>
-                                        <Image source={{ uri: selectedImage }} style={styles.fullImage} />
-                                    </View>
-                                </Modal>
-                            )}
                         </View>
                     )}
 
