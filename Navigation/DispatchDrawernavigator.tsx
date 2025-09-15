@@ -30,6 +30,7 @@ const storage = new MMKV();
 
 export default function DispatchDrawernavigator() {
   const [profileData, setProfileData] = useState<any>(null);
+
   const [loading, setLoading] = useState<boolean>(true);
     const [isConnected, setIsConnected] = useState<boolean>(true);
   const navigation = useContext(NavigationContext);
@@ -48,6 +49,7 @@ export default function DispatchDrawernavigator() {
     try {
       const response = await api.get('/api/user/profile');
       setProfileData(response.data);
+      console.log('Profile Data:', response.data);
     } catch (error) {
       console.log('Error fetching profile data:', error);
       setProfileData({
@@ -295,13 +297,21 @@ export default function DispatchDrawernavigator() {
 
 function CustomDrawerContent(props: any) {
   const { profileData, onLogoutPress } = props;
+      const BASE_URL = "https://dev-backend-2025.epravaha.com";
 
   return (
     <View style={{ flex: 1 }}>
       <DrawerContentScrollView {...props}>
         <View style={styles.drawerFooter}>
-          <Image source={require('../assets/profile.jpg')} style={styles.image} />
-          <Text style={styles.footerText}>{profileData?.name || 'User Name'}</Text>
+       <Image
+            source={
+              profileData?.profilePhoto
+                ? { uri: `${BASE_URL}${profileData.profilePhoto}` }
+                : require('../assets/profile.jpg')
+            }
+            style={styles.image}
+          />
+          <Text style={styles.footerText}>{profileData?.name }</Text>
         </View>
         <DrawerItemList {...props} />
       </DrawerContentScrollView>

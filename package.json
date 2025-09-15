@@ -29,6 +29,7 @@
     "expo-auth-session": "~6.0.1",
     "expo-dev-client": "~5.0.7",
     "expo-linking": "~7.0.3",
+    "expo-location": "~18.0.10",
     "expo-router": "^4.0.15",
     "expo-splash-screen": "~0.29.24",
     "expo-status-bar": "~2.0.0",
@@ -64,9 +65,8 @@
     "react-native-sms-retriever": "^1.1.1",
     "react-native-vector-icons": "^10.2.0",
     "react-native-video": "^6.16.1",
-    "react-native-vision-camera": "^4.6.3",
-    "expo-location": "~18.0.10",
-    "react-native-view-shot": "~4.0.3"
+    "react-native-view-shot": "~4.0.3",
+    "react-native-vision-camera": "^4.6.3"
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",

@@ -110,13 +110,13 @@ const LoginApp: React.FC<LoginAppProps> = ({ navigation }) => {
     }
   };
 
-  const handleNavigation = () => {
-    if (isOffline) {
-      navigation.navigate('DispatchDrawernavigator'); // ✅ direct offline navigation
-    } else {
-      handleLogin();
-    }
-  };
+  // const handleNavigation = () => {
+  //   if (isOffline) {
+  //     navigation.navigate('DispatchDrawernavigator'); // ✅ direct offline navigation
+  //   } else {
+  //     handleLogin();
+  //   }
+  // };
 
   useEffect(() => {
     const keyboardDidShowListener = Keyboard.addListener('keyboardDidShow', () => {
@@ -152,7 +152,7 @@ const LoginApp: React.FC<LoginAppProps> = ({ navigation }) => {
         resizeMode="contain"
       >
         {/* ✅ Offline toggle */}
-        <View style={styles.offlinecontainer}>
+        {/* <View style={styles.offlinecontainer}>
           <Text style={styles.text}>Offline Mode</Text>
           <Switch
             trackColor={{ false: '#d3d3d3', true: '#F79B00' }}
@@ -160,7 +160,7 @@ const LoginApp: React.FC<LoginAppProps> = ({ navigation }) => {
             onValueChange={toggleSwitch}
             value={isOffline}
           />
-        </View>
+        </View> */}
 
         <View style={styles.inputContainer}>
           <Icon name="phone" size={20} color="#666" style={styles.icon} />
@@ -204,7 +204,7 @@ const LoginApp: React.FC<LoginAppProps> = ({ navigation }) => {
       <View style={styles.view}>
         <TouchableOpacity 
           style={[styles.button, (isLoading) && styles.buttonDisabled]} 
-          onPress={handleNavigation}
+          onPress={handleLogin}
           disabled={isLoading}
         >
           {isLoading ? (

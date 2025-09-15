@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef , useEffect } from 'react';
 import {
   View,
   Text,
@@ -71,12 +71,40 @@ const ReimbursementForm = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isModalVisible, setModalVisible] = useState(false);
   const [isCapturingLocation, setIsCapturingLocation] = useState(false);
+    const [profileData, setProfileData] = useState<{ name?: string; role?: string }>({});
+  const [loadingProfile, setLoadingProfile] = useState(true);
   const viewShotRefs = useRef<Array<ViewShot | null>>([]);
   const { t } = useTranslation();
 
   const today = new Date();
   const threeMonthsAgo = new Date();
   threeMonthsAgo.setMonth(today.getMonth() - 3);
+
+
+
+
+
+
+
+    useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        const response = await apiClient.get('/api/user/profile');
+        setProfileData(response.data);
+        console.log('Profile Data:', response.data);
+      } catch (error) {
+        console.log('Error fetching profile data:', error);
+        setProfileData({
+          role: 'SvUser',
+          name: 'User'
+        });
+      } finally {
+        setLoadingProfile(false);
+      }
+    };
+    fetchProfile();
+  }, []);
+
 
   // Validate minimum and maximum images
   const validateImages = () => {
@@ -211,9 +239,9 @@ const ReimbursementForm = () => {
 
       if (reverseGeocode.length > 0) {
         setAddress(reverseGeocode[0] || null);
-        const addr = reverseGeocode[0];
-        const formatted = `${addr.name || ''}, ${addr.city || ''}, ${addr.region || ''}, ${addr.country || ''}`.replace(/\s*,\s*,/g, ',').replace(/^,\s*|\s*,$/g, '');
-        setFormattedAddress(formatted);
+     
+       
+   
       }
     } catch (error) {
       console.error('Location error:', error);
@@ -578,6 +606,13 @@ const ReimbursementForm = () => {
               <View style={styles.imageContainer}>
                 <Image source={{ uri: img.uri }} style={styles.image} resizeMode="cover" />
                 <View style={styles.overlay}>
+                    {!loadingProfile && (
+                    <>
+                      <Text style={styles.overlayText}>
+                        {profileData.name || 'User'} ({profileData.role || 'SvUser'})
+                      </Text>
+                    </>
+                  )}
                   {location && address ? (
                     <>
                       <Text style={styles.overlayText}>
@@ -607,25 +642,7 @@ const ReimbursementForm = () => {
           </View>
         ))}
 
-        {/* Screenshot Preview Section */}
-{screenshots.length > 0 && (
-  <View style={{ marginTop: 20 }}>
-    <Text style={styles.label}>Geo-tagged Screenshots</Text>
-    {screenshots.map((shot, idx) => (
-      <View key={idx} style={{ marginBottom: 10 }}>
-        <Image
-          source={{ uri: shot.uri }}
-          style={{
-            width: '100%',
-            height: isSmallDevice ? 180 : 200,
-            borderRadius: 8,
-          }}
-          resizeMode="cover"
-        />
-      </View>
-    ))}
-  </View>
-)}
+   
 
 
         {/* Submit Button */}
@@ -767,12 +784,12 @@ const styles = StyleSheet.create({
     right: 0,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.6)',
+    backgroundColor: 'rgba(0, 0, 0, 0.1)',
     padding: 8,
   },
   overlayText: {
     color: '#FFFFFF',
-    fontSize: isSmallDevice ? 10 : 12,
+    fontSize: isSmallDevice ? 11 : 14,
     marginBottom: 2,
     textAlign: 'center',
   }

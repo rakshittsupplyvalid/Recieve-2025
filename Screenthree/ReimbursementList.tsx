@@ -289,10 +289,10 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
   },
   modalContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'rgba(0,0,0,0.5)',
+  flex: 1,
+  backgroundColor: 'rgba(0,0,0,0.4)', // backdrop
+  justifyContent: 'center', // agar beech me chahiye
+  padding: 20,
   },
   modalHeader: {
     backgroundColor: '#F6A001',

@@ -211,17 +211,38 @@ const styles = StyleSheet.create({
     marginTop: 20,
   },
   imageContainer: {
-    width: '48%', // Each image takes 48% of the container width (leaving space for margins)
-    aspectRatio: 1, // Maintain a square aspect ratio
-    marginBottom: 10, // Space between rows
-    borderRadius: 10, // Rounded corners for the image container
-    overflow: 'hidden', // Ensure the image stays within the container
+    width: '48%',
+    aspectRatio: 1,
+    marginBottom: 10,
+    borderRadius: 10,
+    overflow: 'hidden',
+    marginHorizontal: '1%',
+    position: 'relative',
    
   },
+  viewShot: {
+   width: '100%',
+        height: 190,
+   
+        marginTop: 20,
+},
   image: {
     width: '100%', // Fill the container width
     height: '100%', // Fill the container height
   },
+
+
+   screenshotPreview: {
+        width: 120, 
+        height: 120, 
+        borderWidth: 1, 
+        borderColor: 'blue', 
+        marginTop: 5
+    },
+    screenshotLabel: {
+        fontSize: 12,
+        color: '#666',
+    },
   deleteIcon: {
     position: 'absolute',
     top: 2,
@@ -239,7 +260,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'flex-start',
-    marginVertical: 10,
+    marginVertical: 0,
   },
   fileContainer: {
     margin: 5,
@@ -264,22 +285,57 @@ const styles = StyleSheet.create({
   },
   videoView: {
     width: '100%',
-   height: '100%',
+   height: '90%',
    padding: 10,
    borderRadius: 10,
    justifyContent: 'center',
    alignItems: 'center',
    marginLeft : 5,
-   //
+ 
+
   
   
     
   },
+ imageContainer: {
+
+  width: '100%',
+    height: '30%',
+    resizeMode: 'cover',
+  
+  },
+
+
+   overlay: {
+     position: 'absolute',
+        bottom: 10,
+        left: 10,
+       
+        backgroundColor: 'rgba(0,0,0,0.4)',
+        padding: 5,
+  },
+  overlayText: {
+         color: 'white',
+        fontSize: 10,
+        marginBottom: 2,
+  },
+
+
   video: { 
     width: '100%',
     height: '100%',
     backgroundColor: '#000',
   
   },
+
+   deleteButton: {
+        position: 'absolute',
+        top: 5,
+        right: 5,
+        backgroundColor: 'white',
+        borderRadius: 15,
+        padding: 5,
+        zIndex: 10,
+    },
 });
 export default styles;

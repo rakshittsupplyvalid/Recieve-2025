@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { View, Text, StyleSheet, TextInput, ScrollView, TouchableOpacity, KeyboardAvoidingView, Switch, Modal, Platform, Image, ActivityIndicator, FlatList, Button, Linking, Alert, BackHandler } from 'react-native';
 
 import useForm from '../../App/Common/Lib/useForm'// Assuming you have a utility function to create form data
@@ -16,6 +16,9 @@ import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '../../types/Type';
 import VideoPlayer from 'react-native-video'; // 👈 yeh sirf video play karne ke liye
 import { Video as VideoCompressor } from 'react-native-compressor';
+import * as Location from 'expo-location';
+import ViewShot from 'react-native-view-shot';
+
 
 import Storage from '../../utils/Storage';
 import md5 from 'md5';
@@ -34,21 +37,6 @@ type ImageAsset = {
     type: string;
 };
 
-type Chawl = {
-    isCopiedFromFirst: boolean | undefined;
-    isCopiedFromPrevious?: boolean;
-    length: string;
-    breadth: string;
-    height: string;
-    originalValues?: {
-        length: string;
-        breadth: string;
-        height: string;
-    };
-};
-
-
-
 
 
 
@@ -61,9 +49,23 @@ const CAhealthreport = () => {
     const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
     const previousSteps = state?.hidden?.previousSteps || [];
     const [selectedImage, setSelectedImage] = useState(null);
+    const [address, setAddress] = useState<Location.LocationGeocodedAddress | null>(null);
+    const [isCapturingLocation, setIsCapturingLocation] = useState(false);
+    const [location, setLocation] = useState<Location.LocationObjectCoords | null>(null);
+    const [profileData, setProfileData] = useState<{ name?: string; role?: string }>({});
+    const [isCapturingScreenshots, setIsCapturingScreenshots] = useState(false);
+
+    const viewShotRefs = useRef<Array<ViewShot | null>>([]);
+     const [loading, setLoading] = useState(false);
+
+
     const [isPressed, setIsPressed] = useState(false);
     const [clientId, setClientId] = useState(null);
     const [groups, setGroups] = useState([]);
+    const [previewImages, setPreviewImages] = useState<ImageAsset[]>([]); // Normal captured images (sirf UI ke liye)
+        const [screenshots, setScreenshots] = useState<ImageAsset[]>([]);
+
+
     const [selectedGroup, setSelectedGroup] = useState(null);
 
 
@@ -72,6 +74,28 @@ const CAhealthreport = () => {
     const today = new Date();
     const threeMonthsAgo = new Date();
     threeMonthsAgo.setMonth(today.getMonth() - 3);
+
+
+
+
+    useEffect(() => {
+        const fetchProfile = async () => {
+            try {
+                const response = await apiClient.get('/api/user/profile');
+                setProfileData(response.data);
+                console.log('Profile Data:', response.data);
+            } catch (error) {
+                console.log('Error fetching profile data:', error);
+                setProfileData({
+                    role: 'SvUser',
+                    name: 'User'
+                });
+            } finally {
+                console.log('Finished fetching profile data');
+            }
+        };
+        fetchProfile();
+    }, []);
 
 
     const reportTypeOptions = [
@@ -350,18 +374,48 @@ const CAhealthreport = () => {
 
 
 
-    const handleDeleteImage = (index) => {
-        const updatedImages = [...(state.form?.Files || [])];
-        updatedImages.splice(index, 1);
-        updateState({
-            ...state,
-            form: {
-                ...state.form,
-                Files: updatedImages
-            }
-        });
-    };
 
+
+
+    const fetchLocation = async () => {
+        try {
+            setIsCapturingLocation(true);
+
+            // Request permission
+            let { status } = await Location.requestForegroundPermissionsAsync();
+
+            if (status !== 'granted') {
+                console.log('Please login'); // <-- yahan log
+                alert('Location permission denied');
+                return;
+            }
+
+            // Get current location
+            let locationData = await Location.getCurrentPositionAsync({
+                accuracy: Location.Accuracy.High
+            });
+            setLocation(locationData.coords);
+            console.log('Location fetched:', locationData.coords);
+
+            // Reverse geocode
+            let reverseGeocode = await Location.reverseGeocodeAsync({
+                latitude: locationData.coords.latitude,
+                longitude: locationData.coords.longitude,
+            });
+
+            if (reverseGeocode.length > 0) {
+                setAddress(reverseGeocode[0] || null);
+                console.log('Address fetched:', reverseGeocode[0]);
+            }
+
+        } catch (error) {
+            console.log('Please login'); // <-- error case
+            console.error('Location error:', error);
+            Alert.alert('Location Error', 'Could not fetch location');
+        } finally {
+            setIsCapturingLocation(false);
+        }
+    };
 
 
     const requestCameraPermission = async () => {
@@ -386,7 +440,11 @@ const CAhealthreport = () => {
 
 
 
-    const openCamera = () => {
+    const openCamera = async () => {
+        await fetchLocation();
+
+           setLoading(true); // 🔵 Loader start
+
         launchCamera(
             {
                 mediaType: 'photo',
@@ -398,6 +456,7 @@ const CAhealthreport = () => {
                 maxHeight: 700,
             },
             async (response) => {
+                 setLoading(false); // 🔴 Loader stop
                 if (response.didCancel) {
                     console.log('User cancelled image picker');
                 } else if (response.errorMessage) {
@@ -408,39 +467,79 @@ const CAhealthreport = () => {
                     // Generate MD5 hash from the image URI or fileName
                     const imageHash = md5(capturedImage.uri);
 
-                    // Check if this hash already exists in the current list of files
+                    // Check if this hash already exists
                     const isDuplicate = state.form?.Files?.some(file => file.hash === imageHash);
 
                     if (isDuplicate) {
                         console.log('Duplicate image detected. Image will not be added.');
                     } else {
-                        const newFile = {
+                        const newFile: ImageAsset = {
                             uri: Platform.OS === 'android'
                                 ? capturedImage.uri
-                                : capturedImage.uri.replace('file://', ''),  // iOS mein remove karo, Android mein rehne do
+                                : capturedImage.uri.replace('file://', ''),
                             fileName: capturedImage.fileName || `photo_${Date.now()}.jpg`,
                             type: capturedImage.type || 'image/jpeg',
-                            hash: imageHash, // Adding the MD5 hash
+
                         };
 
+                         setPreviewImages((prev) => [...prev, newFile]);
 
-
-                        // Update state with the new image (if not a duplicate)
-                        updateState({
-                            form: {
-                                ...state.form,
-                                Files: [...(state.form?.Files || []), newFile],
-                            },
-
-                        });
-
-
-
+                        
+                     
+                        setTimeout(() => {
+                            captureAllScreenshots((state.form?.Files?.length || 1) - 1);
+                        }, 500);
                     }
                 }
             }
         );
     };
+
+    const captureAllScreenshots = async (index: number) => {
+       try {
+    const ref = viewShotRefs.current[index];
+    if (ref && typeof ref.capture === "function") {
+      const uri = await ref.capture();
+      if (uri) {
+        const screenshotImage: ImageAsset = {
+          uri,
+          fileName: `geotagged_${Date.now()}_${index}.jpg`,
+          type: "image/jpeg",
+        };
+
+        // ✅ Sirf API ke liye
+        setScreenshots((prev) => [...prev, screenshotImage]);
+      }
+    }
+  } catch (error) {
+    console.error("Screenshot capture error:", error);
+  }
+    };
+
+    const handleDeleteImage = (index) => {
+        const updatedImages = [...(state.form?.Files || [])];
+        updatedImages.splice(index, 1);
+
+        // Also remove the corresponding screenshot
+        const updatedScreenshots = [...screenshots];
+        updatedScreenshots.splice(index, 1);
+
+        updateState({
+            ...state,
+            form: {
+                ...state.form,
+                Files: updatedImages
+            }
+        });
+
+        setScreenshots(updatedScreenshots);
+
+        // Recapture screenshots after deletion
+        setTimeout(() => {
+            captureAllScreenshots(index);
+        }, 500);
+    };
+
 
 
 
@@ -554,8 +653,8 @@ const CAhealthreport = () => {
                 return;
             }
         }
- 
-             else if (currentStep === 1) {
+
+        else if (currentStep === 1) {
 
             // Truck number validation
             if (!state.form.Trucknumber || state.form.Trucknumber.trim() === '') {
@@ -644,8 +743,8 @@ const CAhealthreport = () => {
         // }
 
         // Proceed to next step
-      
-      
+
+
         updateState({
             ...state,
             hidden: {
@@ -834,7 +933,7 @@ const CAhealthreport = () => {
                 >
 
 
-                    {currentStep === 0 && (
+                    {currentStep === 3 && (
                         <View style={styles.onecontainers}>
                             <View style={styles.content}>
                                 <View style={styles.pickerContainer}>
@@ -1520,34 +1619,29 @@ const CAhealthreport = () => {
                         </View>
                     )}
 
-                    {currentStep === 3 && (
+                    {currentStep === 0 && (
                         <View style={{ flex: 1, padding: 20 }}>
                             {/* Camera Button */}
+                            <View style={styles.buttoncontent}>
+
+                            </View>
+
                             <View style={styles.buttoncontent}>
                                 <TouchableOpacity
                                     style={styles.Camerabutton}
                                     onPress={handlePresscamera}
-                                    disabled={(state.form?.Files || []).length >= 9}
+                                    disabled={loading || (state.form?.Files || []).length >= 9} // loader ya max files pe disable
                                 >
-                                    <MaterialIcons name="camera" size={30} color="white" />
-                                    <Text style={styles.buttonText}>{t('PickfromCamera')}</Text>
+                                    {loading ? (
+                                        <ActivityIndicator size="small" color="#fff" />
+                                    ) : (
+                                        <>
+                                            <MaterialIcons name="camera" size={30} color="white" />
+                                            <Text style={styles.buttonText}>{t("PickfromCamera")}</Text>
+                                        </>
+                                    )}
                                 </TouchableOpacity>
                             </View>
-
-                            <View style={styles.buttoncontent}>
-                                <TouchableOpacity
-                                    style={styles.Camerabutton}
-                                    onPress={requestvideoPermission}
-                                    disabled={
-                                        (state.form?.Files || []).filter(f => f.type?.startsWith("video")).length >= 2
-                                    } // 👈 sirf 2 video allow
-                                >
-                                    <MaterialIcons name="camera" size={30} color="white" />
-                                    <Text style={styles.buttonText}>Pick From Video</Text>
-                                </TouchableOpacity>
-                            </View>
-
-
 
                             {/* Previous and Submit Buttons */}
                             <View style={styles.buttoncontent}>
@@ -1558,115 +1652,80 @@ const CAhealthreport = () => {
                                 <TouchableOpacity
                                     style={styles.button}
                                     onPress={handleSubmit}
-
-
-                                    disabled={(state.form?.Files || []).length < 3 || (state.form?.Files || []).length > 9 || isPressed} // Disable submit if image count is out of range
+                                    disabled={(state.form?.Files || []).length < 3 || (state.form?.Files || []).length > 9 || isPressed}
                                 >
-
                                     {isPressed ? (
                                         <ActivityIndicator color="#fff" size="small" />
                                     ) : (
-                                        <Text style={styles.buttonText}>
-                                            {t('submit')}
-                                        </Text>
+                                        <Text style={styles.buttonText}>{t('submit')}</Text>
                                     )}
-
                                 </TouchableOpacity>
                             </View>
 
-                            {/* Image Grid */}
-                            {/* <View style={styles.imageGrid}>
-                                   {(state.form?.Files || []).map((item, index) => (
-                                     <View key={index} style={styles.imageContainer}>
-                                       <TouchableOpacity onPress={() => setSelectedImage(item.uri)}>
-                                         <Image source={{ uri: item.uri }} style={styles.image} />
-                                       </TouchableOpacity>
-                   
-                                       <TouchableOpacity
-                                         style={styles.deleteIcon}
-                                         onPress={() => handleDeleteImage(index)}
-                                       >
-                                         <MaterialIcons name="cancel" size={24} color="red" />
-                                       </TouchableOpacity>
-                                     </View>
-                                   ))}
-                                 </View>
-                   
-                   
-                                   {videos.map((v, index) => (
-                             <View key={index} style={styles.videoContainer}>
-                              
-                               <Video
-                                 source={{ uri: v.uri }}
-                                 style={styles.video}
-                                 controls   // 👈 play/pause controls enable karega
-                                 resizeMode="contain"
-                               />
-                             </View>
-                           ))} */}
-
-
-
                             <View style={styles.fileGrid}>
-                                {(state.form?.Files || []).map((item, index) => {
-                                    // 👇 safe type check
-                                    const fileType = item.type || "image/jpeg";
-
-                                    return (
-                                        <View key={index} style={styles.imageContainer}>
-
-                                            {fileType.startsWith("image") ? (
-                                                <TouchableOpacity onPress={() => setSelectedImage(item.uri)}>
-                                                    <View style={styles.videoView}>
-                                                        <Image source={{ uri: item.uri }} style={styles.image} />
-                                                    </View>
-                                                </TouchableOpacity>
-
-                                            ) : fileType.startsWith("video") ? (
-                                                <View style={styles.videoView}>
-                                                    <VideoPlayer
-                                                        source={{ uri: item.uri }}
-                                                        style={styles.video}
-                                                        controls
-                                                        resizeMode="contain"
-                                                    />
+                                {(state.form?.Files || []).map((item, index) => (
+                                    <View key={index} style={styles.imageContainer}>
+                                        <ViewShot
+                                            ref={(ref) => { viewShotRefs.current[index] = ref; }}
+                                            options={{ format: 'jpg', quality: 0.9 }}
+                                            style={styles.viewShot}
+                                        >
+                                            <View style={styles.videoView}>
+                                                <Image
+                                                    source={{ uri: item.uri }}
+                                                    style={styles.image}
+                                                />
+                                                <View style={styles.overlay}>
+                                                    <Text style={styles.overlayText}>
+                                                        {profileData.name || 'User'} ({profileData.role || 'SvUser'})
+                                                    </Text>
+                                                    <Text style={styles.overlayText}>
+                                                        Lat: {location?.latitude?.toFixed(6) || "N/A"}
+                                                    </Text>
+                                                    <Text style={styles.overlayText}>
+                                                        Long: {location?.longitude?.toFixed(6) || "N/A"}
+                                                    </Text>
+                                                    <Text style={styles.overlayText} numberOfLines={2}>
+                                                        {address?.formattedAddress || "Address not found"}
+                                                    </Text>
+                                                    <Text style={styles.overlayText}>
+                                                        {new Date().toLocaleString()}
+                                                    </Text>
                                                 </View>
-                                            ) : (
-                                                <Text style={{ color: "red" }}>Unknown File</Text>
-                                            )}
+                                            </View>
+                                        </ViewShot>
 
-                                            {/* Delete button */}
-                                            {/* <TouchableOpacity
-                           style={styles.deleteIcon}
-                           onPress={() => handleDeleteImage(index)}
-                         >
-                           <MaterialIcons name="cancel" size={24} color="red" />
-                         </TouchableOpacity> */}
-                                        </View>
-                                    );
-                                })}
 
+
+                                        
+                                        {screenshots[index]?.uri && (
+                                            <View style={{ marginTop: -100, alignItems: 'center' }}>
+                                                <Text style={styles.screenshotLabel}>Geotagged Version</Text>
+                                                <Image
+                                                    source={{ uri: screenshots[index].uri }}
+                                                    style={styles.screenshotPreview}
+                                                    resizeMode="contain"
+                                                />
+                                            </View>
+                                        )}
+                                    </View>
+                                ))}
                             </View>
 
-
-
-
-
-
-
                             {/* Modal to show full image */}
-                            <Modal visible={!!selectedImage} transparent={true}>
-                                <View style={styles.modalContainer}>
-                                    <TouchableOpacity
-                                        style={styles.modalClose}
-                                        onPress={() => setSelectedImage(null)}
-                                    >
-                                        <MaterialIcons name="cancel" size={30} color="white" />
-                                    </TouchableOpacity>
-
-                                    <Image source={{ uri: selectedImage }} style={styles.fullImage} />
-                                </View>
-                            </Modal>
+                            {selectedImage && (
+                                <Modal visible={!!selectedImage} transparent={true}>
+                                    <View style={styles.modalContainer}>
+                                        <TouchableOpacity
+                                            style={styles.modalClose}
+                                            onPress={() => setSelectedImage(null)}
+                                        >
+                                            <MaterialIcons name="cancel" size={30} color="white" />
+                                        </TouchableOpacity>
+                                        <Image source={{ uri: selectedImage }} style={styles.fullImage} />
+                                    </View>
+                                </Modal>
+                            )}
                         </View>
                     )}
 
