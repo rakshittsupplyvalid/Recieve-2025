@@ -386,7 +386,7 @@ const TestForm = () => {
       {
         mediaType: 'video',
         videoQuality: 'high', // high quality capture, baad me compress hoga
-        durationLimit: 60,
+        durationLimit: 30,
         saveToPhotos: true,
       },
       async (response) => {
@@ -1056,7 +1056,7 @@ const TestForm = () => {
 
               <View style={styles.pickerContainer}>
                 <Picker
-                  selectedValue={state.form?.size || ''}
+                  selectedValue={state.form?.size || "46-50"}
                   onValueChange={(value) => updateState({
                     ...state,
                     form: {

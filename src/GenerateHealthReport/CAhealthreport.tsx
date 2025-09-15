@@ -1194,7 +1194,7 @@ const CAhealthreport = () => {
                             />
                             <View style={styles.pickerContainer}>
                                 <Picker
-                                    selectedValue={state.form?.size || ''}
+                                    selectedValue={state.form?.size || "46-50"}
                                     onValueChange={(value) => updateState({
                                         ...state,
                                         form: {
