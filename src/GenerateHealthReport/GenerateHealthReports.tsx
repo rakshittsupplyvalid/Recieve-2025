@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, ScrollView, TouchableOpacity, KeyboardAvoidingView, Switch, Modal, Platform, Image, ActivityIndicator, FlatList, Button, Linking, Alert, BackHandler , StyleSheet } from 'react-native';
+import { View, Text, TextInput, ScrollView, TouchableOpacity, KeyboardAvoidingView, Switch, Modal, Platform, Image, ActivityIndicator, FlatList, Button, Linking, Alert, BackHandler, StyleSheet } from 'react-native';
 import Navbar from '../../App/Navbar';
 import useForm from '../../App/Common/Lib/useForm'
 import { Picker } from '@react-native-picker/picker';
@@ -47,8 +47,8 @@ const TestForm = () => {
   const [selectedImage, setSelectedImage] = useState(null);
   const [isPressed, setIsPressed] = useState(false);
   const [videos, setVideos] = useState<any[]>([]);
-   const [isCompressing, setIsCompressing] = useState(false);
-    const [compressionProgress, setCompressionProgress] = useState(0);
+  const [isCompressing, setIsCompressing] = useState(false);
+  const [compressionProgress, setCompressionProgress] = useState(0);
 
 
 
@@ -403,7 +403,7 @@ const TestForm = () => {
             // Show compression UI
             setIsCompressing(true);
             setCompressionProgress(0);
-            
+
             // 👉 Compress the video
             const compressedUri = await VideoCompressor.compress(
               capturedVideo.uri,
@@ -444,7 +444,7 @@ const TestForm = () => {
     );
   };
 
-  
+
   const handleNext = (nextStep: number) => {
     let validationResult: { isValid: boolean; message?: string } | null = null;
 
@@ -494,10 +494,18 @@ const TestForm = () => {
         alert('Please enter a valid bag count');
         return;
       }
-      if (!state.form.size || isNaN(parseFloat(state.form.size))) {
-        alert('Please Select a valid size');
+
+
+      const selectedSize = state.form.size && state.form.size.trim() !== ""
+        ? state.form.size
+        : "46-50";
+
+      if (!selectedSize || selectedSize.trim() === "") {
+        alert("Please select a valid size");
         return;
       }
+
+
     }
 
 
@@ -852,21 +860,21 @@ const TestForm = () => {
 
 
 
-          <Modal
-                  visible={isCompressing}
-                  transparent={true}
-                  animationType="fade"
-                >
-                  <View style={compressionStyles.overlay}>
-                    <View style={compressionStyles.container}>
-                      <ActivityIndicator size="large" color="#FF9500" />
-                      <Text style={compressionStyles.text}>Compressing video...</Text>
-                      <Text style={compressionStyles.progress}>
-                        {Math.round(compressionProgress * 100)}% complete
-                      </Text>
-                    </View>
-                  </View>
-                </Modal>
+        <Modal
+          visible={isCompressing}
+          transparent={true}
+          animationType="fade"
+        >
+          <View style={compressionStyles.overlay}>
+            <View style={compressionStyles.container}>
+              <ActivityIndicator size="large" color="#FF9500" />
+              <Text style={compressionStyles.text}>Compressing video...</Text>
+              <Text style={compressionStyles.progress}>
+                {Math.round(compressionProgress * 100)}% complete
+              </Text>
+            </View>
+          </View>
+        </Modal>
 
 
 
@@ -1551,6 +1559,7 @@ const TestForm = () => {
               </Modal>
             </View>
           )}
+
 
 
 

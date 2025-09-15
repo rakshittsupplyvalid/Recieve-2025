@@ -64,8 +64,8 @@ const CAhealthreport = () => {
     const [isPressed, setIsPressed] = useState(false);
     const [clientId, setClientId] = useState(null);
     const [groups, setGroups] = useState([]);
-     const [isCompressing, setIsCompressing] = useState(false);
-        const [compressionProgress, setCompressionProgress] = useState(0);
+    const [isCompressing, setIsCompressing] = useState(false);
+    const [compressionProgress, setCompressionProgress] = useState(0);
     const [selectedGroup, setSelectedGroup] = useState(null);
 
 
@@ -458,88 +458,88 @@ const CAhealthreport = () => {
 
 
 
- const requestvideoPermission = async () => {
-    if (Platform.OS === 'android') {
-      try {
-        const granted = await PermissionsAndroid.request(
-          PermissionsAndroid.PERMISSIONS.CAMERA
-        );
-        if (granted === PermissionsAndroid.RESULTS.GRANTED) {
-          console.log('Camera permission granted');
-          openCameraForVideo();
+    const requestvideoPermission = async () => {
+        if (Platform.OS === 'android') {
+            try {
+                const granted = await PermissionsAndroid.request(
+                    PermissionsAndroid.PERMISSIONS.CAMERA
+                );
+                if (granted === PermissionsAndroid.RESULTS.GRANTED) {
+                    console.log('Camera permission granted');
+                    openCameraForVideo();
+                } else {
+                    console.log('Camera permission denied');
+                }
+            } catch (err) {
+                console.warn(err);
+            }
         } else {
-          console.log('Camera permission denied');
+            openCameraForVideo(); // iOS me direct open
         }
-      } catch (err) {
-        console.warn(err);
-      }
-    } else {
-      openCameraForVideo(); // iOS me direct open
-    }
-  };
+    };
 
-  const openCameraForVideo = () => {
-    launchCamera(
-      {
-        mediaType: 'video',
-        videoQuality: 'high', // high quality capture, baad me compress hoga
-        durationLimit: 60,
-        saveToPhotos: true,
-      },
-      async (response) => {
-        if (response.assets && response.assets.length > 0) {
-          const capturedVideo = response.assets[0];
+    const openCameraForVideo = () => {
+        launchCamera(
+            {
+                mediaType: 'video',
+                videoQuality: 'high', // high quality capture, baad me compress hoga
+                durationLimit: 60,
+                saveToPhotos: true,
+            },
+            async (response) => {
+                if (response.assets && response.assets.length > 0) {
+                    const capturedVideo = response.assets[0];
 
-          // Max 2 videos check
-          if ((state.form?.Files || []).filter(f => f.type?.startsWith("video")).length >= 2) {
-            Alert.alert("Limit", "Maximum 2 videos allowed.");
-            return;
-          }
+                    // Max 2 videos check
+                    if ((state.form?.Files || []).filter(f => f.type?.startsWith("video")).length >= 2) {
+                        Alert.alert("Limit", "Maximum 2 videos allowed.");
+                        return;
+                    }
 
-          try {
-            // Show compression UI
-            setIsCompressing(true);
-            setCompressionProgress(0);
-            
-            // 👉 Compress the video
-            const compressedUri = await VideoCompressor.compress(
-              capturedVideo.uri,
-              {
-                compressionMethod: 'auto',
-              },
-              (progress) => {
-                console.log('Compression Progress: ', progress);
-                setCompressionProgress(progress); // Update progress (0 to 1)
-              }
-            );
+                    try {
+                        // Show compression UI
+                        setIsCompressing(true);
+                        setCompressionProgress(0);
 
-            console.log("Original URI:", capturedVideo.uri);
-            console.log("Compressed URI:", compressedUri);
+                        // 👉 Compress the video
+                        const compressedUri = await VideoCompressor.compress(
+                            capturedVideo.uri,
+                            {
+                                compressionMethod: 'auto',
+                            },
+                            (progress) => {
+                                console.log('Compression Progress: ', progress);
+                                setCompressionProgress(progress); // Update progress (0 to 1)
+                            }
+                        );
 
-            const newVideo = {
-              uri: Platform.OS === 'android' ? compressedUri : compressedUri.replace('file://', ''),
-              fileName: capturedVideo.fileName || `video_${Date.now()}.mp4`,
-              type: capturedVideo.type || 'video/mp4',
-            };
+                        console.log("Original URI:", capturedVideo.uri);
+                        console.log("Compressed URI:", compressedUri);
 
-            updateState({
-              form: {
-                ...state.form,
-                Files: [...(state.form?.Files || []), newVideo],
-              },
-            });
-          } catch (error) {
-            console.log("Video compression error:", error);
-            Alert.alert("Error", "Failed to compress video");
-          } finally {
-            // Hide compression UI
-            setIsCompressing(false);
-            setCompressionProgress(0);
-          }
-        }
-      }
-    );
-  };
+                        const newVideo = {
+                            uri: Platform.OS === 'android' ? compressedUri : compressedUri.replace('file://', ''),
+                            fileName: capturedVideo.fileName || `video_${Date.now()}.mp4`,
+                            type: capturedVideo.type || 'video/mp4',
+                        };
+
+                        updateState({
+                            form: {
+                                ...state.form,
+                                Files: [...(state.form?.Files || []), newVideo],
+                            },
+                        });
+                    } catch (error) {
+                        console.log("Video compression error:", error);
+                        Alert.alert("Error", "Failed to compress video");
+                    } finally {
+                        // Hide compression UI
+                        setIsCompressing(false);
+                        setCompressionProgress(0);
+                    }
+                }
+            }
+        );
+    };
 
 
 
@@ -622,8 +622,12 @@ const CAhealthreport = () => {
             }
 
             // Size validation
-            if (!state.form.size || isNaN(parseFloat(state.form.size))) {
-                alert('Please select valid size');
+            const selectedSize = state.form.size && state.form.size.trim() !== ""
+                ? state.form.size
+                : "46-50";
+
+            if (!selectedSize || selectedSize.trim() === "") {
+                alert("Please select a valid size");
                 return;
             }
         }
@@ -848,22 +852,22 @@ const CAhealthreport = () => {
 
 
 
-                
-                          <Modal
-                                  visible={isCompressing}
-                                  transparent={true}
-                                  animationType="fade"
-                                >
-                                  <View style={compressionStyles.overlay}>
-                                    <View style={compressionStyles.container}>
-                                      <ActivityIndicator size="large" color="#FF9500" />
-                                      <Text style={compressionStyles.text}>Compressing video...</Text>
-                                      <Text style={compressionStyles.progress}>
-                                        {Math.round(compressionProgress * 100)}% complete
-                                      </Text>
-                                    </View>
-                                  </View>
-                                </Modal>
+
+                <Modal
+                    visible={isCompressing}
+                    transparent={true}
+                    animationType="fade"
+                >
+                    <View style={compressionStyles.overlay}>
+                        <View style={compressionStyles.container}>
+                            <ActivityIndicator size="large" color="#FF9500" />
+                            <Text style={compressionStyles.text}>Compressing video...</Text>
+                            <Text style={compressionStyles.progress}>
+                                {Math.round(compressionProgress * 100)}% complete
+                            </Text>
+                        </View>
+                    </View>
+                </Modal>
 
 
 
@@ -1726,29 +1730,29 @@ const CAhealthreport = () => {
 
 
 const compressionStyles = StyleSheet.create({
-  overlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.7)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  container: {
-    backgroundColor: 'white',
-    padding: 20,
-    borderRadius: 10,
-    alignItems: 'center',
-    minWidth: 200,
-  },
-  text: {
-    marginTop: 10,
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
-  progress: {
-    marginTop: 5,
-    fontSize: 14,
-    color: '#666',
-  },
+    overlay: {
+        flex: 1,
+        backgroundColor: 'rgba(0, 0, 0, 0.7)',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    container: {
+        backgroundColor: 'white',
+        padding: 20,
+        borderRadius: 10,
+        alignItems: 'center',
+        minWidth: 200,
+    },
+    text: {
+        marginTop: 10,
+        fontSize: 16,
+        fontWeight: 'bold',
+    },
+    progress: {
+        marginTop: 5,
+        fontSize: 14,
+        color: '#666',
+    },
 });
 
 
