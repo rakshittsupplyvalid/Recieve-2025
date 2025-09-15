@@ -1630,6 +1630,25 @@ const CAhealthreport = () => {
                                 </TouchableOpacity>
                             </View>
 
+
+
+                                 <View style={styles.buttoncontent}>
+                                <TouchableOpacity
+                                    style={styles.Camerabutton}
+                                    onPress={ requestvideoPermission }
+                                    disabled={loading || (state.form?.Files || []).length >= 9} // loader ya max files pe disable
+                                >
+                                    {loading ? (
+                                        <ActivityIndicator size="small" color="#fff" />
+                                    ) : (
+                                        <>
+                                            <MaterialIcons name="camera" size={30} color="white" />
+                                            <Text style={styles.buttonText}>Video</Text>
+                                        </>
+                                    )}
+                                </TouchableOpacity>
+                            </View>
+
                             {/* Previous and Submit Buttons */}
                             <View style={styles.buttoncontent}>
                                 <TouchableOpacity style={styles.button} onPress={handlePrevious}>
@@ -1684,11 +1703,22 @@ const CAhealthreport = () => {
 
                                       
                                     </View>
+
+                                    
                                 ))}
                             </View>
+
+
+                           
                         </View>
                     )}
 
+
+                       <View>
+
+                        
+
+                       </View>
 
 
 

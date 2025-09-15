@@ -257,35 +257,37 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   fileGrid: {
-    flexDirection: "row",
-    flexWrap: "wrap",   // multiple rows banane ke liye
-    justifyContent: "space-between",
-    marginTop: 20,
+      flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 10,
+    justifyContent: "center",
   },
   imageContainer: {
-    width: "48%",       // 2 images ek row me (thoda gap ke liye 48%)
-    aspectRatio: 1,     // square shape ke liye
-    marginBottom: 10,
-    borderRadius: 10,
-    overflow: "hidden",
+      position: "relative",
+    margin: 5,
   },
   viewShot: {
     flex: 1,
   },
   videoView: {
-    flex: 1,
-    position: "relative",
+ width: 200,  // ✅ Pehle 120–130 hoga, isko bada kar do
+    height: 200,
+    borderRadius: 10,
+    overflow: "hidden",
+    backgroundColor: "#f0f0f0",
+
   },
   image: {
-    width: "100%",
+      width: "100%",  // container ke hisaab se adjust
     height: "100%",
+    resizeMode: "cover", // ya 'contain'
   },
   overlay: {
     position: "absolute",
     bottom: 0,
     left: 0,
     right: 0,
-    backgroundColor: "rgba(0,0,0,0.4)",
+    backgroundColor: "rgba(0,0,0,0.1)",
     padding: 4,
   },
   overlayText: {
