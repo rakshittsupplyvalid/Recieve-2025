@@ -621,15 +621,7 @@ const CAhealthreport = () => {
                 return;
             }
 
-            // Size validation
-            const selectedSize = state.form.size && state.form.size.trim() !== ""
-                ? state.form.size
-                : "46-50";
-
-            if (!selectedSize || selectedSize.trim() === "") {
-                alert("Please select a valid size");
-                return;
-            }
+            
         }
 
 
@@ -762,7 +754,7 @@ const CAhealthreport = () => {
             StainingColour: false,
             StainingColourPercent: 0,
             BagCount: parseInt(state.form?.bagCount) || 0,
-            Size: parseInt(state.form?.size) || 0,
+              Size: state.form?.size || '46-50', // This line was missing the Size field
             BlackSmutOnion: false,
             BlackSmutPercent: 0,
             SproutedOnion: false,
@@ -1197,21 +1189,24 @@ const CAhealthreport = () => {
                                 maxLength={5}
                             />
                             <View style={styles.pickerContainer}>
-                                <Picker
-                                    selectedValue={state.form?.size || "46-50"}
-                                    onValueChange={(value) => updateState({
-                                        ...state,
-                                        form: {
-                                            ...state.form,
-                                            size: value
-                                        }
-                                    })}
-                                >
-                                    <Picker.Item label="Select Onion Size" value="" />
-                                    {sizeOptions.map((option) => (
-                                        <Picker.Item key={option} label={option} value={option} />
-                                    ))}
-                                </Picker>
+                                             <Picker
+                                selectedValue={state.form?.size || "46-50"}
+                                onValueChange={(value) => {
+                                  console.log("Selected Size:", value);
+                                  updateState({
+                                    ...state,
+                                    form: {
+                                      ...state.form,
+                                      size: value,
+                                    },
+                                  });
+                                }}
+                              >
+                                <Picker.Item label="Select Onion Size" value="" />
+                                {sizeOptions.map((option) => (
+                                  <Picker.Item key={option} label={option} value={option} />
+                                ))}
+                              </Picker>
                             </View>
 
                             <View style={styles.buttoncontent}>

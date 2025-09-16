@@ -12,7 +12,7 @@ const apiClient = axios.create({
 });
 
 apiClient.interceptors.request.use(async (config) => {
-  const token = await retrieveToken(); // ✅ FIXED
+  const token = await retrieveToken(); 
 
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;

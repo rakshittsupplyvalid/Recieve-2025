@@ -11,33 +11,25 @@ const DispatchReportList = () => {
   const [filteredReports, setFilteredReports] = useState([]);
   const [loading, setLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [pageNumber, setPageNumber] = useState(1);
-  const [hasMoreData, setHasMoreData] = useState(true);
-  const pageSize = 30;
   const { t } = useTranslation();
 
   useFocusEffect(
     useCallback(() => {
       setSearchQuery('');
-      setPageNumber(1);
-      setHasMoreData(true);
     }, [])
   );
 
   const fetchHealthReports = async () => {
-    if (!hasMoreData || loading) return;
     setLoading(true);
     try {
       const url = `/api/mobile/healthreport/list?ReportType=DISPATCH&ReportDispatchType=NORMAL&ApprovalStatus=PENDING&ApprovalStatus=APPROVED&ApprovalStatus=REJECTED`;
+
       const response = await api.get(url);
       const newReports = response.data || [];
-      const updatedReports = pageNumber === 1 ? newReports : [...reports, ...newReports];
+      console.log('Fetched reports:', newReports);
 
-      setReports(updatedReports);
-      setFilteredReports(filterReports(updatedReports, searchQuery));
-      if (newReports.length < pageSize) {
-        setHasMoreData(false);
-      }
+      setReports(newReports);
+      setFilteredReports(filterReports(newReports, searchQuery));
     } catch (error) {
       console.error('Error fetching health reports:', error);
     } finally {
@@ -45,33 +37,26 @@ const DispatchReportList = () => {
     }
   };
 
-const filterReports = (data, query) => {
-  if (!query) return data;
-  const lowerQuery = query.toLowerCase();
-  return data.filter(item => {
-    const formattedDate = moment(item.date).add(5, "hours").format("DD-MM-YYYY");
-    return (
-      item.truckNumber?.toLowerCase().includes(lowerQuery) ||   // ✅ corrected key
-      item.assayerName?.toLowerCase().includes(lowerQuery) ||   // ✅ corrected key
-      formattedDate.includes(lowerQuery)
-    );
-  });
-};
-
+  const filterReports = (data, query) => {
+    if (!query) return data;
+    const lowerQuery = query.toLowerCase();
+    return data.filter(item => {
+      const formattedDate = moment(item.date).add(5, "hours").format("DD-MM-YYYY");
+      return (
+        item.truckNumber?.toLowerCase().includes(lowerQuery) ||
+        item.assayerName?.toLowerCase().includes(lowerQuery) ||
+        formattedDate.includes(lowerQuery)
+      );
+    });
+  };
 
   useEffect(() => {
     fetchHealthReports();
-  }, [pageNumber]);
+  }, []);
 
   useEffect(() => {
     setFilteredReports(filterReports(reports, searchQuery));
   }, [searchQuery, reports]);
-
-  const handleLoadMore = () => {
-    if (!loading && hasMoreData) {
-      setPageNumber(prevPage => prevPage + 1);
-    }
-  };
 
   return (
     <SafeAreaView style={{ flex: 1 }}>
@@ -85,41 +70,41 @@ const filterReports = (data, query) => {
         />
       </View>
 
-      
-      <FlatList
-  data={filteredReports}
-  keyExtractor={(item, index) => index.toString()}
-  renderItem={({ item }) => (
-    <View style={styles.one}>
-      <View style={styles.card}>
-        <View style={styles.topRightCorner} />
-        <View style={styles.bottomLeftCorner} />
-        <View style={styles.row}>
-          <Text style={styles.label}>{t('assyarerName')}</Text>
-          <Text style={styles.value}>{item.assayerName}</Text>
-        </View>
-        <View style={styles.row}>
-          <Text style={styles.label}>{t('Date')}</Text>
-          <Text style={styles.value}>{moment(item.date).format('DD-MM-YYYY')}</Text>
-        </View>
-        <View style={styles.row}>
-          <Text style={styles.label}>{t('TruckNumber')}</Text>
-          <Text style={styles.value}>{item.truckNumber}</Text>
-        </View>
-      </View>
-    </View>
-  )}
-  onEndReached={handleLoadMore}
-  onEndReachedThreshold={0.5}
-  ListEmptyComponent={
-    !loading && (
-      <Text style={{ textAlign: 'center', marginTop: 20, fontSize: 16 }}>
-        No Data Found
-      </Text>
-    )
-  }
-/>
-
+      {loading ? (
+        <ActivityIndicator size="large" color="#F79B00" style={{ marginTop: 20 }} />
+      ) : (
+        <FlatList
+          data={filteredReports}
+          keyExtractor={(item, index) => index.toString()}
+          renderItem={({ item }) => (
+            <View style={styles.one}>
+              <View style={styles.card}>
+                <View style={styles.topRightCorner} />
+                <View style={styles.bottomLeftCorner} />
+                <View style={styles.row}>
+                  <Text style={styles.label}>{t('assyarerName')}</Text>
+                  <Text style={styles.value}>{item.assayerName}</Text>
+                </View>
+                <View style={styles.row}>
+                  <Text style={styles.label}>{t('Date')}</Text>
+                  <Text style={styles.value}>{moment(item.date).format('DD-MM-YYYY')}</Text>
+                </View>
+                <View style={styles.row}>
+                  <Text style={styles.label}>{t('TruckNumber')}</Text>
+                  <Text style={styles.value}>{item.truckNumber}</Text>
+                </View>
+              </View>
+            </View>
+          )}
+          ListEmptyComponent={
+            !loading && (
+              <Text style={{ textAlign: 'center', marginTop: 20, fontSize: 16 }}>
+                No Data Found
+              </Text>
+            )
+          }
+        />
+      )}
     </SafeAreaView>
   );
 };
@@ -172,4 +157,3 @@ const styles = StyleSheet.create({
 });
 
 export default DispatchReportList;
-

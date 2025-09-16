@@ -496,14 +496,6 @@ const TestForm = () => {
       }
 
 
-      const selectedSize = state.form.size && state.form.size.trim() !== ""
-        ? state.form.size
-        : "46-50";
-
-      if (!selectedSize || selectedSize.trim() === "") {
-        alert("Please select a valid size");
-        return;
-      }
 
 
     }
@@ -758,7 +750,7 @@ const TestForm = () => {
       StainingColour: state.form?.stainingColour || false,
       StainingColourPercent: parseFloat(state.form?.stainingColourPercent) || 0,
       BagCount: parseInt(state.form?.bagCount) || 0,
-      Size: parseInt(state.form?.size) || 0,
+      Size: state.form?.size || '46-50', // This line was missing the Size field
       BlackSmutOnion: state.form?.blackSmutOnion || false,
       BlackSmutPercent: parseFloat(state.form?.blackSmutPercent) || 0,
       SproutedOnion: state.form?.sproutedOnion || false,
@@ -772,9 +764,7 @@ const TestForm = () => {
       FPCPersonName: state.form?.SpoliedBranch || '',
       Files: state.form?.Files || [],
       Comment: state.form?.SpoliedComment || ''
-
-
-    };
+    }
 
     // Ensure required fields are present
     if (!payload.Date) {
@@ -1065,19 +1055,23 @@ const TestForm = () => {
               <View style={styles.pickerContainer}>
                 <Picker
                   selectedValue={state.form?.size || "46-50"}
-                  onValueChange={(value) => updateState({
-                    ...state,
-                    form: {
-                      ...state.form,
-                      size: value
-                    }
-                  })}
+                  onValueChange={(value) => {
+                    console.log("Selected Size:", value);
+                    updateState({
+                      ...state,
+                      form: {
+                        ...state.form,
+                        size: value,
+                      },
+                    });
+                  }}
                 >
                   <Picker.Item label="Select Onion Size" value="" />
                   {sizeOptions.map((option) => (
                     <Picker.Item key={option} label={option} value={option} />
                   ))}
                 </Picker>
+
               </View>
 
 
@@ -1559,6 +1553,9 @@ const TestForm = () => {
               </Modal>
             </View>
           )}
+
+
+
 
 
 

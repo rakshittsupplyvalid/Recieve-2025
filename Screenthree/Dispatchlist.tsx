@@ -89,6 +89,7 @@ const Dispatchlist = () => {
   onChangeText={setSearchQuery}
   style={styles.searchInput}
 />
+
 </View>
 
 
