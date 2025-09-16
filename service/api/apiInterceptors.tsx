@@ -3,7 +3,7 @@ import jscrypto from '../../utils/jscrypto';
 import { retrieveToken } from '../../utils/authUtils';
 
 const apiClient = axios.create({
-  baseURL: 'https://stage-backend-2025.epravaha.com',
+  baseURL: 'https://backend-2025.epravaha.com',
   headers: {
     'Content-Type': 'application/octet-stream',
     'isencrypted': 'true',
