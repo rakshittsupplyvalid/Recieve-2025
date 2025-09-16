@@ -483,7 +483,7 @@ const CAhealthreport = () => {
             {
                 mediaType: 'video',
                 videoQuality: 'high', // high quality capture, baad me compress hoga
-                durationLimit: 60,
+                durationLimit: 30,
                 saveToPhotos: true,
             },
             async (response) => {

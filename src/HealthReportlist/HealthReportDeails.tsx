@@ -250,7 +250,7 @@ const HealthReportDetails = () => {
                     </View>
                 </View>
 
-              <View style={styles.card}>
+                 <View style={styles.card}>
   <View style={styles.cardHeader}>
     <FontAwesome name="search" size={20} color="#F79B00" />
     <Text style={styles.cardTitle}>{t('QualityParameters')}</Text>
@@ -266,23 +266,26 @@ const HealthReportDetails = () => {
     <Text style={styles.detailValue}>{report.onionSkin}</Text>
   </View>
 
-  {/* ✅ Onion Skin Percent */}
-  {renderPercentageRow('Onion Skin Percent', true, report.onionSkinPercent)}
+  {/* ✅ Onion Skin Percent - Only show if percent is not zero */}
+  {report.onionSkinPercent > 0 && 
+    renderPercentageRow('Onion Skin Percent', true, report.onionSkinPercent)
+  }
 
   <View style={styles.detailRow}>
     <Text style={styles.detailLabel}>Moisture</Text>
     <Text style={styles.detailValue}>{report.moisture}</Text>
   </View>
 
-  {/* ✅ Moisture Percent */}
-  {renderPercentageRow('Moisture Percent', true, report.moisturePercent)}
+  {/* ✅ Moisture Percent - Only show if percent is not zero */}
+  {report.moisturePercent > 0 && 
+    renderPercentageRow('Moisture Percent', true, report.moisturePercent)
+  }
 
   {renderPercentageRow('Black Smut Onion', report.blackSmutOnion, report.blackSmutPercent)}
   {renderPercentageRow('Spoiled Onion', report.spoiledOnion, report.spoiledPercent)}
   {renderPercentageRow('Sprouted Onion', report.sproutedOnion, report.sproutedPercent)}
   {renderPercentageRow('Staining Colour', report.stainingColour, report.stainingColourPercent)}
 </View>
-
 
                 <View style={styles.card}>
                     <View style={styles.cardHeader}>
