@@ -1,15 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import {
-
   SafeAreaView,
-
   Text,
   FlatList,
   View,
   TouchableOpacity,
-
   TextInput,
- 
 } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import Navbar from '../../App/Navbar';
@@ -49,9 +45,6 @@ const HealthReportlist = () => {
   const [endDate, setEndDate] = useState<Date | null>(null);
   const [showStartPicker, setShowStartPicker] = useState(false);
   const [showEndPicker, setShowEndPicker] = useState(false);
-  const [pageNumber, setPageNumber] = useState(1);
-  const [hasMoreData, setHasMoreData] = useState(true);
-  const pageSize = 30;
   const { t } = useTranslation();
 
   useFocusEffect(
@@ -74,30 +67,19 @@ const HealthReportlist = () => {
     }
   };
 
-  const fetchReports = async (reset = false) => {
+  const fetchReports = async () => {
     if (!userId) return;
-    
+
     try {
       setLoading(true);
-      const newPageNumber = reset ? 1 : pageNumber;
-      
+
       const response = await apiClient.get(
-        `/api/mobile/healthreport/list?ReportType=RECEIVE&Id=${userId}&PageNumber=${newPageNumber}&PageSize=${pageSize}`
+        `/api/mobile/healthreport/list?ReportType=RECEIVE&Id=${userId}`
       );
-      
-      const newReports = response.data || [];
-      
-      if (reset) {
-        setReports(newReports);
-        setHasMoreData(newReports.length === pageSize);
-      } else {
-        setReports(prev => [...prev, ...newReports]);
-        setHasMoreData(newReports.length > 0);
-      }
-      
-      if (newReports.length > 0 && !reset) {
-        setPageNumber(prev => prev + 1);
-      }
+
+      const allReports = response.data || [];
+      setReports(allReports);
+
     } catch (error) {
       console.error("Error fetching health reports:", error);
     } finally {
@@ -108,12 +90,11 @@ const HealthReportlist = () => {
 
   const refreshData = () => {
     setRefreshing(true);
-    setPageNumber(1);
-    fetchReports(true);
+    fetchReports();
   };
 
   const viewReportDetails = (report: Report) => {
-        console.log('Passing to navigation:', { 
+    console.log('Passing to navigation:', { 
       reportId: report.id 
     });
     navigation.navigate('HealthReportDetails', { 
@@ -127,7 +108,7 @@ const HealthReportlist = () => {
 
   useEffect(() => {
     if (userId) {
-      fetchReports(true);
+      fetchReports();
     }
   }, [userId]);
 
@@ -199,19 +180,12 @@ const HealthReportlist = () => {
         placeholderTextColor="#999"
       />
 
-      <View style={HealthreportStyle.dateFilterContainer}>
-     
-      </View>
+      <View style={HealthreportStyle.dateFilterContainer}></View>
 
       <FlatList
         data={filteredReports}
-        keyExtractor={(item) => item.id} // Using id as the key
+        keyExtractor={(item) => item.id}
         renderItem={renderReportItem}
-        onEndReached={() => hasMoreData && !loading && fetchReports()}
-        onEndReachedThreshold={0.5}
-       
-       
-      
       />
 
       {showStartPicker && (
