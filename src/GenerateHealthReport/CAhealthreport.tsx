@@ -104,16 +104,7 @@ const CAhealthreport = () => {
 
 
 
-    const [clickCount, setClickCount] = useState(0);
 
-    const handlePress = () => {
-        if (clickCount < 2) {
-            setClickCount(clickCount + 1);
-            requestvideoPermission();
-        } else {
-            Alert.alert("you can upload maximum 2 videos");
-        }
-    };
 
 
 
@@ -394,6 +385,9 @@ const CAhealthreport = () => {
 
 
     const openCamera = () => {
+
+
+
         launchCamera(
             {
                 mediaType: 'photo',
@@ -712,7 +706,11 @@ const CAhealthreport = () => {
 
 
     const uploadVideos = async (files: any[]) => {
+
         try {
+
+
+
 
             const videoFormData = new FormData();
 
@@ -766,6 +764,15 @@ const CAhealthreport = () => {
 
     // 🔹 Dispatch API call
     const handleSubmit = () => {
+
+        const filesLength = (state.form?.Files || []).length;
+
+        if (filesLength < 3) {
+            alert("Please select at least 3 images.");
+            return;
+        }
+
+
 
 
         const payload = {
@@ -1270,9 +1277,21 @@ const CAhealthreport = () => {
                             {/* Camera Button */}
                             <View style={styles.buttoncontent}>
                                 <TouchableOpacity
-                                    style={styles.Camerabutton}
-                                    onPress={requestCameraPermission}
-                                    disabled={(state.form?.Files || []).length >= 9}
+                                    style={[
+                                        styles.Camerabutton,
+                                        (state.form?.Files || []).length >= 9 && styles.disabledButton
+                                    ]}
+                                    onPress={() => {
+                                        if ((state.form?.Files || []).length >= 9) {
+                                            Alert.alert(
+                                                "Maximum  image Limit Reached",
+                                                "You can only capture up to Maximum  9 images.",
+                                                [{ text: "OK" }]
+                                            );
+                                        } else {
+                                            requestCameraPermission();
+                                        }
+                                    }}
                                 >
                                     <MaterialIcons name="camera" size={30} color="white" />
                                     <Text style={styles.buttonText}>{t('PickfromCamera')}</Text>
@@ -1294,7 +1313,7 @@ const CAhealthreport = () => {
                                     onPress={handleSubmit}
 
 
-                                    disabled={(state.form?.Files || []).length < 3 || (state.form?.Files || []).length > 9 || isPressed} // Disable submit if image count is out of range
+                                    disabled={isPressed} // Disable submit if image count is out of range
                                 >
 
                                     {isPressed ? (
@@ -1362,13 +1381,25 @@ const CAhealthreport = () => {
 
                             <View style={styles.buttoncontent}>
                                 <TouchableOpacity
-                                    style={styles.Camerabutton}
-                                    onPress={requestvideoPermission}
-                                    disabled={
-                                        (state.form?.Files || []).filter(f => f.type?.startsWith("video")).length >= 2
-                                    } // 👈 sirf 2 video allow
+                                    style={[
+                                        styles.Camerabutton,
+                                        (state.form?.Files || []).filter(f => f.type?.startsWith("video")).length >= 2 && styles.disabledButton
+                                    ]}
+                                    onPress={() => {
+                                        const videoCount = (state.form?.Files || []).filter(f => f.type?.startsWith("video")).length;
+
+                                        if (videoCount >= 2) {
+                                            Alert.alert(
+                                                "Maximum Video Limit Reached",
+                                                "You can only capture up to Maximum 2 videos.",
+                                                [{ text: "OK" }]
+                                            );
+                                        } else {
+                                            requestvideoPermission();
+                                        }
+                                    }}
                                 >
-                                    <MaterialIcons name="camera" size={30} color="white" />
+                                    <MaterialIcons name="videocam" size={30} color="white" />
                                     <Text style={styles.buttonText}>Pick From Video</Text>
                                 </TouchableOpacity>
                             </View>
@@ -1380,7 +1411,7 @@ const CAhealthreport = () => {
                                 <TouchableOpacity
                                     style={styles.button}
                                     onPress={() => uploadVideos(state.form?.Files || [])}
-                                    disabled={(state.form?.Files || []).length < 2 || isSubmitted} // Disable submit if image count is out of range
+                                    disabled={isSubmitted} // Disable submit if image count is out of range
                                 >
                                     {isPressed ? (
                                         <ActivityIndicator color="#fff" size="small" />

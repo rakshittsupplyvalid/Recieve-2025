@@ -138,6 +138,11 @@ const styles = StyleSheet.create({
 
   },
 
+  disabledButton: {
+    backgroundColor: '#ccc',
+    opacity: 0.7,
+},
+
    Camerabutton: {
     backgroundColor: '#FF9500', // Blue color for buttons
     paddingVertical: 10,

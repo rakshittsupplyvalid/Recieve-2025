@@ -714,16 +714,16 @@ const TestForm = () => {
 
   const handleSubmit = () => {
     // Minimum 3 required
-    if ((state.form?.Files || []).length < 3) {
-      Alert.alert('Error', 'Please upload at least 3 images before submitting.');
-      return;
-    }
+      const filesLength = (state.form?.Files || []).length;
 
-    // Maximum 8 allowed
-    if ((state.form?.Files || []).length > 8) {
-      Alert.alert('Error', 'Please upload Maximum 8 images before submitting.');
-      return;
-    }
+        if (filesLength < 3) {
+            alert("Please select at least 3 images.");
+            return;
+        }
+
+
+
+ 
     const payload = {
       DestinationBranch: state.form?.option2 || '',
       DestinationLocationId: state.form?.Storagedata || '',
@@ -1405,17 +1405,29 @@ const TestForm = () => {
              {currentStep === 3 && (
                                  <View style={{ flex: 1, padding: 20 }}>
                                      {/* Camera Button */}
-                                     <View style={styles.buttoncontent}>
-                                         <TouchableOpacity
-                                             style={styles.Camerabutton}
-                                             onPress={requestCameraPermission}
-                                             disabled={(state.form?.Files || []).length >= 9}
-                                         >
-                                             <MaterialIcons name="camera" size={30} color="white" />
-                                             <Text style={styles.buttonText}>{t('PickfromCamera')}</Text>
-                                         </TouchableOpacity>
-                                     </View>
-         
+                                    
+                                      <View style={styles.buttoncontent}>
+                                <TouchableOpacity
+                                    style={[
+                                        styles.Camerabutton,
+                                        (state.form?.Files || []).length >= 9 && styles.disabledButton
+                                    ]}
+                                    onPress={() => {
+                                        if ((state.form?.Files || []).length >= 9) {
+                                            Alert.alert(
+                                                "Maximum  image Limit Reached",
+                                                "You can only capture up to Maximum  9 images.",
+                                                [{ text: "OK" }]
+                                            );
+                                        } else {
+                                            requestCameraPermission();
+                                        }
+                                    }}
+                                >
+                                    <MaterialIcons name="camera" size={30} color="white" />
+                                    <Text style={styles.buttonText}>{t('PickfromCamera')}</Text>
+                                </TouchableOpacity>
+                            </View>
          
          
          
@@ -1431,7 +1443,7 @@ const TestForm = () => {
                                              onPress={handleSubmit}
          
          
-                                             disabled={(state.form?.Files || []).length < 3 || (state.form?.Files || []).length > 9 || isPressed} // Disable submit if image count is out of range
+                                             disabled={isPressed} // Disable submit if image count is out of range
                                          >
          
                                              {isPressed ? (
@@ -1496,19 +1508,30 @@ const TestForm = () => {
                              {currentStep === 4 && (
                                  <View style={{ flex: 1, padding: 20 }}>
                                      {/* Camera Button */}
-         
-                                     <View style={styles.buttoncontent}>
-                                         <TouchableOpacity
-                                             style={styles.Camerabutton}
-                                             onPress={requestvideoPermission}
-                                             disabled={
-                                                 (state.form?.Files || []).filter(f => f.type?.startsWith("video")).length >= 2
-                                             } // 👈 sirf 2 video allow
-                                         >
-                                             <MaterialIcons name="camera" size={30} color="white" />
-                                             <Text style={styles.buttonText}>Pick From Video</Text>
-                                         </TouchableOpacity>
-                                     </View>
+            <View style={styles.buttoncontent}>
+                                <TouchableOpacity
+                                    style={[
+                                        styles.Camerabutton,
+                                        (state.form?.Files || []).filter(f => f.type?.startsWith("video")).length >= 2 && styles.disabledButton
+                                    ]}
+                                    onPress={() => {
+                                        const videoCount = (state.form?.Files || []).filter(f => f.type?.startsWith("video")).length;
+
+                                        if (videoCount >= 2) {
+                                            Alert.alert(
+                                                "Maximum Video Limit Reached",
+                                                "You can only capture up to Maximum 2 videos.",
+                                                [{ text: "OK" }]
+                                            );
+                                        } else {
+                                            requestvideoPermission();
+                                        }
+                                    }}
+                                >
+                                    <MaterialIcons name="videocam" size={30} color="white" />
+                                    <Text style={styles.buttonText}>Pick From Video</Text>
+                                </TouchableOpacity>
+                            </View>
          
          
          
