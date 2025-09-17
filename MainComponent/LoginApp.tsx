@@ -48,8 +48,8 @@ const LoginApp: React.FC<LoginAppProps> = ({ navigation }) => {
 
   // useEffect(() => {
   //   setForm({
-  //     mobileNo: '6790497244',
-  //     password: 'Password@123'
+  //     mobileNo: '9999999902',
+  //     password: 'Pass@123'
   //   });
   // }, []);
 

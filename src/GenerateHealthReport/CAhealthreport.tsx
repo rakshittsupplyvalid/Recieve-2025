@@ -117,14 +117,7 @@ const CAhealthreport = () => {
 
 
 
-    const handlePresscamera = () => {
-        if (clickCount < 5) {
-            setClickCount(clickCount + 1);
-            requestCameraPermission();
-        } else {
-            Alert.alert("Maximum Required", "You can upload maximum 5 images.");
-        }
-    };
+
 
 
 
@@ -579,16 +572,21 @@ const CAhealthreport = () => {
 
         else if (currentStep === 1) {
 
-            // Truck number validation
-            if (!state.form.Trucknumber || state.form.Trucknumber.trim() === '') {
-                alert('Please enter truck number');
+
+            const truckNumber = state.form.Trucknumber || "";
+
+
+            if (truckNumber.length < 6) {
+                alert("Truck number must be at least 6 characters");
                 return;
             }
-            // const truckRegex = /^[A-Z]{2}[0-9]{2}[A-Z]{2}[0-9]{4}$/;
-            // if (!truckRegex.test(state.form.Trucknumber)) {
-            //     alert('Please enter a valid truck number (e.g., UP32AB1234)');
-            //     return;
-            // }
+
+            // ✅ Maximum length check
+            if (truckNumber.length > 12) {
+                alert("Truck number must not be more than 12 characters");
+                return;
+            }
+
 
             // Gross weight validation
             if (!state.form.grossWeight || isNaN(parseFloat(state.form.grossWeight))) {
@@ -621,7 +619,7 @@ const CAhealthreport = () => {
                 return;
             }
 
-            
+
         }
 
 
@@ -636,32 +634,6 @@ const CAhealthreport = () => {
 
 
 
-        //     if (!selectedHelthReport) {
-        //         alert('Please select a health report type');
-        //         return;
-        //     }
-        //     // No other validation needed for step 0
-        // } 
-        // // Step 1 validation
-        // else if (currentStep === 1) {
-        //     result = validateStepOne(state.form);
-        // } 
-        // // Step 2 validation
-        // else if (currentStep === 2) {
-        //     result = validateStepTwo(state.form);
-        // }
-        // // Step 3 validation
-        // else if (currentStep === 3) {
-        //     result = validateStepThree(state.form);
-        // }
-
-        // // Check validation result (only if we did validation)
-        // if (currentStep !== 0 && !result?.isValid) {
-        //     alert(result.message);
-        //     return;
-        // }
-
-        // Proceed to next step
 
 
         updateState({
@@ -738,15 +710,69 @@ const CAhealthreport = () => {
 
 
 
-    // Update the handleSubmit function to include only required fields
+
+    const uploadVideos = async (files: any[]) => {
+        try {
+
+            const videoFormData = new FormData();
+
+            setIsSubmitted(true); // Disable submit button
+
+            files
+                .filter(file => file.type?.startsWith("video")) // sirf videos
+                .forEach((video, index) => {
+                    videoFormData.append("Files", {
+                        uri: video.uri,
+                        type: video.type,
+                        name: video.fileName || `video_${index}.mp4`,
+                    } as any);
+                });
+
+            // 👇 dispatchId state se nikala
+            const dispatchId = state.hidden?.dispatchId;
+
+            if (!dispatchId) {
+                throw new Error("Dispatch ID missing in state");
+            }
+
+            const response = await apiClient.post(
+                `/api/mobile/healthreport/videoupload/${dispatchId}`,
+                videoFormData,
+                {
+                    headers: {
+                        "Content-Type": "multipart/form-data",
+
+                    },
+                }
+            );
+
+            console.log("Video upload success:", response.data);
+            Alert.alert("Success", "HealthReport uploaded successfully");
+            updateState({
+                ...state,
+                form: null,
+                hidden: { ...state.hidden, currentStep: 0 }
+            });
+
+            return response.data;
+        } catch (error: any) {
+            setIsSubmitted(false);
+            console.error("Video upload failed:", error.response?.data || error.message);
+            throw error;
+        }
+    };
+
+
+
+    // 🔹 Dispatch API call
     const handleSubmit = () => {
-        // Create a new object with only the required fields
+
+
         const payload = {
             ReportType: state.form.reportType,
             HealthReportDispatchType: state.form.healthReportDispatchType,
-
             CAStorageId: state.form.StorageData,
-            TruckNumber: state.form?.Trucknumber || '',
+            TruckNumber: state.form?.Trucknumber || "",
             GrossWeight: parseFloat(state.form?.grossWeight) || 0,
             NetWeight: parseFloat(state.form?.netWeight) || 0,
             TareWeight: parseFloat(state.form?.tareWeight) || 0,
@@ -754,66 +780,75 @@ const CAhealthreport = () => {
             StainingColour: false,
             StainingColourPercent: 0,
             BagCount: parseInt(state.form?.bagCount) || 0,
-              Size: state.form?.size || '46-50', // This line was missing the Size field
+            Size: state.form?.size || "46-50",
             BlackSmutOnion: false,
             BlackSmutPercent: 0,
             SproutedOnion: false,
             SproutedPercent: 0,
-            OnionSkin: 'DOUBLE',
+            OnionSkin: "DOUBLE",
             OnionSkinPercent: 0,
-            Moisture: 'DRY',
+            Moisture: "DRY",
             MoisturePercent: 0,
             SpoiledOnion: false,
             SpoiledPercent: 0,
-            FPCPersonName: state.form?.SpoliedBranch || '',
-            Files: state.form?.Files || [],
-            Comment: state.form?.SpoliedComment || ''
+            FPCPersonName: state.form?.SpoliedBranch || "",
+            Files: (state.form?.Files || []).filter(f => !f.type?.startsWith("video")), // sirf images dispatch me
+            Comment: state.form?.SpoliedComment || "",
         };
 
-        // Ensure required fields are present
         if (!payload.Date) {
-            alert('Please select a date');
+            alert("Please select a date");
             return;
         }
 
         const formData = createFormData(payload);
+        setIsPressed(true);
 
-        setIsPressed(true); // Show loading indicator
+        const token = Storage.getString("userToken");
 
-        const token = Storage.getString('userToken');
-        console.log('Submitting form with token:', token);
-        apiClient.post('/api/mobile/healthreport/ca/move/dispatch', formData, {
-            headers: {
-                'Content-Type': 'multipart/form-data',
-                'Authorization': `Bearer ${token}`
-
-
-            },
-        })
-            .then(response => {
-                console.log('Submission successful:', response.data);
-                alert('Form submitted successfully!');
-                updateState({
-                    ...state,
-                    form: null,
-                    hidden: { ...state.hidden, currentStep: 0 },
-                });
+        apiClient
+            .post("/api/mobile/healthreport/ca/move/dispatch", formData, {
+                headers: {
+                    "Content-Type": "multipart/form-data",
+                    Authorization: `Bearer ${token}`,
+                },
             })
-            .catch(error => {
-                console.error('Submission failed:', error);
-                if (error.response) {
-                    console.error('Response data:', error.response.data);
-                    console.error('Response status:', error.response.status);
-                    console.error('Response headers:', error.response.headers);
-                    alert(`Submission failed: ${error.response.data.message || error.response.status}`);
+            .then(async (response) => {
+                console.log("Submission successful:", response.data);
+
+                if (response.data?.id) {
+                    const newId = response.data.id; // ✅ dispatch ID
+                    console.log("New Dispatch ID:", newId);
+
+
+
+
+
+                    updateState({
+                        ...state,
+                        form: null,
+                        hidden: { ...state.hidden, currentStep: 3, dispatchId: newId }
+                    });
                 } else {
-                    alert('Submission failed. Please check console for details.');
+                    throw new Error("ID not found in dispatch response!");
+                }
+            })
+            .catch((error) => {
+                console.error("Submission failed:", error);
+                if (error.response) {
+                    alert(
+                        `Submission failed: ${error.response.data.message || error.response.status}`
+                    );
+                } else {
+                    alert("Submission failed. Please check console for details.");
                 }
             })
             .finally(() => {
-                setIsPressed(false); // Hide loading indicator
+                setIsPressed(false);
             });
     };
+
+
 
 
 
@@ -1108,25 +1143,34 @@ const CAhealthreport = () => {
                     {/* Step 2 - Basic Information */}
                     {currentStep === 1 && (
                         <View style={styles.onecontainers}>
-
                             <TextInput
                                 style={styles.input}
                                 placeholder={t('TruckNumber')}
                                 value={state.form?.Trucknumber || ''}
                                 onChangeText={(text) => {
                                     const upperText = text.toUpperCase();
-                                    updateState({
-                                        ...state,
-                                        form: {
-                                            ...state.form,
-                                            Trucknumber: upperText,
-                                        }
-                                    });
+
+                                    // ✅ Min length aur max length validation
+                                    if (upperText.length <= 12) {
+                                        updateState({
+                                            ...state,
+                                            form: {
+                                                ...state.form,
+                                                Trucknumber: upperText,
+                                            }
+                                        });
+                                    }
                                 }}
                                 autoCapitalize="characters"
-                                keyboardType="default" // Yeh aap 'keyb' likh rahe the, pura likha
-                                maxLength={13}
+                                keyboardType="default"
+                                maxLength={12} // Max length fix kar diya
+                                onBlur={() => {
+                                    if ((state.form?.Trucknumber || '').length < 6) {
+                                        alert('Truck number must be at least 6 characters');
+                                    }
+                                }}
                             />
+
 
                             <TextInput
                                 style={styles.input}
@@ -1189,24 +1233,24 @@ const CAhealthreport = () => {
                                 maxLength={5}
                             />
                             <View style={styles.pickerContainer}>
-                                             <Picker
-                                selectedValue={state.form?.size || "46-50"}
-                                onValueChange={(value) => {
-                                  console.log("Selected Size:", value);
-                                  updateState({
-                                    ...state,
-                                    form: {
-                                      ...state.form,
-                                      size: value,
-                                    },
-                                  });
-                                }}
-                              >
-                                <Picker.Item label="Select Onion Size" value="" />
-                                {sizeOptions.map((option) => (
-                                  <Picker.Item key={option} label={option} value={option} />
-                                ))}
-                              </Picker>
+                                <Picker
+                                    selectedValue={state.form?.size || "46-50"}
+                                    onValueChange={(value) => {
+                                        console.log("Selected Size:", value);
+                                        updateState({
+                                            ...state,
+                                            form: {
+                                                ...state.form,
+                                                size: value,
+                                            },
+                                        });
+                                    }}
+                                >
+                                    <Picker.Item label="Select Onion Size" value="" />
+                                    {sizeOptions.map((option) => (
+                                        <Picker.Item key={option} label={option} value={option} />
+                                    ))}
+                                </Picker>
                             </View>
 
                             <View style={styles.buttoncontent}>
@@ -1220,354 +1264,14 @@ const CAhealthreport = () => {
                         </View>
                     )}
 
+
                     {currentStep === 2 && (
-                        <View style={styles.thirdcontainers}>
-
-                            {/* Staining Colour */}
-                            {/* <View style={styles.switchContainer}>
-                                <Text style={styles.text}>{t("stainingColor")}</Text>
-                                <Switch
-                                    value={state.form?.stainingColour || false}
-                                    onValueChange={(value) =>
-                                        updateState({
-                                            ...state,
-                                            form: {
-                                                ...state.form,
-                                                stainingColour: value,
-                                                stainingColourPercent: value ? state.form?.stainingColourPercent : ''
-                                            }
-                                        })
-                                    }
-                                    trackColor={{ false: '#F6A00191', true: '#FF9500' }}
-                                    thumbColor={state.form?.stainingColour ? 'white' : '#f4f3f4'}
-                                />
-                            </View> */}
-
-                            {/* {state.form?.stainingColour && (
-                                <>
-                                    <TextInput
-                                        style={styles.input}
-                                        placeholder={t('StainingPercent')}
-                                        value={state.form?.stainingColourPercent || ''}
-                                        onChangeText={(text) =>
-                                            updateState({
-                                                ...state,
-                                                form: { ...state.form, stainingColourPercent: text }
-                                            })
-                                        }
-                                        keyboardType="numeric"
-                                    />
-                                    {parseFloat(state.form?.stainingColourPercent) > 100 && (
-                                        <Text >
-                                            {t('StainingcolorWaringText')}
-                                        </Text>
-                                    )}
-                                </>
-                            )} */}
-
-
-                            {/* Black Smut Onion */}
-                            {/* <View style={styles.switchContainer}>
-                                <Text style={styles.text}>{t('BlacksmutOnion')}</Text>
-                                <Switch
-                                    value={state.form?.blackSmutOnion || false}
-                                    onValueChange={(value) =>
-                                        updateState({
-                                            ...state,
-                                            form: {
-                                                ...state.form,
-                                                blackSmutOnion: value,
-                                                blackSmutPercent: value ? state.form?.blackSmutPercent : ''
-                                            }
-                                        })
-                                    }
-                                    trackColor={{ false: '#F6A00191', true: '#FF9500' }}
-                                    thumbColor={state.form?.blackSmutOnion ? 'white' : '#f4f3f4'}
-                                />
-                            </View> */}
-
-                            {/* {state.form?.blackSmutOnion && (
-                                <>
-
-                                    <TextInput
-                                        style={styles.input}
-                                        placeholder={t('BlacksmutOnionpercent')}
-                                        value={state.form?.blackSmutPercent || ''}
-                                        onChangeText={(text) =>
-                                            updateState({
-                                                ...state,
-                                                form: { ...state.form, blackSmutPercent: text }
-                                            })
-                                        }
-                                        keyboardType="numeric"
-                                    />
-                                    {parseFloat(state.form?.blackSmutPercent) > 100 && (
-                                        <Text>
-                                            {t('BlacksmutText')}
-                                        </Text>
-                                    )}
-                                </>
-                            )} */}
-
-                            {/* Sprouted Onion */}
-                            {/* <View style={styles.switchContainer}>
-                                <Text style={styles.text}>{t('SproutedOnion')}</Text>
-                                <Switch
-                                    value={state.form?.sproutedOnion || false}
-                                    onValueChange={(value) =>
-                                        updateState({
-                                            ...state,
-                                            form: {
-                                                ...state.form,
-                                                sproutedOnion: value,
-                                                sproutedPercent: value ? state.form?.sproutedPercent : ''
-                                            }
-                                        })
-                                    }
-                                    trackColor={{ false: '#F6A00191', true: '#FF9500' }}
-                                    thumbColor={state.form?.sproutedOnion ? 'white' : '#f4f3f4'}
-                                />
-                            </View> */}
-
-                            {/* {state.form?.sproutedOnion && (
-                                <>
-
-                                    <TextInput
-                                        style={styles.input}
-                                        placeholder={t('SproutedOnionpercent')}
-                                        value={state.form?.sproutedPercent || ''}
-                                        onChangeText={(text) =>
-                                            updateState({
-                                                ...state,
-                                                form: { ...state.form, sproutedPercent: text }
-                                            })
-                                        }
-                                        keyboardType="numeric"
-                                    />
-                                    {parseFloat(state.form?.sproutedPercent) > 100 && (
-                                        <Text >
-                                            {t('SproutedText')}
-                                        </Text>
-                                    )}
-
-                                </>
-                            )} */}
-
-                            {/* Spoiled Onion */}
-                            {/* <View style={styles.switchContainer}>
-                                <Text style={styles.text}>{t('SpoiledOnion')}</Text>
-                                <Switch
-                                    value={state.form?.spoiledOnion || false}
-                                    onValueChange={(value) =>
-                                        updateState({
-                                            ...state,
-                                            form: {
-                                                ...state.form,
-                                                spoiledOnion: value,
-                                                spoiledPercent: value ? state.form?.spoiledPercent : ''
-                                            }
-                                        })
-                                    }
-                                    trackColor={{ false: '#F6A00191', true: '#FF9500' }}
-                                    thumbColor={state.form?.spoiledOnion ? 'white' : '#f4f3f4'}
-                                />
-                            </View> */}
-
-                            {/* {state.form?.spoiledOnion && (
-                                <>
-
-                                    <TextInput
-                                        style={styles.input}
-                                        placeholder={t('SpoiledOnionpercent')}
-                                        value={state.form?.spoiledPercent || ''}
-                                        onChangeText={(text) =>
-                                            updateState({
-                                                ...state,
-                                                form: { ...state.form, spoiledPercent: text }
-                                            })
-                                        }
-                                        keyboardType="numeric"
-                                    />
-
-                                    {parseFloat(state.form?.spoiledPercent) > 100 && (
-                                        <Text>
-                                            {t('SpoiledText')}
-                                        </Text>
-                                    )}
-
-                                </>
-                            )} */}
-
-                            {/* Onion Skin */}
-                            {/* <View style={styles.switchContainer}>
-                                <Text style={styles.text}>
-                                    {t('Onionskin') + ' : ' + (state.form?.onionSkin === 'SINGLE' ? t('Single') : t('Double'))}
-                                </Text>
-                                <Switch
-                                    value={state.form?.onionSkin === "SINGLE"}
-                                    onValueChange={(value) =>
-                                        updateState({
-                                            ...state,
-                                            form: {
-                                                ...state.form,
-                                                onionSkin: value ? 'SINGLE' : 'DOUBLE',
-                                                onionSkinPercent: value ? state.form?.onionSkinPercent : ''
-                                            }
-                                        })
-                                    }
-                                    trackColor={{ false: '#F6A00191', true: '#FF9500' }}
-                                    thumbColor={state.form?.onionSkin === "SINGLE" ? "white" : "#f4f3f4"}
-                                />
-                            </View> */}
-
-                            {/* {state.form?.onionSkin === "SINGLE" && (
-                                <>
-
-                                    <TextInput
-                                        style={styles.input}
-                                        placeholder={t('Onionskinsinglepercent')}
-                                        value={state.form?.onionSkinPercent || ''}
-                                        onChangeText={(text) =>
-                                            updateState({
-                                                ...state,
-                                                form: { ...state.form, onionSkinPercent: text }
-                                            })
-                                        }
-                                        keyboardType="numeric"
-                                    />
-                                    {parseFloat(state.form?.onionSkinPercent) > 100 && (
-                                        <Text>
-                                            {t('OnionSkinSingle')}
-                                        </Text>
-                                    )}
-
-                                </>
-                            )} */}
-
-
-                            {/* Moisture */}
-                            {/* <View style={styles.switchContainer}>
-                                <Text style={styles.text}>
-                                    {t('Moisture') + ' : ' + (state.form?.moisture === 'WET' ? t('Wet') : t('Dry'))}
-                                </Text>
-                                <Switch
-                                    value={state.form?.moisture === "WET"}
-                                    onValueChange={(value) =>
-                                        updateState({
-                                            ...state,
-                                            form: {
-                                                ...state.form,
-                                                moisture: value ? 'WET' : 'DRY',
-                                                moisturePercent: value ? state.form?.moisturePercent : ''
-                                            }
-                                        })
-                                    }
-                                    trackColor={{ false: '#F6A00191', true: '#FF9500' }}
-                                    thumbColor={state.form?.moisture === "WET" ? "white" : "#f4f3f4"}
-                                />
-                            </View> */}
-
-                            {/* {state.form?.moisture === "WET" && (
-                                <>
-
-                                    <TextInput
-                                        style={styles.input}
-                                        placeholder={t('Moisturewetpercent')}
-                                        value={state.form?.moisturePercent || ''}
-                                        onChangeText={(text) =>
-                                            updateState({
-                                                ...state,
-                                                form: { ...state.form, moisturePercent: text }
-                                            })
-                                        }
-                                        keyboardType="numeric"
-                                    />
-
-                                    {parseFloat(state.form?.moisturePercent) > 100 && (
-                                        <Text >
-                                            {t('MoistureWet')}
-                                        </Text>
-                                    )}
-
-                                </>
-                            )} */}
-
-                            {/* Spoiled Switch and Percent */}
-                            {/* <View>
-                                <Text style={styles.text}>{t('Spoiled')}</Text>
-                                <Switch
-                                    value={state.form?.isSpoiledPercentVisible || false}
-                                    onValueChange={(value) =>
-                                        updateState({
-                                            ...state,
-                                            form: { ...state.form, isSpoiledPercentVisible: value }
-                                        })
-                                    }
-                                    trackColor={{ false: '#F6A00191', true: '#FF9500' }}
-                                    thumbColor={state.form?.isSpoiledPercentVisible ? "white" : "#f4f3f4"}
-                                />
-                            </View> */}
-
-                            {/* {state.form?.isSpoiledPercentVisible && (
-                                <TextInput
-                                    style={styles.input}
-                                    placeholder={t('spoiledperecent')}
-                                    value={state.form?.SpoliedPercent || ''}
-                                    onChangeText={(text) =>
-                                        updateState({
-                                            ...state,
-                                            form: { ...state.form, SpoliedPercent: text }
-                                        })
-                                    }
-                                    keyboardType="numeric"
-                                />
-                            )} */}
-
-                            {/* Comments and Branch person name */}
-                            <TextInput
-                                style={styles.input}
-                                placeholder={t('typecomment')}
-                                value={state.form?.SpoliedComment || ''}
-                                onChangeText={(text) =>
-                                    updateState({
-                                        ...state,
-                                        form: { ...state.form, SpoliedComment: text }
-                                    })
-                                }
-                            />
-
-                            <TextInput
-                                style={styles.input}
-                                placeholder={t('branchpersonname')}
-                                value={state.form?.SpoliedBranch || ''}
-                                onChangeText={(text) =>
-                                    updateState({
-                                        ...state,
-                                        form: { ...state.form, SpoliedBranch: text }
-                                    })
-                                }
-                            />
-
-                            {/* Navigation Buttons */}
-                            <View style={styles.buttoncontent}>
-                                <TouchableOpacity style={styles.button} onPress={handlePrevious}>
-                                    <Text style={styles.buttonText}>{t('Previous')}</Text>
-                                </TouchableOpacity>
-                                <TouchableOpacity style={styles.button} onPress={() => handleNext(3)}>
-                                    <Text style={styles.buttonText}>{t('Next')}</Text>
-                                </TouchableOpacity>
-                            </View>
-
-                        </View>
-                    )}
-
-                    {currentStep === 3 && (
                         <View style={{ flex: 1, padding: 20 }}>
                             {/* Camera Button */}
                             <View style={styles.buttoncontent}>
                                 <TouchableOpacity
                                     style={styles.Camerabutton}
-                                    onPress={handlePresscamera}
+                                    onPress={requestCameraPermission}
                                     disabled={(state.form?.Files || []).length >= 9}
                                 >
                                     <MaterialIcons name="camera" size={30} color="white" />
@@ -1575,18 +1279,7 @@ const CAhealthreport = () => {
                                 </TouchableOpacity>
                             </View>
 
-                            <View style={styles.buttoncontent}>
-                                <TouchableOpacity
-                                    style={styles.Camerabutton}
-                                    onPress={requestvideoPermission}
-                                    disabled={
-                                        (state.form?.Files || []).filter(f => f.type?.startsWith("video")).length >= 2
-                                    } // 👈 sirf 2 video allow
-                                >
-                                    <MaterialIcons name="camera" size={30} color="white" />
-                                    <Text style={styles.buttonText}>Pick From Video</Text>
-                                </TouchableOpacity>
-                            </View>
+
 
 
 
@@ -1607,44 +1300,14 @@ const CAhealthreport = () => {
                                     {isPressed ? (
                                         <ActivityIndicator color="#fff" size="small" />
                                     ) : (
-                                        <Text style={styles.buttonText}>
-                                            {t('submit')}
-                                        </Text>
+
+                                        <Text style={styles.buttonText}>{t('Next')}</Text>
+
                                     )}
 
                                 </TouchableOpacity>
                             </View>
 
-                            {/* Image Grid */}
-                            {/* <View style={styles.imageGrid}>
-                                   {(state.form?.Files || []).map((item, index) => (
-                                     <View key={index} style={styles.imageContainer}>
-                                       <TouchableOpacity onPress={() => setSelectedImage(item.uri)}>
-                                         <Image source={{ uri: item.uri }} style={styles.image} />
-                                       </TouchableOpacity>
-                   
-                                       <TouchableOpacity
-                                         style={styles.deleteIcon}
-                                         onPress={() => handleDeleteImage(index)}
-                                       >
-                                         <MaterialIcons name="cancel" size={24} color="red" />
-                                       </TouchableOpacity>
-                                     </View>
-                                   ))}
-                                 </View>
-                   
-                   
-                                   {videos.map((v, index) => (
-                             <View key={index} style={styles.videoContainer}>
-                              
-                               <Video
-                                 source={{ uri: v.uri }}
-                                 style={styles.video}
-                                 controls   // 👈 play/pause controls enable karega
-                                 resizeMode="contain"
-                               />
-                             </View>
-                           ))} */}
 
 
 
@@ -1655,35 +1318,15 @@ const CAhealthreport = () => {
 
                                     return (
                                         <View key={index} style={styles.imageContainer}>
-
-                                            {fileType.startsWith("image") ? (
+                                            {fileType.startsWith("image") && (
                                                 <TouchableOpacity onPress={() => setSelectedImage(item.uri)}>
                                                     <View style={styles.videoView}>
                                                         <Image source={{ uri: item.uri }} style={styles.image} />
                                                     </View>
                                                 </TouchableOpacity>
-
-                                            ) : fileType.startsWith("video") ? (
-                                                <View style={styles.videoView}>
-                                                    <VideoPlayer
-                                                        source={{ uri: item.uri }}
-                                                        style={styles.video}
-                                                        controls
-                                                        resizeMode="contain"
-                                                    />
-                                                </View>
-                                            ) : (
-                                                <Text style={{ color: "red" }}>Unknown File</Text>
                                             )}
-
-                                            {/* Delete button */}
-                                            {/* <TouchableOpacity
-                           style={styles.deleteIcon}
-                           onPress={() => handleDeleteImage(index)}
-                         >
-                           <MaterialIcons name="cancel" size={24} color="red" />
-                         </TouchableOpacity> */}
                                         </View>
+
                                     );
                                 })}
 
@@ -1711,6 +1354,93 @@ const CAhealthreport = () => {
                         </View>
                     )}
 
+
+
+                    {currentStep === 3 && (
+                        <View style={{ flex: 1, padding: 20 }}>
+                            {/* Camera Button */}
+
+                            <View style={styles.buttoncontent}>
+                                <TouchableOpacity
+                                    style={styles.Camerabutton}
+                                    onPress={requestvideoPermission}
+                                    disabled={
+                                        (state.form?.Files || []).filter(f => f.type?.startsWith("video")).length >= 2
+                                    } // 👈 sirf 2 video allow
+                                >
+                                    <MaterialIcons name="camera" size={30} color="white" />
+                                    <Text style={styles.buttonText}>Pick From Video</Text>
+                                </TouchableOpacity>
+                            </View>
+
+
+
+                            {/* Previous and Submit Buttons */}
+                            <View style={styles.buttoncontent}>
+                                <TouchableOpacity
+                                    style={styles.button}
+                                    onPress={() => uploadVideos(state.form?.Files || [])}
+                                    disabled={(state.form?.Files || []).length < 2 || isSubmitted} // Disable submit if image count is out of range
+                                >
+                                    {isPressed ? (
+                                        <ActivityIndicator color="#fff" size="small" />
+                                    ) : (
+
+                                        <Text style={styles.buttonText}>Submit</Text>
+
+                                    )}
+
+                                </TouchableOpacity>
+
+                            </View>
+
+
+
+
+
+                            <View style={styles.fileGrid}>
+                                {(state.form?.Files || []).map((item, index) => {
+                                    const fileType = item.type || "video/mp4"; // default video type
+
+                                    return (
+                                        fileType.startsWith("video") && (
+                                            <View key={index} style={styles.imageContainer}>
+                                                <View style={styles.videoView}>
+                                                    <VideoPlayer
+                                                        source={{ uri: item.uri }}
+                                                        style={styles.video}
+                                                        controls
+                                                        resizeMode="contain"
+                                                    />
+                                                </View>
+                                            </View>
+                                        )
+                                    );
+                                })}
+                            </View>
+
+
+
+
+
+
+
+
+                            {/* Modal to show full image */}
+                            <Modal visible={!!selectedImage} transparent={true}>
+                                <View style={styles.modalContainer}>
+                                    <TouchableOpacity
+                                        style={styles.modalClose}
+                                        onPress={() => setSelectedImage(null)}
+                                    >
+                                        <MaterialIcons name="cancel" size={30} color="white" />
+                                    </TouchableOpacity>
+
+                                    <Image source={{ uri: selectedImage }} style={styles.fullImage} />
+                                </View>
+                            </Modal>
+                        </View>
+                    )}
 
 
 

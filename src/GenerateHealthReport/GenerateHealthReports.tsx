@@ -39,6 +39,7 @@ const { width } = Dimensions.get('window');
 const TestForm = () => {
   const { t } = useTranslation();
   const { state, updateState } = useForm();
+   const [isSubmitted, setIsSubmitted] = useState(false);
 
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
   const currentStep = state?.hidden?.currentStep || 0;
@@ -210,245 +211,173 @@ const TestForm = () => {
 
 
 
-
-
-  const handleDeleteImage = (index) => {
-    const updatedImages = [...(state.form?.Files || [])];
-    updatedImages.splice(index, 1);
-    updateState({
-      ...state,
-      form: {
-        ...state.form,
-        Files: updatedImages
-      }
-    });
-  };
-
-
-
-
-
-  const requestCameraPermission = async () => {
-    if (Platform.OS === 'android') {
-      try {
-        const granted = await PermissionsAndroid.request(
-          PermissionsAndroid.PERMISSIONS.CAMERA
-        );
-        if (granted === PermissionsAndroid.RESULTS.GRANTED) {
-          console.log('Camera permission granted');
-          openCamera();
+    const requestCameraPermission = async () => {
+        if (Platform.OS === 'android') {
+            try {
+                const granted = await PermissionsAndroid.request(
+                    PermissionsAndroid.PERMISSIONS.CAMERA
+                );
+                if (granted === PermissionsAndroid.RESULTS.GRANTED) {
+                    console.log('Camera permission granted');
+                    openCamera();
+                } else {
+                    console.log('Camera permission denied');
+                }
+            } catch (err) {
+                console.warn(err);
+            }
         } else {
-          console.log('Camera permission denied');
+            openCamera(); // iOS me direct open
         }
-      } catch (err) {
-        console.warn(err);
-      }
-    } else {
-      openCamera(); // iOS me direct open
-    }
-  };
+    };
 
-  const openCamera = () => {
-    launchCamera(
-      {
-        mediaType: 'photo',
-        includeBase64: false,
-        cameraType: 'back',
-        saveToPhotos: true,
-        quality: 0.4,
-        maxWidth: 700,
-        maxHeight: 700,
-      },
-      async (response) => {
-        if (response.assets && response.assets.length > 0) {
-          const capturedImage = response.assets[0];
-          const imageHash = md5(capturedImage.uri);
 
-          const isDuplicate = state.form?.Files?.some(file => file.hash === imageHash);
-          if (isDuplicate) {
-            Alert.alert('Duplicate', 'This image is already added.');
-            return;
-          }
 
-          // Check if already 9 files ho gaye
-          if ((state.form?.Files || []).filter(f => f.type.startsWith("image")).length >= 9) {
-            Alert.alert("Limit", "Maximum 9 images allowed.");
-            return;
-          }
-
-          const newFile = {
-            uri: Platform.OS === 'android' ? capturedImage.uri : capturedImage.uri.replace('file://', ''),
-            fileName: capturedImage.fileName || `photo_${Date.now()}.jpg`,
-            type: capturedImage.type || 'image/jpeg',
-            hash: imageHash,
-          };
-
-          updateState({
-            form: {
-              ...state.form,
-              Files: [...(state.form?.Files || []), newFile],
+    const openCamera = () => {
+        launchCamera(
+            {
+                mediaType: 'photo',
+                includeBase64: false,
+                cameraType: 'back',
+                saveToPhotos: true,
+                quality: 0.4,
+                maxWidth: 700,
+                maxHeight: 700,
             },
-          });
-        }
-      }
-    );
-  };
+            async (response) => {
+                if (response.didCancel) {
+                    console.log('User cancelled image picker');
+                } else if (response.errorMessage) {
+                    console.log('ImagePicker Error: ', response.errorMessage);
+                } else if (response.assets && response.assets.length > 0) {
+                    const capturedImage = response.assets[0];
 
+                    // Generate MD5 hash from the image URI or fileName
+                    const imageHash = md5(capturedImage.uri);
 
-  //  const requestvideoPermission = async () => {
-  //     if (Platform.OS === 'android') {
-  //       try {
-  //         const granted = await PermissionsAndroid.request(
-  //           PermissionsAndroid.PERMISSIONS.CAMERA
-  //         );
-  //         if (granted === PermissionsAndroid.RESULTS.GRANTED) {
-  //           console.log('Camera permission granted');
-  //           openCameraForVideo();
-  //         } else {
-  //           console.log('Camera permission denied');
-  //         }
-  //       } catch (err) {
-  //         console.warn(err);
-  //       }
-  //     } else {
-  //       openCameraForVideo(); // iOS me direct open
-  //     }
-  //   };
+                    // Check if this hash already exists in the current list of files
+                    const isDuplicate = state.form?.Files?.some(file => file.hash === imageHash);
 
-  //    const openCameraForVideo = () => {
-  //   launchCamera(
-  //     {
-  //       mediaType: 'video',
-  //      videoQuality: 'low', // 👈 high quality video
-  //       durationLimit: 60,
-  //       saveToPhotos: true,
-  //     },
-  //     async (response) => {
-  //       if (response.assets && response.assets.length > 0) {
-  //         const capturedVideo = response.assets[0];
-  //         const videoHash = md5(capturedVideo.uri);
-
-  //         const isDuplicate = state.form?.Files?.some(file => file.hash === videoHash);
-  //         if (isDuplicate) {
-  //           Alert.alert('Duplicate', 'This video is already added.');
-  //           return;
-  //         }
-
-  //         // Max 2 videos check
-  //         if ((state.form?.Files || []).filter(f => f.type.startsWith("video")).length >= 2) {
-  //           Alert.alert("Limit", "Maximum 2 videos allowed.");
-  //           return;
-  //         }
-
-  //         const newVideo = {
-  //           uri: Platform.OS === 'android' ? capturedVideo.uri : capturedVideo.uri.replace('file://', ''),
-  //           fileName: capturedVideo.fileName || `video_${Date.now()}.mp4`,
-  //           type: capturedVideo.type || 'video/mp4',
-  //           hash: videoHash,
-  //         };
-
-  //         updateState({
-  //           form: {
-  //             ...state.form,
-  //             Files: [...(state.form?.Files || []), newVideo],
-  //           },
-  //         });
-  //       }
-  //     }
-  //   );
-  // };
+                    if (isDuplicate) {
+                        console.log('Duplicate image detected. Image will not be added.');
+                    } else {
+                        const newFile = {
+                            uri: Platform.OS === 'android'
+                                ? capturedImage.uri
+                                : capturedImage.uri.replace('file://', ''),  // iOS mein remove karo, Android mein rehne do
+                            fileName: capturedImage.fileName || `photo_${Date.now()}.jpg`,
+                            type: capturedImage.type || 'image/jpeg',
+                            hash: imageHash, // Adding the MD5 hash
+                        };
 
 
 
+                        // Update state with the new image (if not a duplicate)
+                        updateState({
+                            form: {
+                                ...state.form,
+                                Files: [...(state.form?.Files || []), newFile],
+                            },
 
-  const requestvideoPermission = async () => {
-    if (Platform.OS === 'android') {
-      try {
-        const granted = await PermissionsAndroid.request(
-          PermissionsAndroid.PERMISSIONS.CAMERA
+                        });
+
+
+
+                    }
+                }
+            }
         );
-        if (granted === PermissionsAndroid.RESULTS.GRANTED) {
-          console.log('Camera permission granted');
-          openCameraForVideo();
+    };
+
+
+
+    const requestvideoPermission = async () => {
+        if (Platform.OS === 'android') {
+            try {
+                const granted = await PermissionsAndroid.request(
+                    PermissionsAndroid.PERMISSIONS.CAMERA
+                );
+                if (granted === PermissionsAndroid.RESULTS.GRANTED) {
+                    console.log('Camera permission granted');
+                    openCameraForVideo();
+                } else {
+                    console.log('Camera permission denied');
+                }
+            } catch (err) {
+                console.warn(err);
+            }
         } else {
-          console.log('Camera permission denied');
+            openCameraForVideo(); // iOS me direct open
         }
-      } catch (err) {
-        console.warn(err);
-      }
-    } else {
-      openCameraForVideo(); // iOS me direct open
-    }
-  };
+    };
 
-  const openCameraForVideo = () => {
-    launchCamera(
-      {
-        mediaType: 'video',
-        videoQuality: 'high', // high quality capture, baad me compress hoga
-        durationLimit: 30,
-        saveToPhotos: true,
-      },
-      async (response) => {
-        if (response.assets && response.assets.length > 0) {
-          const capturedVideo = response.assets[0];
+    const openCameraForVideo = () => {
+        launchCamera(
+            {
+                mediaType: 'video',
+                videoQuality: 'high', // high quality capture, baad me compress hoga
+                durationLimit: 30,
+                saveToPhotos: true,
+            },
+            async (response) => {
+                if (response.assets && response.assets.length > 0) {
+                    const capturedVideo = response.assets[0];
 
-          // Max 2 videos check
-          if ((state.form?.Files || []).filter(f => f.type?.startsWith("video")).length >= 2) {
-            Alert.alert("Limit", "Maximum 2 videos allowed.");
-            return;
-          }
+                    // Max 2 videos check
+                    if ((state.form?.Files || []).filter(f => f.type?.startsWith("video")).length >= 2) {
+                        Alert.alert("Limit", "Maximum 2 videos allowed.");
+                        return;
+                    }
 
-          try {
-            // Show compression UI
-            setIsCompressing(true);
-            setCompressionProgress(0);
+                    try {
+                        // Show compression UI
+                        setIsCompressing(true);
+                        setCompressionProgress(0);
 
-            // 👉 Compress the video
-            const compressedUri = await VideoCompressor.compress(
-              capturedVideo.uri,
-              {
-                compressionMethod: 'auto',
-              },
-              (progress) => {
-                console.log('Compression Progress: ', progress);
-                setCompressionProgress(progress); // Update progress (0 to 1)
-              }
-            );
+                        // 👉 Compress the video
+                        const compressedUri = await VideoCompressor.compress(
+                            capturedVideo.uri,
+                            {
+                                compressionMethod: 'auto',
+                            },
+                            (progress) => {
+                                console.log('Compression Progress: ', progress);
+                                setCompressionProgress(progress); // Update progress (0 to 1)
+                            }
+                        );
 
-            console.log("Original URI:", capturedVideo.uri);
-            console.log("Compressed URI:", compressedUri);
+                        console.log("Original URI:", capturedVideo.uri);
+                        console.log("Compressed URI:", compressedUri);
 
-            const newVideo = {
-              uri: Platform.OS === 'android' ? compressedUri : compressedUri.replace('file://', ''),
-              fileName: capturedVideo.fileName || `video_${Date.now()}.mp4`,
-              type: capturedVideo.type || 'video/mp4',
-            };
+                        const newVideo = {
+                            uri: Platform.OS === 'android' ? compressedUri : compressedUri.replace('file://', ''),
+                            fileName: capturedVideo.fileName || `video_${Date.now()}.mp4`,
+                            type: capturedVideo.type || 'video/mp4',
+                        };
 
-            updateState({
-              form: {
-                ...state.form,
-                Files: [...(state.form?.Files || []), newVideo],
-              },
-            });
-          } catch (error) {
-            console.log("Video compression error:", error);
-            Alert.alert("Error", "Failed to compress video");
-          } finally {
-            // Hide compression UI
-            setIsCompressing(false);
-            setCompressionProgress(0);
-          }
-        }
-      }
-    );
-  };
+                        updateState({
+                            form: {
+                                ...state.form,
+                                Files: [...(state.form?.Files || []), newVideo],
+                            },
+                        });
+                    } catch (error) {
+                        console.log("Video compression error:", error);
+                        Alert.alert("Error", "Failed to compress video");
+                    } finally {
+                        // Hide compression UI
+                        setIsCompressing(false);
+                        setCompressionProgress(0);
+                    }
+                }
+            }
+        );
+    };
 
 
   const handleNext = (nextStep: number) => {
     let validationResult: { isValid: boolean; message?: string } | null = null;
 
-    // Step 0 validation (company/branch/federation selection)
     if (currentStep === 0) {
       if (!state.form.option1) {
         alert('Please select a company');
@@ -466,17 +395,19 @@ const TestForm = () => {
     }
 
     else if (currentStep === 1) {
-      if (!state.form.Trucknumber || state.form.Trucknumber.trim() === '') {
-        alert('Please enter truck number');
-        return;
-      }
+         const truckNumber = state.form.Trucknumber || "";
 
 
-      const truckRegex = /^[A-Z]{2}\d{2}[A-Z]{1,2}\d{4}$/;
-      if (!truckRegex.test(state.form.Trucknumber)) {
-        alert('Invalid Truck Number (Format: XX00XX0000)');
-        return;
-      }
+            if (truckNumber.length < 6) {
+                alert("Truck number must be at least 6 characters");
+                return;
+            }
+
+            // ✅ Maximum length check
+            if (truckNumber.length > 12) {
+                alert("Truck number must not be more than 12 characters");
+                return;
+            }
 
       if (!state.form.grossWeight || isNaN(parseFloat(state.form.grossWeight))) {
         alert('Please enter a valid gross weight');
@@ -727,6 +658,60 @@ const TestForm = () => {
   };
 
 
+
+
+    const uploadVideos = async (files: any[]) => {
+        try {
+
+            const videoFormData = new FormData();
+
+            setIsSubmitted(true); // Disable submit button
+
+            files
+                .filter(file => file.type?.startsWith("video")) // sirf videos
+                .forEach((video, index) => {
+                    videoFormData.append("Files", {
+                        uri: video.uri,
+                        type: video.type,
+                        name: video.fileName || `video_${index}.mp4`,
+                    } as any);
+                });
+
+            // 👇 dispatchId state se nikala
+            const dispatchId = state.hidden?.dispatchId;
+
+            if (!dispatchId) {
+                throw new Error("Dispatch ID missing in state");
+            }
+
+            const response = await apiClient.post(
+                `/api/mobile/healthreport/videoupload/${dispatchId}`,
+                videoFormData,
+                {
+                    headers: {
+                        "Content-Type": "multipart/form-data",
+
+                    },
+                }
+            );
+
+            console.log("Video upload success:", response.data);
+            Alert.alert("Success", "HealthReport uploaded successfully");
+            updateState({
+                ...state,
+                form: null,
+                hidden: { ...state.hidden, currentStep: 0 }
+            });
+
+            return response.data;
+        } catch (error: any) {
+            setIsSubmitted(false);
+            console.error("Video upload failed:", error.response?.data || error.message);
+            throw error;
+        }
+    };
+
+
   const handleSubmit = () => {
     // Minimum 3 required
     if ((state.form?.Files || []).length < 3) {
@@ -778,26 +763,38 @@ const TestForm = () => {
 
     setIsPressed(true); // Show loading indicator
 
-    const token = Storage.getString('userToken');
-    console.log('Submitting form with token:', token);
-    apiClient.post('/api/mobile/healthreport/normal/receive', formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-        Authorization: `Bearer ${token}`,
+    const token = Storage.getItem('token');
+
+
+  
+    apiClient
+    .post("/api/mobile/healthreport/normal/receive", formData, {
+                headers: {
+                    "Content-Type": "multipart/form-data",
+                    Authorization: `Bearer ${token}`,
+                   
+                },
+            })
+            .then(async (response) => {
+                console.log("Submission successful:", response.data);
+
+                if (response.data?.id) {
+                    const newId = response.data.id; // ✅ dispatch ID
+                    console.log("New Dispatch ID:", newId);
 
 
 
-      },
-    })
-      .then(response => {
-        console.log('Submission successful:', response.data);
-        alert('Form submitted successfully!');
-        updateState({
-          ...state,
-          form: null,
-          hidden: { ...state.hidden, currentStep: 0 },
-        });
-      })
+
+
+                    updateState({
+                        ...state,
+                        form: null,
+                        hidden: { ...state.hidden, currentStep: 4, dispatchId: newId }
+                    });
+                } else {
+                    throw new Error("ID not found in dispatch response!");
+                }
+            })
       .catch(error => {
         console.error('Submission failed:', error);
         if (error.response) {
@@ -1403,157 +1400,185 @@ const TestForm = () => {
             </View>
           )}
 
-          {currentStep === 3 && (
-            <View style={{ flex: 1, padding: 20 }}>
-              {/* Camera Button */}
-              <View style={styles.buttoncontent}>
-                <TouchableOpacity
-                  style={styles.Camerabutton}
-                  onPress={handlePresscamera}
-                  disabled={(state.form?.Files || []).length >= 9}
-                >
-                  <MaterialIcons name="camera" size={30} color="white" />
-                  <Text style={styles.buttonText}>{t('PickfromCamera')}</Text>
-                </TouchableOpacity>
-              </View>
+         
 
-              <View style={styles.buttoncontent}>
-                <TouchableOpacity
-                  style={styles.Camerabutton}
-                  onPress={requestvideoPermission}
-                  disabled={
-                    (state.form?.Files || []).filter(f => f.type?.startsWith("video")).length >= 2
-                  } // 👈 sirf 2 video allow
-                >
-                  <MaterialIcons name="camera" size={30} color="white" />
-                  <Text style={styles.buttonText}>Pick From Video</Text>
-                </TouchableOpacity>
-              </View>
-
-
-
-
-              {/* Previous and Submit Buttons */}
-              <View style={styles.buttoncontent}>
-                <TouchableOpacity style={styles.button} onPress={handlePrevious}>
-                  <Text style={styles.buttonText}>{t('Previous')}</Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                  style={styles.button}
-                  onPress={handleSubmit}
-
-
-                  disabled={(state.form?.Files || []).length < 3 || (state.form?.Files || []).length > 9 || isPressed} // Disable submit if image count is out of range
-                >
-
-                  {isPressed ? (
-                    <ActivityIndicator color="#fff" size="small" />
-                  ) : (
-                    <Text style={styles.buttonText}>
-                      {t('submit')}
-                    </Text>
-                  )}
-
-                </TouchableOpacity>
-              </View>
-
-              {/* Image Grid */}
-              {/* <View style={styles.imageGrid}>
-                {(state.form?.Files || []).map((item, index) => (
-                  <View key={index} style={styles.imageContainer}>
-                    <TouchableOpacity onPress={() => setSelectedImage(item.uri)}>
-                      <Image source={{ uri: item.uri }} style={styles.image} />
-                    </TouchableOpacity>
-
-                    <TouchableOpacity
-                      style={styles.deleteIcon}
-                      onPress={() => handleDeleteImage(index)}
-                    >
-                      <MaterialIcons name="cancel" size={24} color="red" />
-                    </TouchableOpacity>
-                  </View>
-                ))}
-              </View>
-
-
-                {videos.map((v, index) => (
-          <View key={index} style={styles.videoContainer}>
-           
-            <Video
-              source={{ uri: v.uri }}
-              style={styles.video}
-              controls   // 👈 play/pause controls enable karega
-              resizeMode="contain"
-            />
-          </View>
-        ))} */}
-
-
-
-              <View style={styles.fileGrid}>
-                {(state.form?.Files || []).map((item, index) => {
-                  // 👇 safe type check
-                  const fileType = item.type || "image/jpeg";
-
-                  return (
-                    <View key={index} style={styles.imageContainer}>
-
-                      {fileType.startsWith("image") ? (
-                        <TouchableOpacity onPress={() => setSelectedImage(item.uri)}>
-                          <View style={styles.videoView}>
-                            <Image source={{ uri: item.uri }} style={styles.image} />
-                          </View>
-                        </TouchableOpacity>
-
-                      ) : fileType.startsWith("video") ? (
-                        <View style={styles.videoView}>
-                          <VideoPlayer
-                            source={{ uri: item.uri }}
-                            style={styles.video}
-                            controls
-                            resizeMode="contain"
-                          />
-                        </View>
-                      ) : (
-                        <Text style={{ color: "red" }}>Unknown File</Text>
-                      )}
-
-                      {/* Delete button */}
-                      {/* <TouchableOpacity
-        style={styles.deleteIcon}
-        onPress={() => handleDeleteImage(index)}
-      >
-        <MaterialIcons name="cancel" size={24} color="red" />
-      </TouchableOpacity> */}
-                    </View>
-                  );
-                })}
-
-              </View>
-
-
-
-
-
-
-
-              {/* Modal to show full image */}
-              <Modal visible={!!selectedImage} transparent={true}>
-                <View style={styles.modalContainer}>
-                  <TouchableOpacity
-                    style={styles.modalClose}
-                    onPress={() => setSelectedImage(null)}
-                  >
-                    <MaterialIcons name="cancel" size={30} color="white" />
-                  </TouchableOpacity>
-
-                  <Image source={{ uri: selectedImage }} style={styles.fullImage} />
-                </View>
-              </Modal>
-            </View>
-          )}
-
+             {currentStep === 3 && (
+                                 <View style={{ flex: 1, padding: 20 }}>
+                                     {/* Camera Button */}
+                                     <View style={styles.buttoncontent}>
+                                         <TouchableOpacity
+                                             style={styles.Camerabutton}
+                                             onPress={requestCameraPermission}
+                                             disabled={(state.form?.Files || []).length >= 9}
+                                         >
+                                             <MaterialIcons name="camera" size={30} color="white" />
+                                             <Text style={styles.buttonText}>{t('PickfromCamera')}</Text>
+                                         </TouchableOpacity>
+                                     </View>
+         
+         
+         
+         
+         
+                                     {/* Previous and Submit Buttons */}
+                                     <View style={styles.buttoncontent}>
+                                         <TouchableOpacity style={styles.button} onPress={handlePrevious}>
+                                             <Text style={styles.buttonText}>{t('Previous')}</Text>
+                                         </TouchableOpacity>
+         
+                                         <TouchableOpacity
+                                             style={styles.button}
+                                             onPress={handleSubmit}
+         
+         
+                                             disabled={(state.form?.Files || []).length < 3 || (state.form?.Files || []).length > 9 || isPressed} // Disable submit if image count is out of range
+                                         >
+         
+                                             {isPressed ? (
+                                                 <ActivityIndicator color="#fff" size="small" />
+                                             ) : (
+         
+                                                 <Text style={styles.buttonText}>{t('Next')}</Text>
+         
+                                             )}
+         
+                                         </TouchableOpacity>
+                                     </View>
+         
+         
+         
+         
+                                     <View style={styles.fileGrid}>
+                                         {(state.form?.Files || []).map((item, index) => {
+                                             // 👇 safe type check
+                                             const fileType = item.type || "image/jpeg";
+         
+                                             return (
+                                                 <View key={index} style={styles.imageContainer}>
+                                                     {fileType.startsWith("image") && (
+                                                         <TouchableOpacity onPress={() => setSelectedImage(item.uri)}>
+                                                             <View style={styles.videoView}>
+                                                                 <Image source={{ uri: item.uri }} style={styles.image} />
+                                                             </View>
+                                                         </TouchableOpacity>
+                                                     )}
+                                                 </View>
+         
+                                             );
+                                         })}
+         
+                                     </View>
+         
+         
+         
+         
+         
+         
+         
+                                     {/* Modal to show full image */}
+                                     <Modal visible={!!selectedImage} transparent={true}>
+                                         <View style={styles.modalContainer}>
+                                             <TouchableOpacity
+                                                 style={styles.modalClose}
+                                                 onPress={() => setSelectedImage(null)}
+                                             >
+                                                 <MaterialIcons name="cancel" size={30} color="white" />
+                                             </TouchableOpacity>
+         
+                                             <Image source={{ uri: selectedImage }} style={styles.fullImage} />
+                                         </View>
+                                     </Modal>
+                                 </View>
+                             )}
+         
+         
+         
+                             {currentStep === 4 && (
+                                 <View style={{ flex: 1, padding: 20 }}>
+                                     {/* Camera Button */}
+         
+                                     <View style={styles.buttoncontent}>
+                                         <TouchableOpacity
+                                             style={styles.Camerabutton}
+                                             onPress={requestvideoPermission}
+                                             disabled={
+                                                 (state.form?.Files || []).filter(f => f.type?.startsWith("video")).length >= 2
+                                             } // 👈 sirf 2 video allow
+                                         >
+                                             <MaterialIcons name="camera" size={30} color="white" />
+                                             <Text style={styles.buttonText}>Pick From Video</Text>
+                                         </TouchableOpacity>
+                                     </View>
+         
+         
+         
+                                     {/* Previous and Submit Buttons */}
+                                     <View style={styles.buttoncontent}>
+                                         <TouchableOpacity
+                                             style={styles.button}
+                                             onPress={() => uploadVideos(state.form?.Files || [])}
+                                             disabled={isSubmitted} // Disable submit if image count is out of range
+                                         >
+                                             {isPressed ? (
+                                                 <ActivityIndicator color="#fff" size="small" />
+                                             ) : (
+         
+                                                 <Text style={styles.buttonText}>Submit</Text>
+         
+                                             )}
+         
+                                         </TouchableOpacity>
+         
+                                     </View>
+         
+         
+         
+         
+         
+                                     <View style={styles.fileGrid}>
+                                         {(state.form?.Files || []).map((item, index) => {
+                                             const fileType = item.type || "video/mp4"; // default video type
+         
+                                             return (
+                                                 fileType.startsWith("video") && (
+                                                     <View key={index} style={styles.imageContainer}>
+                                                         <View style={styles.videoView}>
+                                                             <VideoPlayer
+                                                                 source={{ uri: item.uri }}
+                                                                 style={styles.video}
+                                                                 controls
+                                                                 resizeMode="contain"
+                                                             />
+                                                         </View>
+                                                     </View>
+                                                 )
+                                             );
+                                         })}
+                                     </View>
+         
+         
+         
+         
+         
+         
+         
+         
+                                     {/* Modal to show full image */}
+                                     <Modal visible={!!selectedImage} transparent={true}>
+                                         <View style={styles.modalContainer}>
+                                             <TouchableOpacity
+                                                 style={styles.modalClose}
+                                                 onPress={() => setSelectedImage(null)}
+                                             >
+                                                 <MaterialIcons name="cancel" size={30} color="white" />
+                                             </TouchableOpacity>
+         
+                                             <Image source={{ uri: selectedImage }} style={styles.fullImage} />
+                                         </View>
+                                     </Modal>
+                                 </View>
+                             )}
+         
 
 
 
