@@ -632,7 +632,7 @@ const TestForm = () => {
           grossWeight: response.data.grossWeight?.toString() || '',
           tareWeight: response.data.tareWeight?.toString() || '',
           netWeight: response.data.netWeight?.toString() || '',
-          date: response.data.date ? new Date(response.data.date).toISOString().split('.')[0] + 'Z' : '',
+         
           stainingColour: response.data.stainingColour || false,
           stainingColourPercent: response.data.stainingColourPercent?.toString() || '',
           bagCount: response.data.bagCount?.toString() || '',
@@ -647,7 +647,7 @@ const TestForm = () => {
           moisturePercent: response.data.moisturePercent?.toString() || '',
           spoiledOnion: response.data.spoiledOnion || false,
           spoiledPercent: response.data.spoiledPercent?.toString() || '',
-          SpoliedBranch: response.data.fpcPersonName || '',
+         
           SpoliedComment: response.data.comment || ''
         }
       });
