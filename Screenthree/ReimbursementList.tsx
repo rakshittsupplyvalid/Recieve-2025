@@ -254,7 +254,7 @@ const ReimbursementList: React.FC = () => {
                       {selectedReimbursement.images.map((imageUri, index) => (
                         <Image
                           key={index}
-                          source={{ uri: `https://stage-backend-2025.epravaha.com${imageUri}` }}
+                          source={{ uri: `https://backend-2025.epravaha.com${imageUri}` }}
                           style={styles.image}
                           resizeMode="contain"
                         />
