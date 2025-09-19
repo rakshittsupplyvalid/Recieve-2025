@@ -64,7 +64,7 @@ type HealthReportDetailsNavigationProp = NativeStackNavigationProp<RootStackPara
 const { width } = Dimensions.get('window');
 
 const HealthReportDetails = () => {
-     const route = useRoute<HealthReportDetailsRouteProp>();
+    const route = useRoute<HealthReportDetailsRouteProp>();
     const navigation = useNavigation<HealthReportDetailsNavigationProp>();
     const { reportId } = route.params;
     const [report, setReport] = useState<Report | null>(null);
@@ -159,8 +159,8 @@ const HealthReportDetails = () => {
         );
     }
 
-      const images = report.files?.filter((file: string) => !file.endsWith('.mp4')) || [];
-  const videos = report.files?.filter((file: string) => file.endsWith('.mp4')) || [];
+    const images = report.files?.filter((file: string) => !file.endsWith('.mp4')) || [];
+    const videos = report.files?.filter((file: string) => file.endsWith('.mp4')) || [];
 
     return (
         <View style={styles.container}>
@@ -178,7 +178,7 @@ const HealthReportDetails = () => {
                 <Text style={styles.headerText}>Health Report Details</Text>
                 <View style={styles.statusBadge}>
                     <Text style={[styles.statusText, { color: getStatusColor(report.approvalStatus) }]}>
-                   {report.approvalStatus}
+                        {report.approvalStatus}
                     </Text>
                 </View>
             </LinearGradient>
@@ -194,7 +194,7 @@ const HealthReportDetails = () => {
                         <Text style={styles.cardTitle}>{t('BasicInformation')}</Text>
                     </View>
 
-                 
+
 
                     <View style={styles.detailRow}>
                         <Text style={styles.detailLabel}>Assayer Name</Text>
@@ -212,16 +212,21 @@ const HealthReportDetails = () => {
                     </View>
 
                     {/* Train Number Field */}
-                    <View style={styles.detailRow}>
-                        <Text style={styles.detailLabel}>Train Number</Text>
-                        <Text style={styles.detailValue}>{report.trainNo || 'null'}</Text>
-                    </View>
+                    {report.trainNo && (
+                        <View style={styles.detailRow}>
+                            <Text style={styles.detailLabel}>Train Number</Text>
+                            <Text style={styles.detailValue}>{report.trainNo}</Text>
+                        </View>
+                    )}
 
                     {/* Coach Number Field */}
-                    <View style={styles.detailRow}>
-                        <Text style={styles.detailLabel}>Coach Number</Text>
-                        <Text style={styles.detailValue}>{report.coachNo || 'null'}</Text>
-                    </View>
+                    {report.coachNo && (
+                        <View style={styles.detailRow}>
+                            <Text style={styles.detailLabel}>Coach Number</Text>
+                            <Text style={styles.detailValue}>{report.coachNo}</Text>
+                        </View>
+                    )}
+
 
                     <View style={styles.detailRow}>
                         <Text style={styles.detailLabel}>FPC Person</Text>
@@ -261,42 +266,42 @@ const HealthReportDetails = () => {
                     </View>
                 </View>
 
-                 <View style={styles.card}>
-  <View style={styles.cardHeader}>
-    <FontAwesome name="search" size={20} color="#F79B00" />
-    <Text style={styles.cardTitle}>{t('QualityParameters')}</Text>
-  </View>
+                <View style={styles.card}>
+                    <View style={styles.cardHeader}>
+                        <FontAwesome name="search" size={20} color="#F79B00" />
+                        <Text style={styles.cardTitle}>{t('QualityParameters')}</Text>
+                    </View>
 
-  <View style={styles.detailRow}>
-    <Text style={styles.detailLabel}>Onion Size</Text>
-    <Text style={styles.detailValue}>{report.size} mm</Text>
-  </View>
+                    <View style={styles.detailRow}>
+                        <Text style={styles.detailLabel}>Onion Size</Text>
+                        <Text style={styles.detailValue}>{report.size} mm</Text>
+                    </View>
 
-  <View style={styles.detailRow}>
-    <Text style={styles.detailLabel}>Onion Skin</Text>
-    <Text style={styles.detailValue}>{report.onionSkin}</Text>
-  </View>
+                    <View style={styles.detailRow}>
+                        <Text style={styles.detailLabel}>Onion Skin</Text>
+                        <Text style={styles.detailValue}>{report.onionSkin}</Text>
+                    </View>
 
-  {/* ✅ Onion Skin Percent - Only show if percent is not zero */}
-  {report.onionSkinPercent > 0 && 
-    renderPercentageRow('Onion Skin Percent', true, report.onionSkinPercent)
-  }
+                    {/* ✅ Onion Skin Percent - Only show if percent is not zero */}
+                    {report.onionSkinPercent > 0 &&
+                        renderPercentageRow('Onion Skin Percent', true, report.onionSkinPercent)
+                    }
 
-  <View style={styles.detailRow}>
-    <Text style={styles.detailLabel}>Moisture</Text>
-    <Text style={styles.detailValue}>{report.moisture}</Text>
-  </View>
+                    <View style={styles.detailRow}>
+                        <Text style={styles.detailLabel}>Moisture</Text>
+                        <Text style={styles.detailValue}>{report.moisture}</Text>
+                    </View>
 
-  {/* ✅ Moisture Percent - Only show if percent is not zero */}
-  {report.moisturePercent > 0 && 
-    renderPercentageRow('Moisture Percent', true, report.moisturePercent)
-  }
+                    {/* ✅ Moisture Percent - Only show if percent is not zero */}
+                    {report.moisturePercent > 0 &&
+                        renderPercentageRow('Moisture Percent', true, report.moisturePercent)
+                    }
 
-  {renderPercentageRow('Black Smut Onion', report.blackSmutOnion, report.blackSmutPercent)}
-  {renderPercentageRow('Spoiled Onion', report.spoiledOnion, report.spoiledPercent)}
-  {renderPercentageRow('Sprouted Onion', report.sproutedOnion, report.sproutedPercent)}
-  {renderPercentageRow('Staining Colour', report.stainingColour, report.stainingColourPercent)}
-</View>
+                    {renderPercentageRow('Black Smut Onion', report.blackSmutOnion, report.blackSmutPercent)}
+                    {renderPercentageRow('Spoiled Onion', report.spoiledOnion, report.spoiledPercent)}
+                    {renderPercentageRow('Sprouted Onion', report.sproutedOnion, report.sproutedPercent)}
+                    {renderPercentageRow('Staining Colour', report.stainingColour, report.stainingColourPercent)}
+                </View>
 
                 <View style={styles.card}>
                     <View style={styles.cardHeader}>
@@ -307,66 +312,66 @@ const HealthReportDetails = () => {
                 </View>
 
 
-                  {images.length > 0 && (
-                        <View style={styles.card}>
-                          <View style={styles.cardHeader}>
+                {images.length > 0 && (
+                    <View style={styles.card}>
+                        <View style={styles.cardHeader}>
                             <FontAwesome name="camera" size={20} color="#F79B00" />
                             <Text style={styles.cardTitle}>Images</Text>
-                          </View>
-                
-                          <FlatList
+                        </View>
+
+                        <FlatList
                             data={images}
                             keyExtractor={(item, index) => index.toString()}
                             horizontal
                             showsHorizontalScrollIndicator={false}
                             renderItem={({ item, index }) => (
-                              <TouchableOpacity
-                                onPress={() => {
-                                  setCurrentImageIndex(index);
-                                  setShowImages(true);
-                                }}
-                              >
-                                <Image
-                                  source={{ uri: apiClient.defaults.baseURL + item }}
-                                  style={styles.imageThumbnail}
-                                  resizeMode="cover"
-                                />
-                              </TouchableOpacity>
+                                <TouchableOpacity
+                                    onPress={() => {
+                                        setCurrentImageIndex(index);
+                                        setShowImages(true);
+                                    }}
+                                >
+                                    <Image
+                                        source={{ uri: apiClient.defaults.baseURL + item }}
+                                        style={styles.imageThumbnail}
+                                        resizeMode="cover"
+                                    />
+                                </TouchableOpacity>
                             )}
-                          />
-                
-                          <ImageViewing
+                        />
+
+                        <ImageViewing
                             images={images.map((file: string) => ({ uri: apiClient.defaults.baseURL + file }))}
                             imageIndex={currentImageIndex}
                             visible={showImages}
                             onRequestClose={() => setShowImages(false)}
-                          />
-                        </View>
-                      )}
-                
-                      {/* Videos Section */}
-                      {videos.length > 0 && (
-                        <View style={styles.card}>
-                          <View style={styles.cardHeader}>
+                        />
+                    </View>
+                )}
+
+                {/* Videos Section */}
+                {videos.length > 0 && (
+                    <View style={styles.card}>
+                        <View style={styles.cardHeader}>
                             <FontAwesome name="video-camera" size={20} color="#F79B00" />
                             <Text style={styles.cardTitle}>Videos</Text>
-                          </View>
-                
-                          {videos.map((video: string, index: number) => (
-                            <View key={index} style={{ marginBottom: 20 }}>
-                         
-                              <Video
-                                source={{ uri: apiClient.defaults.baseURL + video }}
-                                style={styles.videoPlayer}
-                                controls
-                                resizeMode="contain"
-                              />
-                            </View>
-                          ))}
                         </View>
-                      )}
 
-          
+                        {videos.map((video: string, index: number) => (
+                            <View key={index} style={{ marginBottom: 20 }}>
+
+                                <Video
+                                    source={{ uri: apiClient.defaults.baseURL + video }}
+                                    style={styles.videoPlayer}
+                                    controls
+                                    resizeMode="contain"
+                                />
+                            </View>
+                        ))}
+                    </View>
+                )}
+
+
             </ScrollView>
         </View>
     );
@@ -436,7 +441,7 @@ const styles = StyleSheet.create({
     statusText: {
         fontSize: 14,
         fontFamily: 'Inter-SemiBold',
-        color : '#fff',
+        color: '#fff',
     },
     contentContainer: {
         flex: 1,
@@ -576,12 +581,12 @@ const styles = StyleSheet.create({
         color: '#FFF',
         fontFamily: 'Inter-SemiBold',
     },
-      videoName: { fontSize: 14, fontWeight: '600', marginBottom: 8, color: '#333' },
-  videoPlayer: {
-    width: width - 64,
-    height: 220,
-    borderRadius: 10,
-    backgroundColor: '#000',
-  },
+    videoName: { fontSize: 14, fontWeight: '600', marginBottom: 8, color: '#333' },
+    videoPlayer: {
+        width: width - 64,
+        height: 220,
+        borderRadius: 10,
+        backgroundColor: '#000',
+    },
 });
 export default HealthReportDetails;

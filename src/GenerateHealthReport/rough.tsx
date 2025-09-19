@@ -1,364 +1,52 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, ScrollView, TouchableOpacity, KeyboardAvoidingView, Switch, Modal, Platform, Image, ActivityIndicator, FlatList, Button, Linking, Alert, BackHandler, StyleSheet } from 'react-native';
-import Navbar from '../../App/Navbar';
-import useForm from '../../App/Common/Lib/useForm'
-import { Picker } from '@react-native-picker/picker';
-import { launchCamera } from 'react-native-image-picker';
-import styles from '../../theme/Healthreport';
-import { PermissionsAndroid, Dimensions } from 'react-native';
-import apiClient from '../../service/api/apiInterceptors';
-import { useIsFocused, useNavigation } from '@react-navigation/native';
-import DateTimePicker from '@react-native-community/datetimepicker';
-import { createFormData } from '../../App/Common/Lib/createFormdata';
-import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
-import { useTranslation } from 'react-i18next';
-import { StackNavigationProp } from '@react-navigation/stack';
-import { RootStackParamList } from '../../types/Type';
-import Storage from '../../utils/Storage';
-import VideoPlayer from 'react-native-video';
-import { Video as VideoCompressor } from 'react-native-compressor';
-import md5 from 'md5';
-import { SafeAreaView } from 'react-native-safe-area-context';
-
-const { width } = Dimensions.get('window');
+// ... other imports remain the same
 
 const TestForm = () => {
-  const { t } = useTranslation();
-  const { state, updateState } = useForm();
+  // ... existing state and variables
+  
+  // Add a new state for transport type
+  const [transportType, setTransportType] = useState('TRUCK'); // Default to TRUCK
 
-  const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
-  const currentStep = state?.hidden?.currentStep || 0;
-  const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
-  const previousSteps = state?.hidden?.previousSteps || [];
-  const [selectedImage, setSelectedImage] = useState(null);
-  const [isPressed, setIsPressed] = useState(false);
-  const [videos, setVideos] = useState<any[]>([]);
-  const [isCompressing, setIsCompressing] = useState(false);
-  const [compressionProgress, setCompressionProgress] = useState(0);
+  // ... existing useEffect and functions
 
-  const today = new Date();
-  const threeMonthsAgo = new Date();
-  threeMonthsAgo.setMonth(today.getMonth() - 3);
-
-  const [clickCount, setClickCount] = useState(0);
-
-  const sizeOptions = [
-    '20-25',
-    '26-30',
-    '31-35',
-    '36-40',
-    '41-45',
-    '46-50',
-    '51-55',
-    '56-60'
-  ];
-
-  const handlePress = () => {
-    if (clickCount < 2) {
-      setClickCount(clickCount + 1);
-      requestvideoPermission();
-    } else {
-      Alert.alert("you can upload maximum 2 videos");
-    }
-  };
-
-  const handlePresscamera = () => {
-    if (clickCount < 5) {
-      setClickCount(clickCount + 1);
-      requestCameraPermission();
-    } else {
-      Alert.alert("Maximum Required", "You can upload maximum 5 images.");
-    }
-  };
-
-  useEffect(() => {
-    CompanyDropdown();
-  }, []);
-
-  useEffect(() => {
-    if (state.form.option1) {
-      updateState({
-        form: {
-          ...state.form,
-          option2: '',
-          Storagedata: ''
-        },
-        fielddata: {
-          ...state.fielddata,
-          Branchdata: null,
-          storageLocation: null
-        }
-      });
-      BranchDropdown(state.form.option1);
-    }
-  }, [state.form.option1]);
-
-  useEffect(() => {
-    if (state.form.option2) {
-      console.log("branch id", state.form.option2);
-      updateState({
-        form: {
-          ...state.form,
-          Storagedata: ''
-        },
-        fielddata: {
-          ...state.fielddata,
-          storageLocation: null
-        }
-      });
-    }
-  }, [state.form.option2]);
-
-  useEffect(() => {
-    if (state.form.option2) {
-      Storagelocation(state.form.option2);
-    }
-  }, [state.form.option2]);
-
-  const CompanyDropdown = () => {
-    apiClient.get('/api/dropdown/company')
-      .then((res) => {
-        if (res?.data) {
-          updateState({
-            fielddata: {
-              ...state.fielddata,
-              Company: res.data,
-            }
-          });
-        }
-      })
-      .catch(console.error);
-  };
-
-  const BranchDropdown = (companyId: string) => {
-    const url = `/api/group?BranchType=RECEIVING&BranchType=BOTH&ApprovalStatus=APPROVED&IsActive=true&CompanyId=${companyId}`;
-    apiClient.get(url)
-      .then((res) => {
-        if (res?.data) {
-          updateState({
-            fielddata: {
-              ...state.fielddata,
-              Branchdata: res.data
-            }
-          });
-        }
-      })
-      .catch(console.error);
-  };
-
-  const Storagelocation = (groupId: string) => {
-    const url = `/api/dropdown/group/${groupId}/location?locationType=GROUPLOCATION`;
-    console.log('API URL:', url);
-    apiClient.get(url)
-      .then((res) => {
-        console.log('STORAGE API response:', res.data);
-        if (res?.data) {
-          updateState({
-            fielddata: {
-              ...state.fielddata,
-              storageLocation: res.data,
-            }
-          });
-        }
-      })
-      .catch((error) => {
-        console.error('API error:', error);
-      });
-  };
-
-  const handleDeleteImage = (index) => {
-    const updatedImages = [...(state.form?.Files || [])];
-    updatedImages.splice(index, 1);
-    updateState({
-      ...state,
-      form: {
-        ...state.form,
-        Files: updatedImages
-      }
-    });
-  };
-
-  const requestCameraPermission = async () => {
-    if (Platform.OS === 'android') {
-      try {
-        const granted = await PermissionsAndroid.request(
-          PermissionsAndroid.PERMISSIONS.CAMERA
-        );
-        if (granted === PermissionsAndroid.RESULTS.GRANTED) {
-          console.log('Camera permission granted');
-          openCamera();
-        } else {
-          console.log('Camera permission denied');
-        }
-      } catch (err) {
-        console.warn(err);
-      }
-    } else {
-      openCamera(); // iOS me direct open
-    }
-  };
-
-  const openCamera = () => {
-    launchCamera(
-      {
-        mediaType: 'photo',
-        includeBase64: false,
-        cameraType: 'back',
-        saveToPhotos: true,
-        quality: 0.4,
-        maxWidth: 700,
-        maxHeight: 700,
-      },
-      async (response) => {
-        if (response.assets && response.assets.length > 0) {
-          const capturedImage = response.assets[0];
-          const imageHash = md5(capturedImage.uri);
-
-          const isDuplicate = state.form?.Files?.some(file => file.hash === imageHash);
-          if (isDuplicate) {
-            Alert.alert('Duplicate', 'This image is already added.');
-            return;
-          }
-
-          // Check if already 9 files ho gaye
-          if ((state.form?.Files || []).filter(f => f.type.startsWith("image")).length >= 9) {
-            Alert.alert("Limit", "Maximum 9 images allowed.");
-            return;
-          }
-
-          const newFile = {
-            uri: Platform.OS === 'android' ? capturedImage.uri : capturedImage.uri.replace('file://', ''),
-            fileName: capturedImage.fileName || `photo_${Date.now()}.jpg`,
-            type: capturedImage.type || 'image/jpeg',
-            hash: imageHash,
-          };
-
-          updateState({
-            form: {
-              ...state.form,
-              Files: [...(state.form?.Files || []), newFile],
-            },
-          });
-        }
-      }
-    );
-  };
-
-  const requestvideoPermission = async () => {
-    if (Platform.OS === 'android') {
-      try {
-        const granted = await PermissionsAndroid.request(
-          PermissionsAndroid.PERMISSIONS.CAMERA
-        );
-        if (granted === PermissionsAndroid.RESULTS.GRANTED) {
-          console.log('Camera permission granted');
-          openCameraForVideo();
-        } else {
-          console.log('Camera permission denied');
-        }
-      } catch (err) {
-        console.warn(err);
-      }
-    } else {
-      openCameraForVideo(); // iOS me direct open
-    }
-  };
-
-  const openCameraForVideo = () => {
-    launchCamera(
-      {
-        mediaType: 'video',
-        videoQuality: 'high', // high quality capture, baad me compress hoga
-        durationLimit: 60,
-        saveToPhotos: true,
-      },
-      async (response) => {
-        if (response.assets && response.assets.length > 0) {
-          const capturedVideo = response.assets[0];
-
-          // Max 2 videos check
-          if ((state.form?.Files || []).filter(f => f.type?.startsWith("video")).length >= 2) {
-            Alert.alert("Limit", "Maximum 2 videos allowed.");
-            return;
-          }
-
-          try {
-            // Show compression UI
-            setIsCompressing(true);
-            setCompressionProgress(0);
-            
-            // 👉 Compress the video
-            const compressedUri = await VideoCompressor.compress(
-              capturedVideo.uri,
-              {
-                compressionMethod: 'auto',
-              },
-              (progress) => {
-                console.log('Compression Progress: ', progress);
-                setCompressionProgress(progress); // Update progress (0 to 1)
-              }
-            );
-
-            console.log("Original URI:", capturedVideo.uri);
-            console.log("Compressed URI:", compressedUri);
-
-            const newVideo = {
-              uri: Platform.OS === 'android' ? compressedUri : compressedUri.replace('file://', ''),
-              fileName: capturedVideo.fileName || `video_${Date.now()}.mp4`,
-              type: capturedVideo.type || 'video/mp4',
-            };
-
-            updateState({
-              form: {
-                ...state.form,
-                Files: [...(state.form?.Files || []), newVideo],
-              },
-            });
-          } catch (error) {
-            console.log("Video compression error:", error);
-            Alert.alert("Error", "Failed to compress video");
-          } finally {
-            // Hide compression UI
-            setIsCompressing(false);
-            setCompressionProgress(0);
-          }
-        }
-      }
-    );
-  };
-
+  // Modify the step 1 validation to handle both truck and train
   const handleNext = (nextStep: number) => {
     let validationResult: { isValid: boolean; message?: string } | null = null;
 
-    // Step 0 validation (company/branch/federation selection)
     if (currentStep === 0) {
-      if (!state.form.option1) {
-        alert('Please select a company');
-        return;
-      }
-      if (!state.form.option2) {
-        alert('Please select a branch');
-        return;
-      }
-
-      if (!state.form.Storagedata) {
-        alert('Please select a storage location');
-        return;
-      }
+      // ... existing validation for step 0
     }
-
     else if (currentStep === 1) {
-      if (!state.form.Trucknumber || state.form.Trucknumber.trim() === '') {
-        alert('Please enter truck number');
-        return;
+      // Transport type specific validation
+      if (transportType === 'TRUCK') {
+        const truckNumber = state.form.Trucknumber || "";
+        
+        if (truckNumber.length < 6) {
+          alert("Truck number must be at least 6 characters");
+          return;
+        }
+        
+        if (truckNumber.length > 12) {
+          alert("Truck number must not be more than 12 characters");
+          return;
+        }
+      } else if (transportType === 'TRAIN') {
+        const trainNo = state.form.TrainNo || "";
+        const coachNo = state.form.CoachNo || "";
+        
+        if (!trainNo || trainNo.length === 0) {
+          alert("Please enter train number");
+          return;
+        }
+        
+        if (!coachNo || coachNo.length === 0) {
+          alert("Please enter coach number");
+          return;
+        }
       }
 
-      const truckRegex = /^[A-Z]{2}\d{2}[A-Z]{1,2}\d{4}$/;
-      if (!truckRegex.test(state.form.Trucknumber)) {
-        alert('Invalid Truck Number (Format: XX00XX0000)');
-        return;
-      }
-
+      // Common validation for both transport types
       if (!state.form.grossWeight || isNaN(parseFloat(state.form.grossWeight))) {
         alert('Please enter a valid gross weight');
         return;
@@ -375,96 +63,8 @@ const TestForm = () => {
         alert('Please enter a valid bag count');
         return;
       }
-      if (!state.form.size || isNaN(parseFloat(state.form.size))) {
-        alert('Please Select a valid size');
-        return;
-      }
     }
-
-    else if (currentStep === 2) {
-      // Validate percentages if switches are on
-      if (state.form.stainingColour) {
-        if (!state.form.stainingColourPercent || isNaN(parseFloat(state.form.stainingColourPercent))) {
-          alert('Please enter staining color percentage');
-          return;
-        }
-        if (parseFloat(state.form.stainingColourPercent) > 100) {
-          alert('Staining color percentage cannot exceed 100%');
-          return;
-        }
-      }
-
-      if (state.form.blackSmutOnion) {
-        if (!state.form.blackSmutPercent || isNaN(parseFloat(state.form.blackSmutPercent))) {
-          alert('Please enter black smut percentage');
-          return;
-        }
-        if (parseFloat(state.form.blackSmutPercent) > 100) {
-          alert('Black smut percentage cannot exceed 100%');
-          return;
-        }
-      }
-
-      if (state.form.sproutedOnion) {
-        if (!state.form.sproutedPercent || isNaN(parseFloat(state.form.sproutedPercent))) {
-          alert('Please enter sprouted percentage');
-          return;
-        }
-        if (parseFloat(state.form.sproutedPercent) > 100) {
-          alert('Sprouted percentage cannot exceed 100%');
-          return;
-        }
-      }
-
-      if (state.form.spoiledOnion) {
-        if (!state.form.spoiledPercent || isNaN(parseFloat(state.form.spoiledPercent))) {
-          alert('Please enter spoiled percentage');
-          return;
-        }
-        if (parseFloat(state.form.spoiledPercent) > 100) {
-          alert('Spoiled percentage cannot exceed 100%');
-          return;
-        }
-      }
-
-      if (state.form.onionSkin === "SINGLE") {
-        if (!state.form.onionSkinPercent || isNaN(parseFloat(state.form.onionSkinPercent))) {
-          alert('Please enter onion skin percentage');
-          return;
-        }
-        if (parseFloat(state.form.onionSkinPercent) > 100) {
-          alert('Onion skin percentage cannot exceed 100%');
-          return;
-        }
-      }
-
-      if (state.form.moisture === "WET") {
-        if (!state.form.moisturePercent || isNaN(parseFloat(state.form.moisturePercent))) {
-          alert('Please enter moisture percentage');
-          return;
-        }
-        if (parseFloat(state.form.moisturePercent) > 100) {
-          alert('Moisture percentage cannot exceed 100%');
-          return;
-        }
-      }
-
-      if (state.form.isSpoiledPercentVisible) {
-        if (!state.form.SpoliedPercent || isNaN(parseFloat(state.form.SpoliedPercent))) {
-          alert('Please enter spoiled percentage');
-          return;
-        }
-        if (parseFloat(state.form.SpoliedPercent) > 100) {
-          alert('Spoiled percentage cannot exceed 100%');
-          return;
-        }
-      }
-
-      if (!state.form.SpoliedBranch || state.form.SpoliedBranch.trim() === '') {
-        alert('Please enter branch person name');
-        return;
-      }
-    }
+    // ... rest of the validation
 
     // Proceed to next step if validation passes
     updateState({
@@ -477,209 +77,21 @@ const TestForm = () => {
     });
   };
 
-  const handlePrevious = () => {
-    if (previousSteps.length > 0) {
-      const lastStep = previousSteps[previousSteps.length - 1];
-
-      updateState({
-        ...state,
-        hidden: {
-          ...state.hidden,
-          previousSteps: previousSteps.slice(0, -1),
-          currentStep: lastStep
-        }
-      });
-    }
-  };
-
-  const handleDateConfirm = (selectedDate: Date) => {
-    setDatePickerVisibility(false);
-    console.log("Selected Date:", selectedDate);
-    if (selectedDate) {
-      // Format the date to ISO string without milliseconds
-      const formattedDate = selectedDate.toISOString().split('.')[0] + 'Z';
-      updateState({
-        ...state,
-        form: {
-          ...state.form,
-          date: formattedDate
-        }
-      });
-    }
-  };
-
-  const handleGrossWeightChange = (text) => {
-    const tare = parseFloat(state.form?.tareWeight) || 0;
-    const gross = parseFloat(text) || 0;
-    const net = gross - tare;
-
-    updateState({
-      ...state,
-      form: {
-        ...state.form,
-        grossWeight: text,
-        netWeight: isNaN(net) ? '' : net.toString(),
-      },
-    });
-  };
-
-  const handleTareWeightChange = (text) => {
-    const gross = parseFloat(state.form?.grossWeight) || 0;
-    const tare = parseFloat(text) || 0;
-    const net = gross - tare;
-
-    updateState({
-      ...state,
-      form: {
-        ...state.form,
-        tareWeight: text,
-        netWeight: isNaN(net) ? '' : net.toString(),
-      },
-    });
-  };
-
-  useEffect(() => {
-    const truckNumber = state.form?.Trucknumber || "";
-    if (truckNumber.length >= 6) {
-      fetchHealthReport(truckNumber);
-    }
-  }, [state.form?.Trucknumber]);
-
-  const fetchHealthReport = async (trucknumber: any) => {
-    try {
-      const response = await apiClient.get(
-        `/api/healthreport/list?ReportType=DISPATCH&ReportDispatchType=NORMAL&TruckNumber=${trucknumber}`
-      );
-
-      console.log("API Response:", response.data);
-
-      // Assuming response.data contains an array of reports
-      if (response.data && response.data.length > 0) {
-        const reportId = response.data[0].id; // Pehla report ka ID le rahe hain
-        fetchReportDetails(reportId); // ID pass karke details fetch kar rahe hain
-      }
-    } catch (error) {
-      console.error("API Error:", error);
-    }
-  };
-
-  const fetchReportDetails = async (id: any) => {
-    try {
-      const response = await apiClient.get(`/api/healthreport/${id}`);
-
-      console.log("Report details:", response.data);
-      updateState({
-        form: {
-          ...state.form,
-          Trucknumber: response.data.truckNumber || '',
-          grossWeight: response.data.grossWeight?.toString() || '',
-          tareWeight: response.data.tareWeight?.toString() || '',
-          netWeight: response.data.netWeight?.toString() || '',
-          date: response.data.date ? new Date(response.data.date).toISOString().split('.')[0] + 'Z' : '',
-          stainingColour: response.data.stainingColour || false,
-          stainingColourPercent: response.data.stainingColourPercent?.toString() || '',
-          bagCount: response.data.bagCount?.toString() || '',
-          size: response.data.size?.toString() || '',
-          blackSmutOnion: response.data.blackSmutOnion || false,
-          blackSmutPercent: response.data.blackSmutPercent?.toString() || '',
-          sproutedOnion: response.data.sproutedOnion || false,
-          sproutedPercent: response.data.sproutedPercent?.toString() || '',
-          onionSkin: response.data.onionSkin || 'DOUBLE',
-          onionSkinPercent: response.data.onionSkinPercent?.toString() || '',
-          moisture: response.data.moisture || 'DRY',
-          moisturePercent: response.data.moisturePercent?.toString() || '',
-          spoiledOnion: response.data.spoiledOnion || false,
-          spoiledPercent: response.data.spoiledPercent?.toString() || '',
-          SpoliedBranch: response.data.fpcPersonName || '',
-          SpoliedComment: response.data.comment || ''
-        }
-      });
-
-    } catch (error) {
-      console.error("Error fetching report details:", error);
-    }
-  };
-
+  // Modify the payload creation to handle both transport types
   const handleSubmit = () => {
-    // Minimum 3 required
-    if ((state.form?.Files || []).length < 3) {
-      Alert.alert('Error', 'Please upload at least 3 images before submitting.');
-      return;
-    }
-
-    // Maximum 8 allowed
-    if ((state.form?.Files || []).length > 8) {
-      Alert.alert('Error', 'Please upload Maximum 8 images before submitting.');
-      return;
-    }
+    // ... existing validation
+    
     const payload = {
       DestinationBranch: state.form?.option2 || '',
       DestinationLocationId: state.form?.Storagedata || '',
-      TruckNumber: state.form?.Trucknumber || '',
-      GrossWeight: parseFloat(state.form?.grossWeight) || 0,
-      NetWeight: parseFloat(state.form?.netWeight) || 0,
-      TareWeight: parseFloat(state.form?.tareWeight) || 0,
-      Date: state.form?.date || new Date().toISOString(),
-      StainingColour: state.form?.stainingColour || false,
-      StainingColourPercent: parseFloat(state.form?.stainingColourPercent) || 0,
-      BagCount: parseInt(state.form?.bagCount) || 0,
-      Size: parseInt(state.form?.size) || 0,
-      BlackSmutOnion: state.form?.blackSmutOnion || false,
-      BlackSmutPercent: parseFloat(state.form?.blackSmutPercent) || 0,
-      SproutedOnion: state.form?.sproutedOnion || false,
-      SproutedPercent: parseFloat(state.form?.sproutedPercent) || 0,
-      OnionSkin: state.form?.onionSkin || 'DOUBLE',
-      OnionSkinPercent: parseFloat(state.form?.onionSkinPercent) || 0,
-      Moisture: state.form?.moisture || 'DRY',
-      MoisturePercent: parseFloat(state.form?.moisturePercent) || 0,
-      SpoiledOnion: state.form?.spoiledOnion || false,
-      SpoiledPercent: parseFloat(state.form?.spoiledPercent) || 0,
-      FPCPersonName: state.form?.SpoliedBranch || '',
-      Files: state.form?.Files || [],
-      Comment: state.form?.SpoliedComment || ''
-    };
-
-    // Ensure required fields are present
-    if (!payload.Date) {
-      alert('Please select a date');
-      return;
+      // Include transport type specific fields
+      TruckNumber: transportType === 'TRUCK' ? state.form?.Trucknumber || '' : '',
+      TrainNo: transportType === 'TRAIN' ? state.form?.TrainNo || '' : '',
+      CoachNo: transportType === 'TRAIN' ? state.form?.CoachNo || '' : '',
+      // ... rest of the payload
     }
 
-    const formData = createFormData(payload);
-
-    setIsPressed(true); // Show loading indicator
-
-    const token = Storage.getString('userToken');
-    console.log('Submitting form with token:', token);
-    apiClient.post('/api/mobile/healthreport/normal/receive', formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-        Authorization: `Bearer ${token}`,
-      },
-    })
-      .then(response => {
-        console.log('Submission successful:', response.data);
-        alert('Form submitted successfully!');
-        updateState({
-          ...state,
-          form: null,
-          hidden: { ...state.hidden, currentStep: 0 },
-        });
-      })
-      .catch(error => {
-        console.error('Submission failed:', error);
-        if (error.response) {
-          console.error('Response data:', error.response.data);
-          console.error('Response status:', error.response.status);
-          console.error('Response headers:', error.response.headers);
-          alert(`Submission failed: ${error.response.data.message || error.response.status}`);
-        } else {
-          alert('Submission failed. Please check console for details.');
-        }
-      })
-      .finally(() => {
-        setIsPressed(false); // Hide loading indicator
-      });
+    // ... rest of the submit function
   };
 
   return (
@@ -689,138 +101,101 @@ const TestForm = () => {
       keyboardVerticalOffset={Platform.OS === 'ios' ? 100 : 0}
     >
       <SafeAreaView style={styles.container}>
+        {/* ... existing header */}
 
-        <View style={styles.customHeader}>
-          <TouchableOpacity onPress={() => {
-            navigation.reset({
-              index: 0,
-              routes: [{ name: 'RecieveDhasboard' }],
-            });
-          }}>
-            <MaterialIcons name="arrow-back" size={24} color="#fff" />
-          </TouchableOpacity>
-          <Text style={styles.headerTitle}>Normal Health Report form</Text>
-        </View>
-
-        {/* Compression Progress Modal */}
-        <Modal
-          visible={isCompressing}
-          transparent={true}
-          animationType="fade"
-        >
-          <View style={compressionStyles.overlay}>
-            <View style={compressionStyles.container}>
-              <ActivityIndicator size="large" color="#FF9500" />
-              <Text style={compressionStyles.text}>Compressing video...</Text>
-              <Text style={compressionStyles.progress}>
-                {Math.round(compressionProgress * 100)}% complete
-              </Text>
-            </View>
-          </View>
-        </Modal>
-
-        {/* ScrollView with content */}
         <ScrollView contentContainerStyle={styles.scrollView}>
-          {currentStep === 0 && (
-            <View style={styles.onecontainers}>
-              <View style={styles.content}>
-                <View style={styles.pickerContainer}>
-                  <Picker
-                    selectedValue={state.form.option1}
-                    onValueChange={(value) => {
-                      console.log("Selected Company:", value);
-                      updateState({
-                        form: {
-                          ...state.form,
-                          option1: value,
-                          option2: '',
-                          Storagedata: ''
-                        },
-                      });
-                    }}
-                  >
-                    <Picker.Item label="Select Company Name" value="" />
-                    {state.fielddata.Company?.map((item: { text: string; value: string }) => (
-                      <Picker.Item key={item.value} label={item.text} value={item.value} />
-                    ))}
-                  </Picker>
-                </View>
-              </View>
+          {/* Step 0 - Company, Branch, Storage (unchanged) */}
 
-              <View style={styles.content}>
-                <View style={styles.pickerContainer}>
-                  <Picker
-                    selectedValue={state.form.option2 || ''}
-                    onValueChange={(value) => {
-                      updateState({
-                        form: {
-                          ...state.form,
-                          option2: value,
-                          Storagedata: ''
-                        },
-                      });
-                    }}
-                  >
-                    <Picker.Item label="Select Branch Name" value="" />
-                    {state.fielddata.Branchdata?.map((item: { name: string; id: string }) => (
-                      <Picker.Item key={item.id} label={item.name} value={item.id} />
-                    ))}
-                  </Picker>
-                </View>
-              </View>
-
-              <View style={styles.content}>
-                <View style={styles.pickerContainer}>
-                  <Picker
-                    selectedValue={state.form.Storagedata || ''}
-                    onValueChange={(value) => {
-                      console.log("Selected Storage Location:", value);
-                      updateState({
-                        form: {
-                          ...state.form,
-                          Storagedata: value,
-                        },
-                      });
-                    }}
-                  >
-                    <Picker.Item label="Select Location" value="" />
-                    {state.fielddata.storageLocation?.map((item: { text: string; value: string }) => (
-                      <Picker.Item key={item.value} label={item.text} value={item.value} />
-                    ))}
-                  </Picker>
-                </View>
-              </View>
-
-              <View style={styles.buttoncontent}>
-                <TouchableOpacity style={styles.button} onPress={() => handleNext(1)}>
-                  <Text style={styles.buttonText}>{t('Next')}</Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-          )}
-
-          {/* Step 2 - Basic Information */}
+          {/* Step 1 - Transport Information */}
           {currentStep === 1 && (
             <View style={styles.onecontainers}>
-              <TextInput
-                style={styles.input}
-                placeholder={t('TruckNumber')}
-                value={state.form?.Trucknumber || ''}
-                onChangeText={(text) => {
-                  const upperText = text.toUpperCase();
-                  updateState({
-                    ...state,
-                    form: {
-                      ...state.form,
-                      Trucknumber: upperText,
-                    }
-                  });
-                }}
-                autoCapitalize="characters"
-                keyboardType="default"
-                maxLength={13}
-              />
+              {/* Transport Type Selection */}
+              <View style={styles.radioContainer}>
+                <Text style={styles.radioLabel}>Transport Type:</Text>
+                <View style={styles.radioGroup}>
+                  <TouchableOpacity 
+                    style={[styles.radioButton, transportType === 'TRUCK' && styles.radioButtonSelected]}
+                    onPress={() => setTransportType('TRUCK')}
+                  >
+                    <Text style={[styles.radioText, transportType === 'TRUCK' && styles.radioTextSelected]}>
+                      Truck
+                    </Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity 
+                    style={[styles.radioButton, transportType === 'TRAIN' && styles.radioButtonSelected]}
+                    onPress={() => setTransportType('TRAIN')}
+                  >
+                    <Text style={[styles.radioText, transportType === 'TRAIN' && styles.radioTextSelected]}>
+                      Train
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
 
+              {/* Conditionally render fields based on transport type */}
+              {transportType === 'TRUCK' ? (
+                <TextInput
+                  style={styles.input}
+                  placeholder={t('TruckNumber')}
+                  value={state.form?.Trucknumber || ''}
+                  onChangeText={(text) => {
+                    const upperText = text.toUpperCase();
+                    updateState({
+                      ...state,
+                      form: {
+                        ...state.form,
+                        Trucknumber: upperText,
+                      }
+                    });
+                  }}
+                  autoCapitalize="characters"
+                  keyboardType="default"
+                  maxLength={13}
+                />
+              ) : (
+                <>
+                  {/* Train Number */}
+                  <TextInput
+                    style={styles.input}
+                    placeholder={t('TrainNo')}
+                    value={state.form?.TrainNo || ''}
+                    onChangeText={(text) => {
+                      const numbersOnly = text.replace(/[^0-9]/g, '');
+                      updateState({
+                        ...state,
+                        form: {
+                          ...state.form,
+                          TrainNo: numbersOnly,
+                        }
+                      });
+                    }}
+                    keyboardType="numeric"
+                    maxLength={5}
+                  />
+
+                  {/* Coach Number */}
+                  <TextInput
+                    style={styles.input}
+                    placeholder={t('CoachNo')}
+                    value={state.form?.CoachNo || ''}
+                    onChangeText={(text) => {
+                      const upperText = text.toUpperCase().replace(/[^A-Z0-9]/g, '');
+                      updateState({
+                        ...state,
+                        form: {
+                          ...state.form,
+                          CoachNo: upperText,
+                        }
+                      });
+                    }}
+                    autoCapitalize="characters"
+                    keyboardType="default"
+                    maxLength={4}
+                  />
+                </>
+              )}
+
+              {/* Common fields for both transport types */}
               <TextInput
                 style={styles.input}
                 placeholder={t('Grossweight')}
@@ -880,17 +255,19 @@ const TestForm = () => {
                 keyboardType="numeric"
                 maxLength={5}
               />
-
+              
               <View style={styles.pickerContainer}>
                 <Picker
-                  selectedValue={state.form?.size || ''}
-                  onValueChange={(value) => updateState({
-                    ...state,
-                    form: {
-                      ...state.form,
-                      size: value
-                    }
-                  })}
+                  selectedValue={state.form?.size || ""}
+                  onValueChange={(value) =>
+                    updateState({
+                      ...state,
+                      form: {
+                        ...state.form,
+                        size: value,
+                      },
+                    })
+                  }
                 >
                   <Picker.Item label="Select Onion Size" value="" />
                   {sizeOptions.map((option) => (
@@ -910,425 +287,48 @@ const TestForm = () => {
             </View>
           )}
 
-          {currentStep === 2 && (
-            <View style={styles.thirdcontainers}>
-              {/* Staining Colour */}
-              <View style={styles.switchContainer}>
-                <Text style={styles.text}>{t("stainingColor")}</Text>
-                <Switch
-                  value={state.form?.stainingColour || false}
-                  onValueChange={(value) =>
-                    updateState({
-                      ...state,
-                      form: {
-                        ...state.form,
-                        stainingColour: value,
-                        stainingColourPercent: value ? state.form?.stainingColourPercent : ''
-                      }
-                    })
-                  }
-                  trackColor={{ false: '#F6A00191', true: '#FF9500' }}
-                  thumbColor={state.form?.stainingColour ? 'white' : '#f4f3f4'}
-                />
-              </View>
-
-              {state.form?.stainingColour && (
-                <>
-                  <TextInput
-                    style={styles.input}
-                    placeholder={t('StainingPercent')}
-                    value={state.form?.stainingColourPercent || ''}
-                    onChangeText={(text) =>
-                      updateState({
-                        ...state,
-                        form: { ...state.form, stainingColourPercent: text }
-                      })
-                    }
-                    keyboardType="numeric"
-                  />
-                </>
-              )}
-
-              {/* Black Smut Onion */}
-              <View style={styles.switchContainer}>
-                <Text style={styles.text}>{t('BlacksmutOnion')}</Text>
-                <Switch
-                  value={state.form?.blackSmutOnion || false}
-                  onValueChange={(value) =>
-                    updateState({
-                      ...state,
-                      form: {
-                        ...state.form,
-                        blackSmutOnion: value,
-                        blackSmutPercent: value ? state.form?.blackSmutPercent : ''
-                      }
-                    })
-                  }
-                  trackColor={{ false: '#F6A00191', true: '#FF9500' }}
-                  thumbColor={state.form?.blackSmutOnion ? 'white' : '#f4f3f4'}
-                />
-              </View>
-
-              {state.form?.blackSmutOnion && (
-                <>
-                  <TextInput
-                    style={styles.input}
-                    placeholder={t('BlacksmutOnionpercent')}
-                    value={state.form?.blackSmutPercent || ''}
-                    onChangeText={(text) =>
-                      updateState({
-                        ...state,
-                        form: { ...state.form, blackSmutPercent: text }
-                      })
-                    }
-                    keyboardType="numeric"
-                  />
-                </>
-              )}
-
-              {/* Sprouted Onion */}
-              <View style={styles.switchContainer}>
-                <Text style={styles.text}>{t('SproutedOnion')}</Text>
-                <Switch
-                  value={state.form?.sproutedOnion || false}
-                  onValueChange={(value) =>
-                    updateState({
-                      ...state,
-                      form: {
-                        ...state.form,
-                        sproutedOnion: value,
-                        sproutedPercent: value ? state.form?.sproutedPercent : ''
-                      }
-                    })
-                  }
-                  trackColor={{ false: '#F6A00191', true: '#FF9500' }}
-                  thumbColor={state.form?.sproutedOnion ? 'white' : '#f4f3f4'}
-                />
-              </View>
-
-              {state.form?.sproutedOnion && (
-                <>
-                  <TextInput
-                    style={styles.input}
-                    placeholder={t('SproutedOnionpercent')}
-                    value={state.form?.sproutedPercent || ''}
-                    onChangeText={(text) =>
-                      updateState({
-                        ...state,
-                        form: { ...state.form, sproutedPercent: text }
-                      })
-                    }
-                    keyboardType="numeric"
-                  />
-                </>
-              )}
-
-              {/* Spoiled Onion */}
-              <View style={styles.switchContainer}>
-                <Text style={styles.text}>{t('SpoiledOnion')}</Text>
-                <Switch
-                  value={state.form?.spoiledOnion || false}
-                  onValueChange={(value) =>
-                    updateState({
-                      ...state,
-                      form: {
-                        ...state.form,
-                        spoiledOnion: value,
-                        spoiledPercent: value ? state.form?.spoiledPercent : ''
-                      }
-                    })
-                  }
-                  trackColor={{ false: '#F6A00191', true: '#FF9500' }}
-                  thumbColor={state.form?.spoiledOnion ? 'white' : '#f4f3f4'}
-                />
-              </View>
-
-              {state.form?.spoiledOnion && (
-                <>
-                  <TextInput
-                    style={styles.input}
-                    placeholder={t('SpoiledOnionpercent')}
-                    value={state.form?.spoiledPercent || ''}
-                    onChangeText={(text) =>
-                      updateState({
-                        ...state,
-                        form: { ...state.form, spoiledPercent: text }
-                      })
-                    }
-                    keyboardType="numeric"
-                  />
-                </>
-              )}
-
-              {/* Onion Skin */}
-              <View style={styles.switchContainer}>
-                <Text style={styles.text}>
-                  {t('Onionskin') + ' : ' + (state.form?.onionSkin === 'SINGLE' ? t('Single') : t('Double'))}
-                </Text>
-                <Switch
-                  value={state.form?.onionSkin === "SINGLE"}
-                  onValueChange={(value) =>
-                    updateState({
-                      ...state,
-                      form: {
-                        ...state.form,
-                        onionSkin: value ? 'SINGLE' : 'DOUBLE',
-                        onionSkinPercent: value ? state.form?.onionSkinPercent : ''
-                      }
-                    })
-                  }
-                  trackColor={{ false: '#F6A00191', true: '#FF9500' }}
-                  thumbColor={state.form?.onionSkin === "SINGLE" ? "white" : "#f4f3f4"}
-                />
-              </View>
-
-              {state.form?.onionSkin === "SINGLE" && (
-                <>
-                  <TextInput
-                    style={styles.input}
-                    placeholder={t('Onionskinsinglepercent')}
-                    value={state.form?.onionSkinPercent || ''}
-                    onChangeText={(text) =>
-                      updateState({
-                        ...state,
-                        form: { ...state.form, onionSkinPercent: text }
-                      })
-                    }
-                    keyboardType="numeric"
-                  />
-                </>
-              )}
-
-              {/* Moisture */}
-              <View style={styles.switchContainer}>
-                <Text style={styles.text}>
-                  {t('Moisture') + ' : ' + (state.form?.moisture === 'WET' ? t('Wet') : t('Dry'))}
-                </Text>
-                <Switch
-                  value={state.form?.moisture === "WET"}
-                  onValueChange={(value) =>
-                    updateState({
-                      ...state,
-                      form: {
-                        ...state.form,
-                        moisture: value ? 'WET' : 'DRY',
-                        moisturePercent: value ? state.form?.moisturePercent : ''
-                      }
-                    })
-                  }
-                  trackColor={{ false: '#F6A00191', true: '#FF9500' }}
-                  thumbColor={state.form?.moisture === "WET" ? "white" : "#f4f3f4"}
-                />
-              </View>
-
-              {state.form?.moisture === "WET" && (
-                <>
-                  <TextInput
-                    style={styles.input}
-                    placeholder={t('Moisturewetpercent')}
-                    value={state.form?.moisturePercent || ''}
-                    onChangeText={(text) =>
-                      updateState({
-                        ...state,
-                        form: { ...state.form, moisturePercent: text }
-                      })
-                    }
-                    keyboardType="numeric"
-                  />
-                </>
-              )}
-
-              {/* Spoiled Switch and Percent */}
-              <View>
-                <Text style={styles.text}>{t('Spoiled')}</Text>
-                <Switch
-                  value={state.form?.isSpoiledPercentVisible || false}
-                  onValueChange={(value) =>
-                    updateState({
-                      ...state,
-                      form: { ...state.form, isSpoiledPercentVisible: value }
-                    })
-                  }
-                  trackColor={{ false: '#F6A00191', true: '#FF9500' }}
-                  thumbColor={state.form?.isSpoiledPercentVisible ? "white" : "#f4f3f4"}
-                />
-              </View>
-
-              {state.form?.isSpoiledPercentVisible && (
-                <TextInput
-                  style={styles.input}
-                  placeholder={t('spoiledperecent')}
-                  value={state.form?.SpoliedPercent || ''}
-                  onChangeText={(text) =>
-                    updateState({
-                      ...state,
-                      form: { ...state.form, SpoliedPercent: text }
-                    })
-                  }
-                  keyboardType="numeric"
-                />
-              )}
-
-              {/* Comments and Branch person name */}
-              <TextInput
-                style={styles.input}
-                placeholder={t('typecomment')}
-                value={state.form?.SpoliedComment || ''}
-                onChangeText={(text) =>
-                  updateState({
-                    ...state,
-                    form: { ...state.form, SpoliedComment: text }
-                  })
-                }
-              />
-
-              <TextInput
-                style={styles.input}
-                placeholder={t('branchpersonname')}
-                value={state.form?.SpoliedBranch || ''}
-                onChangeText={(text) =>
-                  updateState({
-                    ...state,
-                    form: { ...state.form, SpoliedBranch: text }
-                  })
-                }
-              />
-
-              {/* Navigation Buttons */}
-              <View style={styles.buttoncontent}>
-                <TouchableOpacity style={styles.button} onPress={handlePrevious}>
-                  <Text style={styles.buttonText}>{t('Previous')}</Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.button} onPress={() => handleNext(3)}>
-                  <Text style={styles.buttonText}>{t('Next')}</Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-          )}
-
-          {currentStep === 3 && (
-            <View style={{ flex: 1, padding: 20 }}>
-              {/* Camera Button */}
-              <View style={styles.buttoncontent}>
-                <TouchableOpacity
-                  style={styles.Camerabutton}
-                  onPress={handlePresscamera}
-                  disabled={(state.form?.Files || []).length >= 9}
-                >
-                  <MaterialIcons name="camera" size={30} color="white" />
-                  <Text style={styles.buttonText}>{t('PickfromCamera')}</Text>
-                </TouchableOpacity>
-              </View>
-
-              <View style={styles.buttoncontent}>
-                <TouchableOpacity
-                  style={styles.Camerabutton}
-                  onPress={requestvideoPermission}
-                  disabled={
-                    (state.form?.Files || []).filter(f => f.type?.startsWith("video")).length >= 2
-                  }
-                >
-                  <MaterialIcons name="camera" size={30} color="white" />
-                  <Text style={styles.buttonText}>Pick From Video</Text>
-                </TouchableOpacity>
-              </View>
-
-              {/* Previous and Submit Buttons */}
-              <View style={styles.buttoncontent}>
-                <TouchableOpacity style={styles.button} onPress={handlePrevious}>
-                  <Text style={styles.buttonText}>{t('Previous')}</Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                  style={styles.button}
-                  onPress={handleSubmit}
-                  disabled={(state.form?.Files || []).length < 3 || (state.form?.Files || []).length > 9 || isPressed}
-                >
-                  {isPressed ? (
-                    <ActivityIndicator color="#fff" size="small" />
-                  ) : (
-                    <Text style={styles.buttonText}>
-                      {t('submit')}
-                    </Text>
-                  )}
-                </TouchableOpacity>
-              </View>
-
-              {/* File Grid */}
-              <View style={styles.fileGrid}>
-                {(state.form?.Files || []).map((item, index) => {
-                  const fileType = item.type || "image/jpeg";
-                  return (
-                    <View key={index} style={styles.imageContainer}>
-                      {fileType.startsWith("image") ? (
-                        <TouchableOpacity onPress={() => setSelectedImage(item.uri)}>
-                          <View style={styles.videoView}>
-                            <Image source={{ uri: item.uri }} style={styles.image} />
-                          </View>
-                        </TouchableOpacity>
-                      ) : fileType.startsWith("video") ? (
-                        <View style={styles.videoView}>
-                          <VideoPlayer
-                            source={{ uri: item.uri }}
-                            style={styles.video}
-                            controls
-                            resizeMode="contain"
-                          />
-                        </View>
-                      ) : (
-                        <Text style={{ color: "red" }}>Unknown File</Text>
-                      )}
-                    </View>
-                  );
-                })}
-              </View>
-
-              {/* Modal to show full image */}
-              <Modal visible={!!selectedImage} transparent={true}>
-                <View style={styles.modalContainer}>
-                  <TouchableOpacity
-                    style={styles.modalClose}
-                    onPress={() => setSelectedImage(null)}
-                  >
-                    <MaterialIcons name="cancel" size={30} color="white" />
-                  </TouchableOpacity>
-
-                  <Image source={{ uri: selectedImage }} style={styles.fullImage} />
-                </View>
-              </Modal>
-            </View>
-          )}
+          {/* ... rest of the steps remain unchanged */}
         </ScrollView>
       </SafeAreaView>
     </KeyboardAvoidingView>
   );
 };
 
-// Compression modal styles
-const compressionStyles = StyleSheet.create({
-  overlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.7)',
-    justifyContent: 'center',
-    alignItems: 'center',
+// Add these new styles to your styles object
+const styles = StyleSheet.create({
+  // ... existing styles
+  radioContainer: {
+    marginBottom: 20,
   },
-  container: {
-    backgroundColor: 'white',
-    padding: 20,
-    borderRadius: 10,
-    alignItems: 'center',
-    minWidth: 200,
-  },
-  text: {
-    marginTop: 10,
+  radioLabel: {
     fontSize: 16,
     fontWeight: 'bold',
+    marginBottom: 10,
   },
-  progress: {
-    marginTop: 5,
-    fontSize: 14,
-    color: '#666',
+  radioGroup: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
   },
+  radioButton: {
+    padding: 10,
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 5,
+    minWidth: 100,
+    alignItems: 'center',
+  },
+  radioButtonSelected: {
+    backgroundColor: '#FF9500',
+    borderColor: '#FF9500',
+  },
+  radioText: {
+    color: '#000',
+  },
+  radioTextSelected: {
+    color: '#fff',
+    fontWeight: 'bold',
+  },
+  // ... other styles
 });
 
 export default TestForm;

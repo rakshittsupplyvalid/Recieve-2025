@@ -780,8 +780,7 @@ const CAhealthreport = () => {
             HealthReportDispatchType: state.form.healthReportDispatchType,
             CAStorageId: state.form.StorageData,
             TruckNumber: state.form?.Trucknumber || "",
-            TrainNo: state.form?.TrainNo || "",
-            CoachNo: state.form?.CoachNo || "",
+          
             GrossWeight: parseFloat(state.form?.grossWeight) || 0,
             NetWeight: parseFloat(state.form?.netWeight) || 0,
             TareWeight: parseFloat(state.form?.tareWeight) || 0,
@@ -1183,44 +1182,7 @@ const CAhealthreport = () => {
 
 
                             
-                                             {/* Train Number */}
-                                <TextInput
-                                  style={styles.input}
-                                  placeholder={t('TrainNo')}
-                                  value={state.form?.TrainNo || ''}
-                                  onChangeText={(text) => {
-                                    const numbersOnly = text.replace(/[^0-9]/g, ''); // sirf numbers allow
-                                    updateState({
-                                      ...state,
-                                      form: {
-                                        ...state.form,
-                                        TrainNo: numbersOnly,
-                                      }
-                                    });
-                                  }}
-                                  keyboardType="numeric"
-                                  maxLength={5}
-                                />
                             
-                                {/* Coach Number */}
-                                <TextInput
-                                  style={styles.input}
-                                  placeholder={t('CoachNo')}
-                                  value={state.form?.CoachNo || ''}
-                                  onChangeText={(text) => {
-                                    const upperText = text.toUpperCase().replace(/[^A-Z0-9]/g, ''); // letters + numbers
-                                    updateState({
-                                      ...state,
-                                      form: {
-                                        ...state.form,
-                                        CoachNo: upperText,
-                                      }
-                                    });
-                                  }}
-                                  autoCapitalize="characters"
-                                  keyboardType="default"
-                                  maxLength={3}
-                                />
 
 
                             <TextInput

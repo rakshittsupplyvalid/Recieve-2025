@@ -40,6 +40,7 @@ const TestForm = () => {
   const { t } = useTranslation();
   const { state, updateState } = useForm();
   const [isSubmitted, setIsSubmitted] = useState(false);
+    const [transportType, setTransportType] = useState('TRUCK'); // Default to TRUCK
 
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
   const currentStep = state?.hidden?.currentStep || 0;
@@ -727,9 +728,9 @@ const TestForm = () => {
     const payload = {
       DestinationBranch: state.form?.option2 || '',
       DestinationLocationId: state.form?.Storagedata || '',
-      TruckNumber: state.form?.Trucknumber || '',
-      TrainNo: state.form?.TrainNo || '',
-      CoachNo: state.form?.CoachNo || '',
+        TruckNumber:  state.form?.Trucknumber ||  '',
+      TrainNo:  state.form?.TrainNo || '',
+      CoachNo:  state.form?.CoachNo || '',
       GrossWeight: parseFloat(state.form?.grossWeight) || 0,
       NetWeight: parseFloat(state.form?.netWeight) || 0,
       TareWeight: parseFloat(state.form?.tareWeight) || 0,
@@ -877,6 +878,33 @@ const TestForm = () => {
 
           {currentStep === 0 && (
             <View style={styles.onecontainers}>
+
+
+               <View style={styles.radioContainer}>
+                              <Text style={styles.radioLabel}>Transport Type:</Text>
+                              <View style={styles.radioGroup}>
+                                <TouchableOpacity 
+                                  style={[styles.radioButton, transportType === 'TRUCK' && styles.radioButtonSelected]}
+                                  onPress={() => setTransportType('TRUCK')}
+                                >
+                                  <Text style={[styles.radioText, transportType === 'TRUCK' && styles.radioTextSelected]}>
+                                    Truck
+                                  </Text>
+                                </TouchableOpacity>
+                                <TouchableOpacity 
+                                  style={[styles.radioButton, transportType === 'TRAIN' && styles.radioButtonSelected]}
+                                  onPress={() => setTransportType('TRAIN')}
+                                >
+                                  <Text style={[styles.radioText, transportType === 'TRAIN' && styles.radioTextSelected]}>
+                                    Train
+                                  </Text>
+                                </TouchableOpacity>
+                              </View>
+                            </View>
+
+
+
+
               <View style={styles.content}>
                 <View style={styles.pickerContainer}>
 
@@ -971,65 +999,89 @@ const TestForm = () => {
           {currentStep === 1 && (
             <View style={styles.onecontainers}>
 
-              <TextInput
-                style={styles.input}
-                placeholder={t('TruckNumber')}
-                value={state.form?.Trucknumber || ''}
-                onChangeText={(text) => {
-                  const upperText = text.toUpperCase();
-                  updateState({
-                    ...state,
-                    form: {
-                      ...state.form,
-                      Trucknumber: upperText,
-                    }
-                  });
-                }}
-                autoCapitalize="characters"
-                keyboardType="default" // Yeh aap 'keyb' likh rahe the, pura likha
-                maxLength={13}
-              />
+                 {transportType === 'TRUCK' ? (
+                                <TextInput
+                                  style={styles.input}
+                                  placeholder={t('TruckNumber')}
+                                  value={state.form?.Trucknumber || ''}
+                                  onChangeText={(text) => {
+                                    const upperText = text.toUpperCase();
+                                    updateState({
+                                      ...state,
+                                      form: {
+                                        ...state.form,
+                                        Trucknumber: upperText,
+                                      }
+                                    });
+                                  }}
+                                  autoCapitalize="characters"
+                                  keyboardType="default"
+                                  maxLength={13}
+                                />
+                              ) : (
+                                <>
+                                  {/* Train Number */}
 
 
-                 {/* Train Number */}
-    <TextInput
-      style={styles.input}
-      placeholder={t('TrainNo')}
-      value={state.form?.TrainNo || ''}
-      onChangeText={(text) => {
-        const numbersOnly = text.replace(/[^0-9]/g, ''); // sirf numbers allow
-        updateState({
-          ...state,
-          form: {
-            ...state.form,
-            TrainNo: numbersOnly,
-          }
-        });
-      }}
-      keyboardType="numeric"
-      maxLength={5}
-    />
+                                    <TextInput
+                                  style={styles.input}
+                                  placeholder={t('TruckNumber')}
+                                  value={state.form?.Trucknumber || ''}
+                                  onChangeText={(text) => {
+                                    const upperText = text.toUpperCase();
+                                    updateState({
+                                      ...state,
+                                      form: {
+                                        ...state.form,
+                                        Trucknumber: upperText,
+                                      }
+                                    });
+                                  }}
+                                  autoCapitalize="characters"
+                                  keyboardType="default"
+                                  maxLength={13}
+                                />
 
-    {/* Coach Number */}
-    <TextInput
-      style={styles.input}
-      placeholder={t('CoachNo')}
-      value={state.form?.CoachNo || ''}
-      onChangeText={(text) => {
-        const upperText = text.toUpperCase().replace(/[^A-Z0-9]/g, ''); // letters + numbers
-        updateState({
-          ...state,
-          form: {
-            ...state.form,
-            CoachNo: upperText,
-          }
-        });
-      }}
-      autoCapitalize="characters"
-      keyboardType="default"
-      maxLength={3}
-    />
-
+                                  <TextInput
+                                    style={styles.input}
+                                    placeholder={'Train Number'}
+                                    value={state.form?.TrainNo || ''}
+                                    onChangeText={(text) => {
+                                      const numbersOnly = text.replace(/[^0-9]/g, '');
+                                      updateState({
+                                        ...state,
+                                        form: {
+                                          ...state.form,
+                                          TrainNo: numbersOnly,
+                                        }
+                                      });
+                                    }}
+                                    keyboardType="numeric"
+                                    maxLength={5}
+                                  />
+                
+                                  {/* Coach Number */}
+                                  <TextInput
+                                    style={styles.input}
+                                    placeholder={'Coach Number'}
+                                    value={state.form?.CoachNo || ''}
+                                    onChangeText={(text) => {
+                                      const upperText = text.toUpperCase().replace(/[^A-Z0-9]/g, '');
+                                      updateState({
+                                        ...state,
+                                        form: {
+                                          ...state.form,
+                                          CoachNo: upperText,
+                                        }
+                                      });
+                                    }}
+                                    autoCapitalize="characters"
+                                    keyboardType="default"
+                                    maxLength={4}
+                                  />
+                                </>
+                              )}
+                
 
 
               <TextInput

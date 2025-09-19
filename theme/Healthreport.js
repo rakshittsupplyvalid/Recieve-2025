@@ -9,6 +9,39 @@ const styles = StyleSheet.create({
     backgroundColor: 'white', // Light background for the entire screen
   },
 
+
+    radioContainer: {
+    marginBottom: 20,
+  },
+  radioLabel: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    marginBottom: 10,
+  },
+  radioGroup: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+  },
+  radioButton: {
+    padding: 10,
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 5,
+    minWidth: 100,
+    alignItems: 'center',
+  },
+  radioButtonSelected: {
+    backgroundColor: '#FF9500',
+    borderColor: '#FF9500',
+  },
+  radioText: {
+    color: '#000',
+  },
+  radioTextSelected: {
+    color: '#fff',
+    fontWeight: 'bold',
+  },
+
   modalContainer: {
     flex: 1,
     backgroundColor: 'rgba(0, 0, 0, 0.95)',
