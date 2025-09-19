@@ -21,9 +21,6 @@ import { RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import Video from 'react-native-video';
 
-
-
-
 interface Report {
     id: string;
     assayerName: string;
@@ -52,6 +49,8 @@ interface Report {
     stainingColourPercent: number;
     tareWeight: number;
     netWeight?: number;
+    trainNo: string | null; // Added trainNo field
+    coachNo: string | null; // Added coachNo field
 }
 
 type RootStackParamList = {
@@ -210,6 +209,18 @@ const HealthReportDetails = () => {
                     <View style={styles.detailRow}>
                         <Text style={styles.detailLabel}>Truck Number</Text>
                         <Text style={styles.detailValue}>{report.truckNumber}</Text>
+                    </View>
+
+                    {/* Train Number Field */}
+                    <View style={styles.detailRow}>
+                        <Text style={styles.detailLabel}>Train Number</Text>
+                        <Text style={styles.detailValue}>{report.trainNo || 'null'}</Text>
+                    </View>
+
+                    {/* Coach Number Field */}
+                    <View style={styles.detailRow}>
+                        <Text style={styles.detailLabel}>Coach Number</Text>
+                        <Text style={styles.detailValue}>{report.coachNo || 'null'}</Text>
                     </View>
 
                     <View style={styles.detailRow}>
