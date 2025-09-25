@@ -5,6 +5,6 @@
     "jsx": "react",
     "resolveJsonModule": true,
     "skipLibCheck": true
+    // "types": ["node", "jest"] // Uncomment and edit if you need specific types
   }
 }
-

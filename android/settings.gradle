@@ -1,39 +1,15 @@
-pluginManagement {
-  def reactNativeGradlePlugin = new File(
-    providers.exec {
-      workingDir(rootDir)
-      commandLine("node", "--print", "require.resolve('@react-native/gradle-plugin/package.json', { paths: [require.resolve('react-native/package.json')] })")
-    }.standardOutput.asText.get().trim()
-  ).getParentFile().absolutePath
-  includeBuild(reactNativeGradlePlugin)
-  
-  def expoPluginsPath = new File(
-    providers.exec {
-      workingDir(rootDir)
-      commandLine("node", "--print", "require.resolve('expo-modules-autolinking/package.json', { paths: [require.resolve('expo/package.json')] })")
-    }.standardOutput.asText.get().trim(),
-    "../android/expo-gradle-plugin"
-  ).absolutePath
-  includeBuild(expoPluginsPath)
-}
-
-plugins {
-  id("com.facebook.react.settings")
-  id("expo-autolinking-settings")
-}
-
-extensions.configure(com.facebook.react.ReactSettingsExtension) { ex ->
-  if (System.getenv('EXPO_USE_COMMUNITY_AUTOLINKING') == '1') {
-    ex.autolinkLibrariesFromCommand()
-  } else {
-    ex.autolinkLibrariesFromCommand(expoAutolinking.rnConfigCommand)
-  }
-}
-expoAutolinking.useExpoModules()
-
 rootProject.name = 'QRCodeScannerApp'
-
-expoAutolinking.useExpoVersionCatalog()
-
 include ':app'
-includeBuild(expoAutolinking.reactNativeGradlePlugin)
+
+// React Native Gradle Plugin
+includeBuild('../node_modules/react-native-gradle-plugin') {
+    name = 'ReactNativeGradlePlugin'
+}
+
+// Expo Autolinking (agar folder exist kare)
+def expoAutolinkingPath = new File(rootDir, "../node_modules/expo-modules-autolinking/android")
+if (expoAutolinkingPath.exists()) {
+    apply from: new File(expoAutolinkingPath, "expo-autolinking.gradle")
+} else {
+    println("Expo autolinking plugin not found at: " + expoAutolinkingPath)
+}

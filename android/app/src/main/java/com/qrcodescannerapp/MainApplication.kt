@@ -1,4 +1,4 @@
-package com.smaurya.QRCodeScannerApp
+package com.qrcodescannerapp
 
 import android.app.Application
 import android.content.res.Configuration

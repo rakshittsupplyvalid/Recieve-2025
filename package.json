@@ -1,8 +1,9 @@
 {
   "name": "qrcodescannerapp",
-  "license": "0BSD",
   "version": "1.0.0",
+  "license": "0BSD",
   "main": "index.ts",
+  "private": true,
   "scripts": {
     "start": "expo start --dev-client",
     "android": "expo run:android",
@@ -11,7 +12,7 @@
   },
   "dependencies": {
     "@react-native-async-storage/async-storage": "^2.1.2",
-    "@react-native-community/datetimepicker": "^8.3.0",
+    "@react-native-community/datetimepicker": "^6.7.3",
     "@react-native-community/netinfo": "^11.4.1",
     "@react-native-masked-view/masked-view": "^0.3.2",
     "@react-native-ml-kit/text-recognition": "^1.5.2",
@@ -25,13 +26,13 @@
     "axios": "^1.11.0",
     "crypto-js": "^4.2.0",
     "date-fns": "^4.1.0",
-    "expo": "^54.0.10",
+    "expo": "~51.0.28",
     "expo-auth-session": "~6.0.1",
     "expo-dev-client": "^6.0.12",
     "expo-dev-launcher": "^6.0.12",
     "expo-dev-menu": "^7.0.12",
     "expo-linking": "~7.0.3",
-    "expo-modules-core": "^3.0.18",
+    "expo-modules-core": "^1.12.25",
     "expo-router": "^4.0.15",
     "expo-splash-screen": "~0.29.24",
     "expo-status-bar": "~2.0.0",
@@ -49,7 +50,7 @@
     "react-native-dropdown-picker": "^5.4.6",
     "react-native-element-dropdown": "^2.12.4",
     "react-native-elements": "^3.4.3",
-    "react-native-gesture-handler": "^2.22.1",
+    "react-native-gesture-handler": "^2.9.0",
     "react-native-get-random-values": "^1.11.0",
     "react-native-image-picker": "^8.0.0",
     "react-native-image-viewing": "^0.2.2",
@@ -59,7 +60,7 @@
     "react-native-mmkv-storage": "^0.11.2",
     "react-native-modal": "^13.0.1",
     "react-native-picker-select": "^9.3.1",
-    "react-native-reanimated": "^2.14.4",
+    "react-native-reanimated": "~3.2.0",
     "react-native-safe-area-context": "^5.1.0",
     "react-native-screens": "^4.5.0",
     "react-native-searchable-dropdown": "^1.1.3",
@@ -71,10 +72,13 @@
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",
+    "@types/estree": "^1.0.8",
     "@types/i18n-js": "^3.8.9",
+    "@types/json-schema": "^7.0.15",
+    "@types/node": "^24.5.2",
     "@types/react": "~18.3.12",
+    "babel-preset-expo": "^54.0.3",
     "eslint-plugin-react-native": "^5.0.0",
     "typescript": "^5.3.3"
-  },
-  "private": true
+  }
 }
