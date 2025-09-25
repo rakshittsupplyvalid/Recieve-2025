@@ -780,7 +780,8 @@ const CAhealthreport = () => {
             HealthReportDispatchType: state.form.healthReportDispatchType,
             CAStorageId: state.form.StorageData,
             TruckNumber: state.form?.Trucknumber || "",
-          
+            TrainNo: state.form?.TrainNo || "",
+            CoachNo: state.form?.CoachNo || "",
             GrossWeight: parseFloat(state.form?.grossWeight) || 0,
             NetWeight: parseFloat(state.form?.netWeight) || 0,
             TareWeight: parseFloat(state.form?.tareWeight) || 0,

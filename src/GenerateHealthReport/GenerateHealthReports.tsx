@@ -15,7 +15,7 @@ import { useTranslation } from 'react-i18next';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '../../types/Type';
 import Storage from '../../utils/Storage';
-import VideoPlayer from 'react-native-video'; // 👈 yeh sirf video play karne ke liye
+import VideoPlayer from 'react-native-video';
 import { Video as VideoCompressor } from 'react-native-compressor';
 
 
